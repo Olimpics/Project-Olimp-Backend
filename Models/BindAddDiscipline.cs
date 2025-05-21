@@ -5,8 +5,6 @@ namespace OlimpBack.Models;
 
 public partial class BindAddDiscipline
 {
-    internal readonly int IdBindAddDiscipline;
-
     public int IdBindAddDisciplines { get; set; }
 
     public int StudentId { get; set; }
