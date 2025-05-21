@@ -1,0 +1,6 @@
+@OlimpBack_HostAddress = http://localhost:19136
+
+GET {{OlimpBack_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
