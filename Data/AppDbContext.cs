@@ -166,7 +166,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CountAddSemestr8).HasColumnName("countAddSemestr8");
             entity.Property(e => e.Degree)
                 .HasMaxLength(45)
-                .HasColumnName("degree");
+                .HasColumnName("degreeId");
             entity.Property(e => e.NameEducationalProgram)
                 .HasMaxLength(45)
                 .HasColumnName("nameEducationalProgram");

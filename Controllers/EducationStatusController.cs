@@ -4,6 +4,8 @@ using OlimpBack.Models;
 using OlimpBack.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using OlimpBack.DTO;
 
 namespace OlimpBack.Controllers
 {
@@ -12,96 +14,70 @@ namespace OlimpBack.Controllers
     public class EducationStatusController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public EducationStatusController(AppDbContext context)
+        public EducationStatusController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // GET: api/EducationStatus
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EducationStatus>>> GetEducationStatuses()
+        public async Task<ActionResult<IEnumerable<EducationStatusDto>>> GetEducationStatuses()
         {
-            return await _context.EducationStatuses
-                .Include(es => es.Students)
-                .ToListAsync();
+            var statuses = await _context.EducationStatuses.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<EducationStatusDto>>(statuses));
         }
 
-        // GET: api/EducationStatus/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<EducationStatus>> GetEducationStatus(int id)
+        public async Task<ActionResult<EducationStatusDto>> GetEducationStatus(int id)
         {
-            var status = await _context.EducationStatuses
-                .Include(es => es.Students)
-                .FirstOrDefaultAsync(es => es.IdEducationStatus == id);
-
+            var status = await _context.EducationStatuses.FindAsync(id);
             if (status == null)
-            {
                 return NotFound();
-            }
 
-            return status;
+            return Ok(_mapper.Map<EducationStatusDto>(status));
         }
 
-        // POST: api/EducationStatus
         [HttpPost]
-        public async Task<ActionResult<EducationStatus>> CreateEducationStatus(EducationStatus status)
+        public async Task<ActionResult<EducationStatusDto>> CreateEducationStatus(EducationStatusDto statusDto)
         {
+            var status = _mapper.Map<EducationStatus>(statusDto);
             _context.EducationStatuses.Add(status);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEducationStatus), new { id = status.IdEducationStatus }, status);
+            var resultDto = _mapper.Map<EducationStatusDto>(status);
+            return CreatedAtAction(nameof(GetEducationStatus), new { id = status.IdEducationStatus }, resultDto);
         }
 
-        // PUT: api/EducationStatus/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEducationStatus(int id, EducationStatus status)
+        public async Task<IActionResult> UpdateEducationStatus(int id, EducationStatusDto statusDto)
         {
-            if (id != status.IdEducationStatus)
-            {
+            if (id != statusDto.IdEducationStatus)
                 return BadRequest();
-            }
 
-            _context.Entry(status).State = EntityState.Modified;
+            var status = await _context.EducationStatuses.FindAsync(id);
+            if (status == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EducationStatusExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _mapper.Map(statusDto, status);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // DELETE: api/EducationStatus/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEducationStatus(int id)
         {
             var status = await _context.EducationStatuses.FindAsync(id);
             if (status == null)
-            {
                 return NotFound();
-            }
 
             _context.EducationStatuses.Remove(status);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-        private bool EducationStatusExists(int id)
-        {
-            return _context.EducationStatuses.Any(e => e.IdEducationStatus == id);
-        }
     }
-} 
+
+}

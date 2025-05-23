@@ -1,9 +1,12 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
 using OlimpBack.Data;
-using System;
+using OlimpBack.DTO;
+using OlimpBack.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OlimpBack.Controllers
@@ -13,69 +16,64 @@ namespace OlimpBack.Controllers
     public class StudentController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public StudentController(AppDbContext context)
+        public StudentController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Student
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
-            return await _context.Students
-                .Include(s => s.User)
-                .Include(s => s.Status)
-                .Include(s => s.Faculty)
-                .Include(s => s.EducationalDegree)
-                .Include(s => s.StudyForm)
-                .Include(s => s.EducationalProgram)
-                .Include(s => s.BindAddDisciplines)
+            var dtos = await _context.Students
+                .ProjectTo<StudentDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+            return Ok(dtos);
         }
 
         // GET: api/Student/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
             var student = await _context.Students
-                .Include(s => s.User)
-                .Include(s => s.Status)
-                .Include(s => s.Faculty)
-                .Include(s => s.EducationalDegree)
-                .Include(s => s.StudyForm)
-                .Include(s => s.EducationalProgram)
-                .Include(s => s.BindAddDisciplines)
-                .FirstOrDefaultAsync(s => s.IdStudents == id);
+                .Where(s => s.IdStudents == id)
+                .ProjectTo<StudentDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
             if (student == null)
             {
                 return NotFound();
             }
 
-            return student;
+            return Ok(student);
         }
 
         // POST: api/Student
         [HttpPost]
-        public async Task<ActionResult<Student>> CreateStudent(Student student)
+        public async Task<ActionResult<StudentDto>> CreateStudent(CreateStudentDto createDto)
         {
+            var student = _mapper.Map<Student>(createDto);
             _context.Students.Add(student);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetStudent), new { id = student.IdStudents }, student);
+            var dto = _mapper.Map<StudentDto>(student);
+            return CreatedAtAction(nameof(GetStudent), new { id = student.IdStudents }, dto);
         }
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(int id, Student student)
+        public async Task<IActionResult> UpdateStudent(int id, UpdateStudentDto updateDto)
         {
-            if (id != student.IdStudents)
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(student).State = EntityState.Modified;
+            _mapper.Map(updateDto, student);
 
             try
             {
@@ -117,4 +115,4 @@ namespace OlimpBack.Controllers
             return _context.Students.Any(e => e.IdStudents == id);
         }
     }
-} 
+}

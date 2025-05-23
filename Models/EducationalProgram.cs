@@ -21,7 +21,7 @@ public partial class EducationalProgram
 
     public int? CountAddSemestr8 { get; set; }
 
-    public string Degree { get; set; } = null!;
+    public int? Degree { get; set; } = null!;
 
     public string Speciality { get; set; } = null!;
 

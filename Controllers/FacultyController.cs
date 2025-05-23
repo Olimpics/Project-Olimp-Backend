@@ -4,6 +4,8 @@ using OlimpBack.Models;
 using OlimpBack.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using OlimpBack.DTO;
 
 namespace OlimpBack.Controllers
 {
@@ -12,86 +14,64 @@ namespace OlimpBack.Controllers
     public class FacultyController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public FacultyController(AppDbContext context)
+        public FacultyController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // GET: api/Faculty
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Faculty>>> GetFaculties()
+        public async Task<ActionResult<IEnumerable<FacultyDto>>> GetFaculties()
         {
-            return await _context.Faculties
-                .Include(f => f.Students)
-                .ToListAsync();
+            var faculties = await _context.Faculties.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<FacultyDto>>(faculties));
         }
 
-        // GET: api/Faculty/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Faculty>> GetFaculty(int id)
+        public async Task<ActionResult<FacultyDto>> GetFaculty(int id)
         {
-            var faculty = await _context.Faculties
-                .Include(f => f.Students)
-                .FirstOrDefaultAsync(f => f.IdFaculty == id);
-
+            var faculty = await _context.Faculties.FindAsync(id);
             if (faculty == null)
-            {
                 return NotFound();
-            }
 
-            return faculty;
+            return Ok(_mapper.Map<FacultyDto>(faculty));
         }
 
-        // POST: api/Faculty
         [HttpPost]
-        public async Task<ActionResult<Faculty>> CreateFaculty(Faculty faculty)
+        public async Task<ActionResult<FacultyDto>> CreateFaculty(FacultyDto facultyDto)
         {
+            var faculty = _mapper.Map<Faculty>(facultyDto);
             _context.Faculties.Add(faculty);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetFaculty), new { id = faculty.IdFaculty }, faculty);
+            var resultDto = _mapper.Map<FacultyDto>(faculty);
+            return CreatedAtAction(nameof(GetFaculty), new { id = faculty.IdFaculty }, resultDto);
         }
 
-        // PUT: api/Faculty/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateFaculty(int id, Faculty faculty)
+        public async Task<IActionResult> UpdateFaculty(int id, FacultyDto facultyDto)
         {
-            if (id != faculty.IdFaculty)
-            {
+            if (id != facultyDto.IdFaculty)
                 return BadRequest();
-            }
 
-            _context.Entry(faculty).State = EntityState.Modified;
+            var faculty = await _context.Faculties.FindAsync(id);
+            if (faculty == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!FacultyExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _mapper.Map(facultyDto, faculty);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // DELETE: api/Faculty/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFaculty(int id)
         {
             var faculty = await _context.Faculties.FindAsync(id);
             if (faculty == null)
-            {
                 return NotFound();
-            }
 
             _context.Faculties.Remove(faculty);
             await _context.SaveChangesAsync();
@@ -104,4 +84,5 @@ namespace OlimpBack.Controllers
             return _context.Faculties.Any(e => e.IdFaculty == id);
         }
     }
-} 
+
+}

@@ -16,4 +16,5 @@ public partial class BindAddDiscipline
     public int Loans { get; set; }
 
     public virtual Student Student { get; set; } = null!;
+    public virtual AddDiscipline AddDiscipline { get; set; } = null!;
 }

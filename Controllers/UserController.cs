@@ -1,72 +1,80 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
 using OlimpBack.Data;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using OlimpBack.DTO;
+using OlimpBack.Models;
 
 namespace OlimpBack.Controllers
 {
+    // Controllers/UserController.cs
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly AppDbContext _context;
 
-        public UserController(AppDbContext context)
+        public UserController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/User
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserRoleDto>>> GetUsers()
         {
-            return await _context.Users
-                .Include(u => u.Role)
-                .Include(u => u.Student)
+            var dtos = await _context.Users
+                .ProjectTo<UserRoleDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            return Ok(dtos);
         }
 
         // GET: api/User/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserRoleDto>> GetUser(int id)
         {
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .Include(u => u.Student)
-                .FirstOrDefaultAsync(u => u.IdUsers == id);
+            var dto = await _context.Users
+                .Where(u => u.IdUsers == id)
+                .ProjectTo<UserRoleDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
-            if (user == null)
-            {
+            if (dto == null)
                 return NotFound();
-            }
 
-            return user;
+            return Ok(dto);
         }
 
         // POST: api/User
         [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(User user)
+        public async Task<ActionResult<UserRoleDto>> CreateUser(CreateUserDto dto)
         {
+            var user = _mapper.Map<User>(dto);
             user.LastLoginAt = DateTime.UtcNow;
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.IdUsers }, user);
+            var resultDto = await _context.Users
+                .Where(u => u.IdUsers == user.IdUsers)
+                .ProjectTo<UserRoleDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.IdUsers }, resultDto);
         }
 
         // PUT: api/User/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User user)
+        public async Task<IActionResult> UpdateUser(int id, UpdateUserDto dto)
         {
-            if (id != user.IdUsers)
-            {
-                return BadRequest();
-            }
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound();
 
-            _context.Entry(user).State = EntityState.Modified;
+            _mapper.Map(dto, user);
 
             try
             {
@@ -74,14 +82,8 @@ namespace OlimpBack.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!UserExists(id)) return NotFound();
+                throw;
             }
 
             return NoContent();
@@ -93,9 +95,7 @@ namespace OlimpBack.Controllers
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
-            {
                 return NotFound();
-            }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
@@ -108,4 +108,5 @@ namespace OlimpBack.Controllers
             return _context.Users.Any(e => e.IdUsers == id);
         }
     }
-} 
+
+}

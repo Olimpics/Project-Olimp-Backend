@@ -4,6 +4,8 @@ using OlimpBack.Models;
 using OlimpBack.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using OlimpBack.DTO;
 
 namespace OlimpBack.Controllers
 {
@@ -12,73 +14,58 @@ namespace OlimpBack.Controllers
     public class RoleController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public RoleController(AppDbContext context)
+        public RoleController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Role
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
+        public async Task<ActionResult<IEnumerable<RoleDto>>> GetRoles()
         {
-            return await _context.Roles
-                .Include(r => r.Users)
-                .ToListAsync();
+            var roles = await _context.Roles.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<RoleDto>>(roles));
         }
 
         // GET: api/Role/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Role>> GetRole(int id)
+        public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
-            var role = await _context.Roles
-                .Include(r => r.Users)
-                .FirstOrDefaultAsync(r => r.IdRole == id);
-
+            var role = await _context.Roles.FindAsync(id);
             if (role == null)
-            {
                 return NotFound();
-            }
 
-            return role;
+            return Ok(_mapper.Map<RoleDto>(role));
         }
 
         // POST: api/Role
         [HttpPost]
-        public async Task<ActionResult<Role>> CreateRole(Role role)
+        public async Task<ActionResult<RoleDto>> CreateRole(RoleDto roleDto)
         {
+            var role = _mapper.Map<Role>(roleDto);
             _context.Roles.Add(role);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetRole), new { id = role.IdRole }, role);
+            var resultDto = _mapper.Map<RoleDto>(role);
+            return CreatedAtAction(nameof(GetRole), new { id = role.IdRole }, resultDto);
         }
 
         // PUT: api/Role/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRole(int id, Role role)
+        public async Task<IActionResult> UpdateRole(int id, RoleDto roleDto)
         {
-            if (id != role.IdRole)
-            {
+            if (id != roleDto.IdRole)
                 return BadRequest();
-            }
 
-            _context.Entry(role).State = EntityState.Modified;
+            var role = await _context.Roles.FindAsync(id);
+            if (role == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RoleExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _mapper.Map(roleDto, role);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -89,9 +76,7 @@ namespace OlimpBack.Controllers
         {
             var role = await _context.Roles.FindAsync(id);
             if (role == null)
-            {
                 return NotFound();
-            }
 
             _context.Roles.Remove(role);
             await _context.SaveChangesAsync();
@@ -104,4 +89,5 @@ namespace OlimpBack.Controllers
             return _context.Roles.Any(e => e.IdRole == id);
         }
     }
-} 
+
+}

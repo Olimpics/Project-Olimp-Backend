@@ -1,95 +1,80 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
 using OlimpBack.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using OlimpBack.DTO;
+using OlimpBack.Models;
 
 namespace OlimpBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class AddDisciplineController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public AddDisciplineController(AppDbContext context)
+        public AddDisciplineController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // GET: api/AddDiscipline
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AddDiscipline>>> GetAddDisciplines()
+        public async Task<ActionResult<IEnumerable<AddDisciplineDto>>> GetAddDisciplines()
         {
-            return await _context.AddDisciplines
+            var disciplines = await _context.AddDisciplines
+                .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+            return Ok(disciplines);
         }
 
-        // GET: api/AddDiscipline/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<AddDiscipline>> GetAddDiscipline(int id)
+        public async Task<ActionResult<AddDisciplineDto>> GetAddDiscipline(int id)
         {
             var discipline = await _context.AddDisciplines
-                .FirstOrDefaultAsync(ad => ad.idAddDisciplines == id);
+                .Where(d => d.idAddDisciplines == id)
+                .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
             if (discipline == null)
             {
                 return NotFound();
             }
 
-            return discipline;
+            return Ok(discipline);
         }
 
-        // POST: api/AddDiscipline
         [HttpPost]
-        public async Task<ActionResult<AddDiscipline>> CreateAddDiscipline(AddDiscipline discipline)
+        public async Task<ActionResult<AddDisciplineDto>> CreateAddDiscipline(CreateAddDisciplineDto dto)
         {
+            var discipline = _mapper.Map<AddDiscipline>(dto);
             _context.AddDisciplines.Add(discipline);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.idAddDisciplines }, discipline);
+            var result = _mapper.Map<AddDisciplineDto>(discipline);
+            return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.idAddDisciplines }, result);
         }
 
-        // PUT: api/AddDiscipline/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAddDiscipline(int id, AddDiscipline discipline)
+        public async Task<IActionResult> UpdateAddDiscipline(int id, CreateAddDisciplineDto dto)
         {
-            if (id != discipline.idAddDisciplines)
-            {
-                return BadRequest();
-            }
+            var discipline = await _context.AddDisciplines.FindAsync(id);
+            if (discipline == null) return NotFound();
 
-            _context.Entry(discipline).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AddDisciplineExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _mapper.Map(dto, discipline);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // DELETE: api/AddDiscipline/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddDiscipline(int id)
         {
             var discipline = await _context.AddDisciplines.FindAsync(id);
-            if (discipline == null)
-            {
-                return NotFound();
-            }
+            if (discipline == null) return NotFound();
 
             _context.AddDisciplines.Remove(discipline);
             await _context.SaveChangesAsync();
@@ -101,5 +86,6 @@ namespace OlimpBack.Controllers
         {
             return _context.AddDisciplines.Any(e => e.idAddDisciplines == id);
         }
-    }
-} 
+
+    } 
+}

@@ -1,8 +1,12 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
 using OlimpBack.Data;
+using OlimpBack.DTO;
+using OlimpBack.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OlimpBack.Controllers
@@ -12,59 +16,66 @@ namespace OlimpBack.Controllers
     public class BindAddDisciplineController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public BindAddDisciplineController(AppDbContext context)
+        public BindAddDisciplineController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/BindAddDiscipline
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BindAddDiscipline>>> GetBindAddDisciplines()
+        public async Task<ActionResult<IEnumerable<BindAddDisciplineDto>>> GetBindAddDisciplines()
         {
-            return await _context.BindAddDisciplines
-                .Include(bad => bad.Student)
-                .Include(bad => bad.AddDisciplinesId)
+            var dtos = await _context.BindAddDisciplines
+                .ProjectTo<BindAddDisciplineDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            return Ok(dtos);
         }
 
         // GET: api/BindAddDiscipline/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<BindAddDiscipline>> GetBindAddDiscipline(int id)
+        public async Task<ActionResult<BindAddDisciplineDto>> GetBindAddDiscipline(int id)
         {
             var bindDiscipline = await _context.BindAddDisciplines
+                .Where(bad => bad.IdBindAddDisciplines == id)
                 .Include(bad => bad.Student)
-                .Include(bad => bad.AddDisciplinesId)
-                .FirstOrDefaultAsync(bad => bad.IdBindAddDisciplines == id);
+                .ProjectTo<BindAddDisciplineDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
             if (bindDiscipline == null)
             {
                 return NotFound();
             }
 
-            return bindDiscipline;
+            return Ok(bindDiscipline);
         }
 
         // POST: api/BindAddDiscipline
         [HttpPost]
-        public async Task<ActionResult<BindAddDiscipline>> CreateBindAddDiscipline(BindAddDiscipline bindDiscipline)
+        public async Task<ActionResult<BindAddDisciplineDto>> CreateBindAddDiscipline(CreateBindAddDisciplineDto createDto)
         {
-            _context.BindAddDisciplines.Add(bindDiscipline);
+            var bind = _mapper.Map<BindAddDiscipline>(createDto);
+            _context.BindAddDisciplines.Add(bind);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetBindAddDiscipline), new { id = bindDiscipline.IdBindAddDisciplines }, bindDiscipline);
+            var dto = _mapper.Map<BindAddDisciplineDto>(bind);
+            return CreatedAtAction(nameof(GetBindAddDiscipline), new { id = bind.IdBindAddDisciplines }, dto);
         }
 
         // PUT: api/BindAddDiscipline/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBindAddDiscipline(int id, BindAddDiscipline bindDiscipline)
+        public async Task<IActionResult> UpdateBindAddDiscipline(int id, UpdateBindAddDisciplineDto updateDto)
         {
-            if (id != bindDiscipline.IdBindAddDisciplines)
+            var bind = await _context.BindAddDisciplines.FindAsync(id);
+            if (bind == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(bindDiscipline).State = EntityState.Modified;
+            _mapper.Map(updateDto, bind);
 
             try
             {
@@ -89,13 +100,13 @@ namespace OlimpBack.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBindAddDiscipline(int id)
         {
-            var bindDiscipline = await _context.BindAddDisciplines.FindAsync(id);
-            if (bindDiscipline == null)
+            var bind = await _context.BindAddDisciplines.FindAsync(id);
+            if (bind == null)
             {
                 return NotFound();
             }
 
-            _context.BindAddDisciplines.Remove(bindDiscipline);
+            _context.BindAddDisciplines.Remove(bind);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -106,4 +117,4 @@ namespace OlimpBack.Controllers
             return _context.BindAddDisciplines.Any(e => e.IdBindAddDisciplines == id);
         }
     }
-} 
+}

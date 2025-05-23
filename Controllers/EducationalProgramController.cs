@@ -4,6 +4,8 @@ using OlimpBack.Models;
 using OlimpBack.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using OlimpBack.DTO;
 
 namespace OlimpBack.Controllers
 {
@@ -12,57 +14,54 @@ namespace OlimpBack.Controllers
     public class EducationalProgramController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public EducationalProgramController(AppDbContext context)
+        public EducationalProgramController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // GET: api/EducationalProgram
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EducationalProgram>>> GetEducationalPrograms()
+        public async Task<ActionResult<IEnumerable<EducationalProgramDto>>> GetEducationalPrograms()
         {
-            return await _context.EducationalPrograms
-                .Include(ep => ep.Students)
+            var programs = await _context.EducationalPrograms
                 .ToListAsync();
+
+            return Ok(_mapper.Map<IEnumerable<EducationalProgramDto>>(programs));
         }
 
-        // GET: api/EducationalProgram/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<EducationalProgram>> GetEducationalProgram(int id)
+        public async Task<ActionResult<EducationalProgramDto>> GetEducationalProgram(int id)
         {
             var program = await _context.EducationalPrograms
-                .Include(ep => ep.Students)
-                .FirstOrDefaultAsync(ep => ep.IdEducationalProgram == id);
+                .FirstOrDefaultAsync(p => p.IdEducationalProgram == id);
 
             if (program == null)
-            {
                 return NotFound();
-            }
 
-            return program;
+            return Ok(_mapper.Map<EducationalProgramDto>(program));
         }
 
-        // POST: api/EducationalProgram
         [HttpPost]
-        public async Task<ActionResult<EducationalProgram>> CreateEducationalProgram(EducationalProgram program)
+        public async Task<ActionResult<EducationalProgramDto>> CreateEducationalProgram(CreateEducationalProgramDto dto)
         {
-            _context.EducationalPrograms.Add(program);
+            var entity = _mapper.Map<EducationalProgram>(dto);
+            _context.EducationalPrograms.Add(entity);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEducationalProgram), new { id = program.IdEducationalProgram }, program);
+            var resultDto = _mapper.Map<EducationalProgramDto>(entity);
+            return CreatedAtAction(nameof(GetEducationalProgram), new { id = entity.IdEducationalProgram }, resultDto);
         }
 
-        // PUT: api/EducationalProgram/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEducationalProgram(int id, EducationalProgram program)
+        public async Task<IActionResult> UpdateEducationalProgram(int id, UpdateEducationalProgramDto dto)
         {
-            if (id != program.IdEducationalProgram)
-            {
+            if (id != dto.IdEducationalProgram)
                 return BadRequest();
-            }
 
-            _context.Entry(program).State = EntityState.Modified;
+            var entity = _mapper.Map<EducationalProgram>(dto);
+            _context.Entry(entity).State = EntityState.Modified;
 
             try
             {
@@ -71,27 +70,20 @@ namespace OlimpBack.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!EducationalProgramExists(id))
-                {
                     return NotFound();
-                }
                 else
-                {
                     throw;
-                }
             }
 
             return NoContent();
         }
 
-        // DELETE: api/EducationalProgram/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEducationalProgram(int id)
         {
             var program = await _context.EducationalPrograms.FindAsync(id);
             if (program == null)
-            {
                 return NotFound();
-            }
 
             _context.EducationalPrograms.Remove(program);
             await _context.SaveChangesAsync();
@@ -104,4 +96,5 @@ namespace OlimpBack.Controllers
             return _context.EducationalPrograms.Any(e => e.IdEducationalProgram == id);
         }
     }
-} 
+
+}
