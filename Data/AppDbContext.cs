@@ -90,6 +90,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Bind_Student");
+
+            entity.HasOne(d => d.AddDiscipline).WithMany()
+                .HasForeignKey(d => d.AddDisciplinesId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Bind_AddCourse");
         });
 
         modelBuilder.Entity<BindMainDiscipline>(entity =>

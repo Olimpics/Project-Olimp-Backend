@@ -1,4 +1,6 @@
-﻿namespace OlimpBack.DTO
+﻿using OlimpBack.Models;
+
+namespace OlimpBack.DTO
 {
     public class BindAddDisciplineDto
     {

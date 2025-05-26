@@ -28,10 +28,10 @@ namespace OlimpBack.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BindAddDisciplineDto>>> GetBindAddDisciplines()
         {
-            var dtos = await _context.BindAddDisciplines
-                .ProjectTo<BindAddDisciplineDto>(_mapper.ConfigurationProvider)
+            var bindDisciplines = await _context.BindAddDisciplines
                 .ToListAsync();
 
+            var dtos = _mapper.Map<IEnumerable<BindAddDisciplineDto>>(bindDisciplines);
             return Ok(dtos);
         }
 
