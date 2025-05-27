@@ -85,6 +85,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdBindAddDisciplines)
                 .ValueGeneratedNever()
                 .HasColumnName("idBindAddDisciplines");
+            entity.Property(e => e.InProcess).HasColumnName("inProcess");
             entity.Property(e => e.Loans).HasDefaultValueSql("'5'");
 
             entity.HasOne(d => d.AddDisciplines).WithMany(p => p.BindAddDisciplines)

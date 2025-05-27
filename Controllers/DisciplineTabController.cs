@@ -31,6 +31,7 @@ namespace OlimpBack.Controllers
             // Get the student with educational degree to determine their current course
             var student = await _context.Students
                 .Include(s => s.EducationalDegree)
+                .Include(s => s.BindAddDisciplines)
                 .FirstOrDefaultAsync(s => s.IdStudents == studentId);
 
             if (student == null)
@@ -49,10 +50,133 @@ namespace OlimpBack.Controllers
                 .Where(d => d.DegreeLevel == student.EducationalDegree.NameEducationalDegreec) // Check degree level
                 .ToListAsync();
 
+            // Get count of people for each discipline
+            var disciplineCounts = await _context.BindAddDisciplines
+                .Where(b => b.InProcess == true)
+                .GroupBy(b => b.AddDisciplinesId)
+                .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
+
+            // Filter out disciplines that student is already enrolled in
+            var availableDisciplines = disciplines
+                .Where(d => !student.BindAddDisciplines.Any(b => b.AddDisciplinesId == d.IdAddDisciplines))
+                .Select(d => {
+                    var countOfPeople = disciplineCounts.ContainsKey(d.IdAddDisciplines) ? disciplineCounts[d.IdAddDisciplines] : 0;
+                    var isAvailable = !d.MaxCountPeople.HasValue || countOfPeople < d.MaxCountPeople.Value;
+
+                    return new FullDisciplineDto
+                    {
+                        IdAddDisciplines = d.IdAddDisciplines,
+                        NameAddDisciplines = d.NameAddDisciplines,
+                        CodeAddDisciplines = d.CodeAddDisciplines,
+                        Faculty = d.Faculty,
+                        Department = d.Department,
+                        MinCountPeople = d.MinCountPeople,
+                        MaxCountPeople = d.MaxCountPeople,
+                        MinCourse = d.MinCourse,
+                        MaxCourse = d.MaxCourse,
+                        AddSemestr = d.AddSemestr,
+                        Recomend = d.Recomend,
+                        Teacher = d.Teacher,
+                        Prerequisites = d.Prerequisites,
+                        DegreeLevel = d.DegreeLevel,
+                        IsAvailable = isAvailable,
+                        CountOfPeople = countOfPeople
+                    };
+                })
+                .ToList();
+
             // Map the result to DTO
-            var response = _mapper.Map<DisciplineTabResponseDto>((student, disciplines, currentCourse, isEvenSemester));
+            var response = new DisciplineTabResponseDto
+            {
+                StudentId = student.IdStudents,
+                StudentName = student.NameStudent,
+                CurrentCourse = currentCourse,
+                IsEvenSemester = isEvenSemester,
+                Disciplines = availableDisciplines
+            };
 
             return Ok(response);
+        }
+
+        [HttpGet("GetAllDisciplinesWithAvailability")]
+        public async Task<ActionResult<List<DisciplineWithAvailabilityDto>>> GetAllDisciplinesWithAvailability(
+            [FromQuery] int studentId)
+        {
+            // Get the student with educational degree to determine their current course
+            var student = await _context.Students
+                .Include(s => s.EducationalDegree)
+                .Include(s => s.BindAddDisciplines)
+                .FirstOrDefaultAsync(s => s.IdStudents == studentId);
+
+            if (student == null)
+            {
+                return NotFound("Student not found");
+            }
+
+            // Calculate the current course based on education start date
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+            var yearsDifference = currentDate.Year - student.EducationStart.Year;
+            var currentCourse = yearsDifference + 1;
+
+            // Get all disciplines
+            var allDisciplines = await _context.AddDisciplines.ToListAsync();
+            var result = new List<DisciplineWithAvailabilityDto>();
+
+            foreach (var discipline in allDisciplines)
+            {
+                var disciplineDto = _mapper.Map<DisciplineWithAvailabilityDto>(discipline);
+                disciplineDto.IsAvailable = true;
+
+                // Check if discipline is already taken by the student
+                if (student.BindAddDisciplines.Any(b => b.AddDisciplinesId == discipline.IdAddDisciplines))
+                {
+                    disciplineDto.IsAvailable = false;
+                    result.Add(disciplineDto);
+                    continue;
+                }
+
+                // Check degree level
+                if (discipline.DegreeLevel != null && discipline.DegreeLevel != student.EducationalDegree.NameEducationalDegreec)
+                {
+                    disciplineDto.IsAvailable = false;
+                    result.Add(disciplineDto);
+                    continue;
+                }
+
+                // Check course restrictions
+                if (discipline.MinCourse != null && currentCourse < discipline.MinCourse)
+                {
+                    disciplineDto.IsAvailable = false;
+                    result.Add(disciplineDto);
+                    continue;
+                }
+
+                if (discipline.MaxCourse != null && currentCourse > discipline.MaxCourse)
+                {
+                    disciplineDto.IsAvailable = false;
+                    result.Add(disciplineDto);
+                    continue;
+                }
+
+                // Check semester restrictions
+                if (discipline.AddSemestr != null)
+                {
+                    var isEvenSemester = currentDate.Month >= 9 && currentDate.Month <= 12 || currentDate.Month >= 2 && currentDate.Month <= 6;
+                    var disciplineSemester = discipline.AddSemestr == 0;
+                    
+                    if (isEvenSemester != disciplineSemester)
+                    {
+                        disciplineDto.IsAvailable = false;
+                        result.Add(disciplineDto);
+                        continue;
+                    }
+                }
+
+                result.Add(disciplineDto);
+            }
+
+            return Ok(result);
         }
     }
 } 
