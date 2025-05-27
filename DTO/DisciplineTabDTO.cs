@@ -11,6 +11,13 @@ namespace OlimpBack.DTO
         public List<SimpleDisciplineDto> Disciplines { get; set; } = new List<SimpleDisciplineDto>();
     }
 
+    public class SimpleDisciplineDto
+    {
+        public int IdAddDisciplines { get; set; }
+        public string NameAddDisciplines { get; set; } = null!;
+        public string CodeAddDisciplines { get; set; } = null!;
+    }
+
     public class FullDisciplineDto
     {
         public int IdAddDisciplines { get; set; }
@@ -31,4 +38,10 @@ namespace OlimpBack.DTO
         public int CountOfPeople { get; set; }
     }
 
+    public class AddDisciplineBindDto
+    {
+        public int StudentId { get; set; }
+        public int DisciplineId { get; set; }
+        public int Semester { get; set; }
+    }
 } 

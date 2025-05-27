@@ -25,24 +25,24 @@ namespace OlimpBack.Controllers
 
         private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople)
         {
-            // Уже записан на дисциплину
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (student.BindAddDisciplines.Any(b => b.AddDisciplinesId == discipline.IdAddDisciplines))
                 return false;
 
-            // Уровень образования не совпадает
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (!string.IsNullOrEmpty(discipline.DegreeLevel) &&
                 discipline.DegreeLevel != student.EducationalDegree.NameEducationalDegreec)
                 return false;
 
-            // Курс меньше минимального
-            if (discipline.MinCourse.HasValue && currentCourse < discipline.MinCourse)
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+            if (discipline.MinCourse.HasValue && (currentCourse + 1) < discipline.MinCourse)
                 return false;
 
-            // Курс больше максимального
-            if (discipline.MaxCourse.HasValue && currentCourse > discipline.MaxCourse)
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+            if (discipline.MaxCourse.HasValue && (currentCourse + 1) > discipline.MaxCourse)
                 return false;
 
-            // Проверка семестра
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (discipline.AddSemestr.HasValue)
             {
                 bool currentIsEven = DateTime.Now.Month switch
@@ -51,13 +51,9 @@ namespace OlimpBack.Controllers
                     >= 9 and <= 12 => true,
                     _ => false
                 };
-
-                bool disciplineIsEven = discipline.AddSemestr == 0;
-                if (currentIsEven != disciplineIsEven)
-                    return false;
             }
 
-            // Превышен лимит студентов
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (discipline.MaxCountPeople.HasValue && countOfPeople >= discipline.MaxCountPeople.Value)
                 return false;
 
@@ -98,6 +94,7 @@ namespace OlimpBack.Controllers
                 })
                 .Select(d => new SimpleDisciplineDto
                 {
+                    IdAddDisciplines = d.IdAddDisciplines,
                     NameAddDisciplines = d.NameAddDisciplines,
                     CodeAddDisciplines = d.CodeAddDisciplines
                 })
@@ -111,6 +108,90 @@ namespace OlimpBack.Controllers
                 IsEvenSemester = isEvenSemester,
                 Disciplines = availableDisciplines
             });
+        }
+        [HttpPost("AddDisciplineBind")]
+        public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
+        {
+            try
+            {
+                // Check if student exists
+                var student = await _context.Students
+                    .Include(s => s.EducationalDegree)
+                    .Include(s => s.BindAddDisciplines)
+                    .FirstOrDefaultAsync(s => s.IdStudents == dto.StudentId);
+
+                if (student == null)
+                {
+                    return NotFound(new { error = "Student not found" });
+                }
+
+                if (dto.Semester != 0 && dto.Semester != 1)
+                {
+                    return NotFound(new { error = "Semester non binary like 1 or 0 "});
+                }
+                // Calculate current course and semester
+                var currentDate = DateOnly.FromDateTime(DateTime.Now);
+                int currentCourse = currentDate.Year - student.EducationStart.Year;
+
+                // Calculate target semester (next course)
+                int targetCourse = currentCourse + 1;
+                int targetSemester = (targetCourse * 2) - dto.Semester;
+
+                // Validate semester
+                if (targetSemester > 8)
+                {
+                    return BadRequest(new { error = $"Invalid semester. Expected semester for next course is {targetSemester}" });
+                }
+
+                // Check if discipline exists
+                var discipline = await _context.AddDisciplines
+                    .FirstOrDefaultAsync(d => d.IdAddDisciplines == dto.DisciplineId);
+
+                if (discipline == null)
+                {
+                    return NotFound(new { error = "Discipline not found" });
+                }
+
+                // Check if student is already enrolled in this discipline
+                if (student.BindAddDisciplines.AsQueryable().Any(b => b.AddDisciplinesId == dto.DisciplineId))
+                {
+                    return BadRequest(new { error = "Student is already enrolled in this discipline" });
+                }
+
+                // Get count of people for the discipline
+                var countOfPeople = await _context.BindAddDisciplines
+                    .AsQueryable()
+                    .Where(b => b.AddDisciplinesId == dto.DisciplineId && b.InProcess)
+                    .CountAsync();
+
+                // Check if discipline is available for the student
+                if (!IsDisciplineAvailableForStudent(discipline, student, currentCourse, countOfPeople))
+                {
+                    return BadRequest(new { error = "Discipline is not available for this student" });
+                }
+
+                // Create new bind
+                var bindDiscipline = new BindAddDiscipline
+                {
+                    StudentId = dto.StudentId,
+                    AddDisciplinesId = dto.DisciplineId,
+                    Semestr = targetSemester,
+                    InProcess = true,
+                    Loans = 5 // Default value
+                };
+
+                _context.BindAddDisciplines.Add(bindDiscipline);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = "Discipline successfully bound to student",
+                    bindId = bindDiscipline.IdBindAddDisciplines
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while processing your request", details = ex.Message });
+            }
         }
         [HttpGet("GetAllDisciplinesWithAvailability")]
         public async Task<ActionResult<List<FullDisciplineDto>>> GetAllDisciplinesWithAvailability([FromQuery] int studentId)
