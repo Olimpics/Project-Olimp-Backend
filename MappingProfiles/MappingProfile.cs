@@ -34,7 +34,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<AddDiscipline, AddDisciplineDto>();
             CreateMap<CreateAddDisciplineDto, AddDiscipline>();
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
-            CreateMap<AddDiscipline, DisciplineWithAvailabilityDto>();
+            CreateMap<AddDiscipline, FullDisciplineDto>();
 
             // BindAddDiscipline
             CreateMap<BindAddDiscipline, BindAddDisciplineDto>()

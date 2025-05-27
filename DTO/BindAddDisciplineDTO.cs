@@ -11,6 +11,7 @@ namespace OlimpBack.DTO
         public string AddDisciplineName { get; set; } = string.Empty;
         public int Semestr { get; set; }
         public int Loans { get; set; }
+        public bool InProcess { get; set; }
     }
 
     public class CreateBindAddDisciplineDto
