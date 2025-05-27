@@ -12,7 +12,7 @@
         public string StudyFormName { get; set; }
         public DateOnly EducationStart { get; set; }
         public DateOnly EducationEnd { get; set; }
-        public bool IsShort { get; set; }
+        public SByte IsShort { get; set; }
     }
 
     // DTO/CreateStudentDto.cs
@@ -26,7 +26,7 @@
         public int FacultyId { get; set; }
         public int EducationalDegreeId { get; set; }
         public int StudyFormId { get; set; }
-        public bool IsShort { get; set; }
+        public SByte IsShort { get; set; }
         public int EducationalProgramId { get; set; }
     }
 

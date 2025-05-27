@@ -37,7 +37,7 @@ public class StudentPageController:ControllerBase
     {
         var student = await _context.Students
             .Include(s => s.BindAddDisciplines)
-                .ThenInclude(bad => bad.AddDiscipline)
+                .ThenInclude(bad => bad.AddDisciplines)
             .Include(s => s.EducationalProgram)
                 .ThenInclude(ep => ep.BindMainDisciplines)
             .FirstOrDefaultAsync(s => s.IdStudents == studentId);
@@ -63,7 +63,7 @@ public class StudentPageController:ControllerBase
     {
         var student = await _context.Students
             .Include(s => s.BindAddDisciplines)
-                .ThenInclude(bad => bad.AddDiscipline)
+                .ThenInclude(bad => bad.AddDisciplines)
             .Include(s => s.EducationalProgram)
                 .ThenInclude(ep => ep.BindMainDisciplines)
             .Include(s => s.EducationalDegree)

@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class AddDiscipline
 {
-    public int idAddDisciplines { get; set; }
+    public int IdAddDisciplines { get; set; }
 
     public string NameAddDisciplines { get; set; } = null!;
 
@@ -23,7 +23,7 @@ public partial class AddDiscipline
 
     public int? MaxCourse { get; set; }
 
-    public string? AddSemestr { get; set; }
+    public sbyte? AddSemestr { get; set; }
 
     public string? Recomend { get; set; }
 
@@ -32,4 +32,6 @@ public partial class AddDiscipline
     public string? Prerequisites { get; set; }
 
     public string? DegreeLevel { get; set; }
+
+    public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
 }

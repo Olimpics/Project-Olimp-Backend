@@ -51,10 +51,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<AddDiscipline>(entity =>
         {
-            entity.HasKey(e => e.idAddDisciplines).HasName("PRIMARY");
+            entity.HasKey(e => e.IdAddDisciplines).HasName("PRIMARY");
 
-            entity.Property(e => e.idAddDisciplines).HasColumnName("idAddDisciplines");
-            entity.Property(e => e.AddSemestr).HasColumnType("enum('Парний','Непарний')");
+            entity.HasIndex(e => e.IdAddDisciplines, "idAddDisciplines_UNIQUE").IsUnique();
+
+            entity.Property(e => e.IdAddDisciplines).HasColumnName("idAddDisciplines");
             entity.Property(e => e.CodeAddDisciplines)
                 .HasMaxLength(45)
                 .HasColumnName("codeAddDisciplines");
@@ -86,15 +87,15 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("idBindAddDisciplines");
             entity.Property(e => e.Loans).HasDefaultValueSql("'5'");
 
+            entity.HasOne(d => d.AddDisciplines).WithMany(p => p.BindAddDisciplines)
+                .HasForeignKey(d => d.AddDisciplinesId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Bind_AddDisciple");
+
             entity.HasOne(d => d.Student).WithMany(p => p.BindAddDisciplines)
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Bind_Student");
-
-            entity.HasOne(d => d.AddDiscipline).WithMany()
-                .HasForeignKey(d => d.AddDisciplinesId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Bind_AddCourse");
         });
 
         modelBuilder.Entity<BindMainDiscipline>(entity =>
@@ -156,12 +157,14 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("EducationalProgram");
 
+            entity.HasIndex(e => e.DegreeId, "EducationalProgram_EducationalDegree_idx");
+
             entity.Property(e => e.IdEducationalProgram)
                 .ValueGeneratedNever()
                 .HasColumnName("idEducationalProgram");
             entity.Property(e => e.Accreditation).HasColumnName("accreditation");
             entity.Property(e => e.AccreditationType)
-                .HasMaxLength(45)
+                .HasMaxLength(200)
                 .HasColumnName("accreditationType");
             entity.Property(e => e.CountAddSemestr3).HasColumnName("countAddSemestr3");
             entity.Property(e => e.CountAddSemestr4).HasColumnName("countAddSemestr4");
@@ -169,16 +172,19 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CountAddSemestr6).HasColumnName("countAddSemestr6");
             entity.Property(e => e.CountAddSemestr7).HasColumnName("countAddSemestr7");
             entity.Property(e => e.CountAddSemestr8).HasColumnName("countAddSemestr8");
-            entity.Property(e => e.Degree)
-                .HasMaxLength(45)
-                .HasColumnName("degreeId");
+            entity.Property(e => e.DegreeId).HasColumnName("degreeId");
             entity.Property(e => e.NameEducationalProgram)
-                .HasMaxLength(45)
+                .HasMaxLength(200)
                 .HasColumnName("nameEducationalProgram");
             entity.Property(e => e.Speciality)
-                .HasMaxLength(45)
+                .HasMaxLength(200)
                 .HasColumnName("speciality");
             entity.Property(e => e.StudentsAmount).HasColumnName("studentsAmount");
+
+            entity.HasOne(d => d.Degree).WithMany(p => p.EducationalPrograms)
+                .HasForeignKey(d => d.DegreeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("EducationalProgram_EducationalDegree");
         });
 
         modelBuilder.Entity<Faculty>(entity =>
@@ -189,7 +195,7 @@ public partial class AppDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("idFaculty");
             entity.Property(e => e.NameFaculty)
-                .HasMaxLength(45)
+                .HasMaxLength(200)
                 .HasColumnName("nameFaculty");
         });
 

@@ -23,7 +23,7 @@ public partial class Student
 
     public int StudyFormId { get; set; }
 
-    public Boolean IsShort { get; set; }
+    public sbyte IsShort { get; set; }
 
     public int EducationalProgramId { get; set; }
 

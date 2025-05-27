@@ -9,5 +9,7 @@ public partial class EducationalDegree
 
     public string NameEducationalDegreec { get; set; } = null!;
 
+    public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

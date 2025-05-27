@@ -21,7 +21,7 @@ public partial class EducationalProgram
 
     public int? CountAddSemestr8 { get; set; }
 
-    public int? Degree { get; set; } = null!;
+    public int DegreeId { get; set; }
 
     public string Speciality { get; set; } = null!;
 
@@ -32,6 +32,8 @@ public partial class EducationalProgram
     public uint StudentsAmount { get; set; }
 
     public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
+
+    public virtual EducationalDegree Degree { get; set; } = null!;
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

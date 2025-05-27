@@ -33,13 +33,14 @@ namespace OlimpBack.MappingProfiles
             //AddDisciplines
             CreateMap<AddDiscipline, AddDisciplineDto>();
             CreateMap<CreateAddDisciplineDto, AddDiscipline>();
+            CreateMap<AddDiscipline, SimpleDisciplineDto>();
 
             // BindAddDiscipline
             CreateMap<BindAddDiscipline, BindAddDisciplineDto>()
                 .ForMember(dest => dest.StudentFullName,
                            opt => opt.MapFrom(src => src.Student.NameStudent))
                 .ForMember(dest => dest.AddDisciplineName,
-                           opt => opt.MapFrom(src => src.AddDiscipline.NameAddDisciplines));
+                           opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines));
 
             CreateMap<CreateBindAddDisciplineDto, BindAddDiscipline>();
             CreateMap<UpdateBindAddDisciplineDto, BindAddDiscipline>();
@@ -81,6 +82,14 @@ namespace OlimpBack.MappingProfiles
 
             //StudyForm
             CreateMap<StudyForm, StudyFormDto>().ReverseMap();
+
+            //DisciplineTab
+            CreateMap<(Student student, List<AddDiscipline> disciplines, int currentCourse, bool isEvenSemester), DisciplineTabResponseDto>()
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.student.IdStudents))
+                .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.student.NameStudent))
+                .ForMember(dest => dest.CurrentCourse, opt => opt.MapFrom(src => src.currentCourse))
+                .ForMember(dest => dest.IsEvenSemester, opt => opt.MapFrom(src => src.isEvenSemester))
+                .ForMember(dest => dest.Disciplines, opt => opt.MapFrom(src => src.disciplines));
         }
 
     }

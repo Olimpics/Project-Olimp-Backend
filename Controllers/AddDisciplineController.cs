@@ -35,7 +35,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<AddDisciplineDto>> GetAddDiscipline(int id)
         {
             var discipline = await _context.AddDisciplines
-                .Where(d => d.idAddDisciplines == id)
+                .Where(d => d.IdAddDisciplines == id)
                 .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 
@@ -55,7 +55,7 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             var result = _mapper.Map<AddDisciplineDto>(discipline);
-            return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.idAddDisciplines }, result);
+            return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.IdAddDisciplines }, result);
         }
 
         [HttpPut("{id}")]
@@ -84,7 +84,7 @@ namespace OlimpBack.Controllers
 
         private bool AddDisciplineExists(int id)
         {
-            return _context.AddDisciplines.Any(e => e.idAddDisciplines == id);
+            return _context.AddDisciplines.Any(e => e.IdAddDisciplines == id);
         }
 
     } 
