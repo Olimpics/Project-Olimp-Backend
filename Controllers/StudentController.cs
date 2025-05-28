@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
+using OlimpBack.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,9 +29,22 @@ namespace OlimpBack.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
-            var dtos = await _context.Students
-                .ProjectTo<StudentDto>(_mapper.ConfigurationProvider)
+            var students = await _context.Students
+                .Include(s => s.Status)
+                .Include(s => s.Faculty)
+                .Include(s => s.EducationalProgram)
+                .Include(s => s.EducationalDegree)
+                .Include(s => s.StudyForm)
                 .ToListAsync();
+
+            // Calculate course for students with course = 0
+            foreach (var student in students.Where(s => s.Course == 0))
+            {
+                student.Course = CourseCalculator.CalculateCurrentCourse(student);
+            }
+            await _context.SaveChangesAsync();
+
+            var dtos = _mapper.Map<IEnumerable<StudentDto>>(students);
             return Ok(dtos);
         }
 

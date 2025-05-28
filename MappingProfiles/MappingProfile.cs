@@ -18,14 +18,22 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<User, UpdateUserDto>();
 
+            // Login mapping
+            CreateMap<User, LoginResponseDto>()
+                .ForMember(dest => dest.IdStudents, opt => opt.MapFrom(src => src.Student.IdStudents))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId))
+                .ForMember(dest => dest.NameStudent, opt => opt.MapFrom(src => src.Student.NameStudent))
+                .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Student.Faculty.NameFaculty))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Student.EducationalProgram.Speciality))
+                .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Student.Course));
 
             //Student
             CreateMap<Student, StudentDto>()
-    .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status.NameEducationStatus))
-    .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
-    .ForMember(dest => dest.ProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram))
-    .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec))
-    .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm));
+                .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status.NameEducationStatus))
+                .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
+                .ForMember(dest => dest.ProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram))
+                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec))
+                .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm));
 
             CreateMap<CreateStudentDto, Student>();
             CreateMap<UpdateStudentDto, Student>();
