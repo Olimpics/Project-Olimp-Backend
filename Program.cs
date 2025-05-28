@@ -46,12 +46,11 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Middleware
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Olimp API v1");
+});
 
 app.UseHttpsRedirection();
 
