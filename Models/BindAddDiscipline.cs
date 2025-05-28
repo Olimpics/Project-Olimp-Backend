@@ -15,7 +15,7 @@ public partial class BindAddDiscipline
 
     public int Loans { get; set; }
 
-    public bool InProcess { get; set; }
+    public sbyte InProcess { get; set; }
 
     public virtual AddDiscipline AddDisciplines { get; set; } = null!;
 

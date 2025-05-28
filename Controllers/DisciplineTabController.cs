@@ -20,6 +20,30 @@ namespace OlimpBack.Controllers
             _mapper = mapper;
         }
 
+        private async Task<int> CalculateCurrentCourse(Student student)
+        {
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+            var yearsSinceAdmission = currentDate.Year - student.EducationStart.Year;
+            
+            // If we haven't reached July of the current academic year, we're still in the previous course
+            if (currentDate.Month < 7)
+            {
+                yearsSinceAdmission--;
+            }
+            
+            // Calculate the new course (students start from course 1)
+            int calculatedCourse = yearsSinceAdmission + 1;
+
+            // Update the student's course if it has changed
+            if (student.Course != calculatedCourse)
+            {
+                student.Course = calculatedCourse;
+                await _context.SaveChangesAsync();
+            }
+
+            return calculatedCourse;
+        }
+
         private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople)
         {
             // ��� ������� �� ����������
@@ -69,8 +93,7 @@ namespace OlimpBack.Controllers
             if (student == null)
                 return NotFound("Student not found");
 
-            var currentDate = DateOnly.FromDateTime(DateTime.Now);
-            int currentCourse = currentDate.Year - student.EducationStart.Year;
+            int currentCourse = await CalculateCurrentCourse(student);
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
@@ -78,7 +101,7 @@ namespace OlimpBack.Controllers
                 .ToListAsync();
 
             var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess)
+                .Where(b => b.InProcess == (sbyte)1)
                 .GroupBy(b => b.AddDisciplinesId)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
@@ -119,16 +142,15 @@ namespace OlimpBack.Controllers
 
                 if (student == null)
                 {
-                    return NotFound(new { error = "Student not found" });
+                    return NotFound(new { error = $"Student not found {dto.StudentId}" });
                 }
 
                 if (dto.Semester != 0 && dto.Semester != 1)
                 {
                     return NotFound(new { error = "Semester non binary like 1 or 0 " });
                 }
-                // Calculate current course and semester
-                var currentDate = DateOnly.FromDateTime(DateTime.Now);
-                int currentCourse = currentDate.Year - student.EducationStart.Year;
+
+                int currentCourse = await CalculateCurrentCourse(student);
 
                 // Calculate target semester (next course)
                 int targetCourse = currentCourse + 1;
@@ -158,7 +180,7 @@ namespace OlimpBack.Controllers
                 // Get count of people for the discipline
                 var countOfPeople = await _context.BindAddDisciplines
                     .AsQueryable()
-                    .Where(b => b.AddDisciplinesId == dto.DisciplineId && b.InProcess)
+                    .Where(b => b.AddDisciplinesId == dto.DisciplineId && b.InProcess == (sbyte)1)
                     .CountAsync();
 
                 // Check if discipline is available for the student
@@ -173,7 +195,7 @@ namespace OlimpBack.Controllers
                     StudentId = dto.StudentId,
                     AddDisciplinesId = dto.DisciplineId,
                     Semestr = targetSemester,
-                    InProcess = true,
+                    InProcess = (sbyte)1,
                     Loans = 5 // Default value
                 };
 
@@ -202,12 +224,11 @@ namespace OlimpBack.Controllers
             if (student == null)
                 return NotFound("Student not found");
 
-            var currentDate = DateOnly.FromDateTime(DateTime.Now);
-            int currentCourse = currentDate.Year - student.EducationStart.Year + 1;
+            int currentCourse = await CalculateCurrentCourse(student);
 
             var allDisciplines = await _context.AddDisciplines.ToListAsync();
             var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess)
+                .Where(b => b.InProcess == (sbyte)1)
                 .GroupBy(b => b.AddDisciplinesId)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);

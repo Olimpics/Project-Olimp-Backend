@@ -12,6 +12,7 @@
         public string StudyFormName { get; set; }
         public DateOnly EducationStart { get; set; }
         public DateOnly EducationEnd { get; set; }
+        public int Course { get; set; }
         public SByte IsShort { get; set; }
     }
 
@@ -23,6 +24,7 @@
         public int StatusId { get; set; }
         public DateOnly EducationStart { get; set; }
         public DateOnly EducationEnd { get; set; }
+        public int Course { get; set; }
         public int FacultyId { get; set; }
         public int EducationalDegreeId { get; set; }
         public int StudyFormId { get; set; }

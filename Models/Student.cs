@@ -27,6 +27,8 @@ public partial class Student
 
     public int EducationalProgramId { get; set; }
 
+    public int Course { get; set; }
+
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
 
     public virtual EducationalDegree EducationalDegree { get; set; } = null!;

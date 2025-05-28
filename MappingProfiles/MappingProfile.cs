@@ -41,10 +41,17 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.StudentFullName,
                            opt => opt.MapFrom(src => src.Student.NameStudent))
                 .ForMember(dest => dest.AddDisciplineName,
-                           opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines));
+                           opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines))
+                .ForMember(dest => dest.InProcess,
+                           opt => opt.MapFrom(src => src.InProcess == (sbyte)1));
 
-            CreateMap<CreateBindAddDisciplineDto, BindAddDiscipline>();
-            CreateMap<UpdateBindAddDisciplineDto, BindAddDiscipline>();
+            CreateMap<CreateBindAddDisciplineDto, BindAddDiscipline>()
+                .ForMember(dest => dest.InProcess,
+                           opt => opt.MapFrom(src => (sbyte)1)); // New bindings are always active
+
+            CreateMap<UpdateBindAddDisciplineDto, BindAddDiscipline>()
+                .ForMember(dest => dest.InProcess,
+                           opt => opt.MapFrom(src => (sbyte)1));
 
             //BindMainDiscipline
             CreateMap<BindMainDiscipline, BindMainDisciplineDto>()
