@@ -1,23 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.MappingProfiles;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Настройка сервисов
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add DbContext configuration
+// Подключение БД
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
-    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    )
+);
 
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder = WebApplication.CreateBuilder(args);
-
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -28,8 +31,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Authorization
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -43,7 +50,5 @@ app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
 app.MapControllers();
-
-//app.Urls.Add("http://0.0.0.0:5000");
 
 app.Run();
