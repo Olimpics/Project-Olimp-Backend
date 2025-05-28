@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
-
+using OlimpBack.Utils;
 namespace OlimpBack.Controllers
 {
     [Route("api/[controller]")]
@@ -18,30 +18,6 @@ namespace OlimpBack.Controllers
         {
             _context = context;
             _mapper = mapper;
-        }
-
-        private async Task<int> CalculateCurrentCourse(Student student)
-        {
-            var currentDate = DateOnly.FromDateTime(DateTime.Now);
-            var yearsSinceAdmission = currentDate.Year - student.EducationStart.Year;
-            
-            // If we haven't reached July of the current academic year, we're still in the previous course
-            if (currentDate.Month < 7)
-            {
-                yearsSinceAdmission--;
-            }
-            
-            // Calculate the new course (students start from course 1)
-            int calculatedCourse = yearsSinceAdmission + 1;
-
-            // Update the student's course if it has changed
-            if (student.Course != calculatedCourse)
-            {
-                student.Course = calculatedCourse;
-                await _context.SaveChangesAsync();
-            }
-
-            return calculatedCourse;
         }
 
         private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople)
@@ -93,7 +69,7 @@ namespace OlimpBack.Controllers
             if (student == null)
                 return NotFound("Student not found");
 
-            int currentCourse = await CalculateCurrentCourse(student);
+            int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
@@ -150,7 +126,7 @@ namespace OlimpBack.Controllers
                     return NotFound(new { error = "Semester non binary like 1 or 0 " });
                 }
 
-                int currentCourse = await CalculateCurrentCourse(student);
+                int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
 
                 // Calculate target semester (next course)
                 int targetCourse = currentCourse + 1;
@@ -224,7 +200,7 @@ namespace OlimpBack.Controllers
             if (student == null)
                 return NotFound("Student not found");
 
-            int currentCourse = await CalculateCurrentCourse(student);
+            int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
 
             var allDisciplines = await _context.AddDisciplines.ToListAsync();
             var disciplineCounts = await _context.BindAddDisciplines

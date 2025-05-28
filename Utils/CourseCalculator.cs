@@ -1,20 +1,23 @@
+using AutoMapper;
+using OlimpBack.Data;
 using OlimpBack.Models;
 
 namespace OlimpBack.Utils
 {
     public static class CourseCalculator
     {
-        public static async Task<int> CalculateCurrentCourse(Student student)
+        
+        public static async Task<int> CalculateCurrentCourse(Student student, AppDbContext _context)
         {
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
             var yearsSinceAdmission = currentDate.Year - student.EducationStart.Year;
-            
+
             // If we haven't reached July of the current academic year, we're still in the previous course
             if (currentDate.Month < 7)
             {
                 yearsSinceAdmission--;
             }
-            
+
             // Calculate the new course (students start from course 1)
             int calculatedCourse = yearsSinceAdmission + 1;
 
@@ -27,4 +30,5 @@ namespace OlimpBack.Utils
 
             return calculatedCourse;
         }
+    }
 } 

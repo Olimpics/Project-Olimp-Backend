@@ -40,7 +40,7 @@ namespace OlimpBack.Controllers
             // Calculate course for students with course = 0
             foreach (var student in students.Where(s => s.Course == 0))
             {
-                student.Course = CourseCalculator.CalculateCurrentCourse(student);
+                student.Course = await CourseCalculator.CalculateCurrentCourse(student, _context);
             }
             await _context.SaveChangesAsync();
 
