@@ -1,12 +1,9 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
-using OlimpBack.Models;
 using OlimpBack.DTO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
+using OlimpBack.Models;
 
 namespace OlimpBack.Controllers
 {
@@ -73,7 +70,7 @@ namespace OlimpBack.Controllers
                 return NotFound("Student not found");
 
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
-            int currentCourse = currentDate.Year - student.EducationStart.Year + 1;
+            int currentCourse = currentDate.Year - student.EducationStart.Year;
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
@@ -127,7 +124,7 @@ namespace OlimpBack.Controllers
 
                 if (dto.Semester != 0 && dto.Semester != 1)
                 {
-                    return NotFound(new { error = "Semester non binary like 1 or 0 "});
+                    return NotFound(new { error = "Semester non binary like 1 or 0 " });
                 }
                 // Calculate current course and semester
                 var currentDate = DateOnly.FromDateTime(DateTime.Now);
@@ -183,7 +180,8 @@ namespace OlimpBack.Controllers
                 _context.BindAddDisciplines.Add(bindDiscipline);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { 
+                return Ok(new
+                {
                     message = "Discipline successfully bound to student",
                     bindId = bindDiscipline.IdBindAddDisciplines
                 });
@@ -230,4 +228,4 @@ namespace OlimpBack.Controllers
         }
 
     }
-} 
+}
