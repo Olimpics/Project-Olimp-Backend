@@ -17,6 +17,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    ).EnableSensitiveDataLogging(); // Покажет Id, которые конфликтуют
+});
+
+
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

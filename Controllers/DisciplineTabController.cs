@@ -198,7 +198,7 @@ namespace OlimpBack.Controllers
                     InProcess = (sbyte)1,
                     Loans = 5 // Default value
                 };
-
+                
                 _context.BindAddDisciplines.Add(bindDiscipline);
                 await _context.SaveChangesAsync();
 
