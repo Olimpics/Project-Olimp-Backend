@@ -20,12 +20,13 @@ namespace OlimpBack.MappingProfiles
 
             // Login mapping
             CreateMap<Student, LoginResponseDto>()
-     .ForMember(dest => dest.IdStudents, opt => opt.MapFrom(src => src.IdStudents))
-     .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId)) // так как User есть в Student
-     .ForMember(dest => dest.NameStudent, opt => opt.MapFrom(src => src.NameStudent))
-     .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
-     .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
-     .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
+    .ForMember(dest => dest.IdStudents, opt => opt.MapFrom(src => src.IdStudents))
+    .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
+    .ForMember(dest => dest.NameStudent, opt => opt.MapFrom(src => src.NameStudent))
+    .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
+    .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
+    .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
+
 
 
             //Student

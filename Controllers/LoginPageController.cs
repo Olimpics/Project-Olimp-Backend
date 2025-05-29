@@ -21,27 +21,27 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<LoginResponseDto>> Login([FromQuery] LoginRequestDto request)
+        public async Task<ActionResult<LoginResponseDto>> Login([FromQuery] string Email, [FromQuery] string Password)
         {
-            var user = await _context.Users
-                .Include(u => u.Students)
-                    .ThenInclude(s => s.Faculty)
-                .Include(u => u.Students)
-                    .ThenInclude(s => s.EducationalProgram)
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == Email);
 
             if (user == null)
-            {
-                return NotFound("This user isn't exist");
-            }
+                return NotFound("This user doesn't exist");
 
-            if (user.Password != request.Password)
-            {
+            var student = await _context.Students
+                .Include(s => s.Faculty)
+                .Include(s => s.EducationalProgram)
+                .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
+
+            if (student == null)
+                return NotFound("This student doesn't exist");
+
+            if (student.User.Password != Password)
                 return BadRequest("Incorrect password");
-            }
 
-            var response = _mapper.Map<LoginResponseDto>(user);
+            var response = _mapper.Map<LoginResponseDto>(student);
             return Ok(response);
         }
+
     }
 } 
