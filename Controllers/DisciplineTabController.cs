@@ -27,8 +27,7 @@ namespace OlimpBack.Controllers
                 return false;
 
             // ������� ����������� �� ���������
-            if (!string.IsNullOrEmpty(discipline.DegreeLevel) &&
-                discipline.DegreeLevel != student.EducationalDegree.NameEducationalDegreec)
+            if (discipline.DegreeLevel.HasValue && discipline.DegreeLevel != student.EducationalDegree.IdEducationalDegree)
                 return false;
 
             // ���� ������ ������������
@@ -73,7 +72,7 @@ namespace OlimpBack.Controllers
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
-                .Where(d => d.DegreeLevel == student.EducationalDegree.NameEducationalDegreec)
+                .Where(d => d.DegreeLevel == student.EducationalDegree.IdEducationalDegree)
                 .ToListAsync();
 
             var disciplineCounts = await _context.BindAddDisciplines
@@ -190,7 +189,11 @@ namespace OlimpBack.Controllers
             }
         }
         [HttpGet("GetAllDisciplinesWithAvailability")]
-        public async Task<ActionResult<List<FullDisciplineDto>>> GetAllDisciplinesWithAvailability([FromQuery] int studentId)
+        public async Task<ActionResult<List<FullDisciplineDto>>> GetAllDisciplinesWithAvailability(
+     [FromQuery] int studentId,
+     [FromQuery] int page = 1,
+     [FromQuery] int pageSize = 50,
+     [FromQuery] bool onlyAvailable = false)
         {
             var student = await _context.Students
                 .Include(s => s.EducationalDegree)
@@ -203,6 +206,7 @@ namespace OlimpBack.Controllers
             int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
 
             var allDisciplines = await _context.AddDisciplines.ToListAsync();
+
             var disciplineCounts = await _context.BindAddDisciplines
                 .Where(b => b.InProcess == (sbyte)1)
                 .GroupBy(b => b.AddDisciplinesId)
@@ -216,12 +220,21 @@ namespace OlimpBack.Controllers
                 var dto = _mapper.Map<FullDisciplineDto>(discipline);
                 int count = disciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c) ? c : 0;
                 dto.CountOfPeople = count;
-
                 dto.IsAvailable = IsDisciplineAvailableForStudent(discipline, student, currentCourse, count);
                 result.Add(dto);
             }
 
-            return Ok(result);
+            if (onlyAvailable)
+            {
+                result = result.Where(d => d.IsAvailable).ToList();
+            }
+
+            var paginatedResult = result
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(paginatedResult);
         }
 
     }

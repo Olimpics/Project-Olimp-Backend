@@ -19,6 +19,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<AddDiscipline> AddDisciplines { get; set; }
 
+    public virtual DbSet<AdminLog> AdminLogs { get; set; }
+
     public virtual DbSet<BindAddDiscipline> BindAddDisciplines { get; set; }
 
     public virtual DbSet<BindMainDiscipline> BindMainDisciplines { get; set; }
@@ -41,7 +43,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("host=185.237.207.78;port=3306;database=defaultdb;username=remote;password=P@ssw0rd", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.4.5-mysql"));
+        => optionsBuilder.UseMySql("host=185.237.207.78;port=3306;database=defaultdb;username=remote;password=P@ssw0rd", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.42-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,25 +55,54 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdAddDisciplines).HasName("PRIMARY");
 
+            entity.HasIndex(e => e.DegreeLevel, "AddDisciplines_EducationalDegree_idx");
+
             entity.HasIndex(e => e.IdAddDisciplines, "idAddDisciplines_UNIQUE").IsUnique();
 
             entity.Property(e => e.IdAddDisciplines).HasColumnName("idAddDisciplines");
             entity.Property(e => e.CodeAddDisciplines)
-                .HasMaxLength(45)
+                .HasMaxLength(200)
                 .HasColumnName("codeAddDisciplines");
-            entity.Property(e => e.DegreeLevel).HasColumnType("enum('Бакалавр','Магістр')");
-            entity.Property(e => e.Department).HasMaxLength(45);
-            entity.Property(e => e.Faculty).HasMaxLength(45);
+            entity.Property(e => e.Department).HasMaxLength(200);
+            entity.Property(e => e.Faculty).HasMaxLength(200);
             entity.Property(e => e.MaxCountPeople).HasColumnName("maxCountPeople");
             entity.Property(e => e.MaxCourse).HasColumnName("maxCourse");
             entity.Property(e => e.MinCountPeople).HasColumnName("minCountPeople");
             entity.Property(e => e.MinCourse).HasColumnName("minCourse");
             entity.Property(e => e.NameAddDisciplines)
-                .HasMaxLength(45)
+                .HasMaxLength(200)
                 .HasColumnName("nameAddDisciplines");
-            entity.Property(e => e.Prerequisites).HasMaxLength(200);
-            entity.Property(e => e.Recomend).HasMaxLength(200);
-            entity.Property(e => e.Teacher).HasMaxLength(200);
+            entity.Property(e => e.Prerequisites).HasMaxLength(700);
+            entity.Property(e => e.Recomend).HasMaxLength(700);
+            entity.Property(e => e.Teacher).HasMaxLength(700);
+
+            entity.HasOne(d => d.DegreeLevelNavigation).WithMany(p => p.AddDisciplines)
+                .HasForeignKey(d => d.DegreeLevel)
+                .HasConstraintName("AddDisciplines_EducationalDegree");
+        });
+
+        modelBuilder.Entity<AdminLog>(entity =>
+        {
+            entity.HasKey(e => new { e.LogId, e.ChangeTime })
+                .HasName("PRIMARY")
+                .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+            entity.HasIndex(e => e.AdminId, "idx_AdminLogs_AdminId");
+
+            entity.HasIndex(e => e.ChangeTime, "idx_AdminLogs_Time");
+
+            entity.Property(e => e.LogId).ValueGeneratedOnAdd();
+            entity.Property(e => e.ChangeTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Action).HasColumnType("enum('INSERT','UPDATE','DELETE')");
+            entity.Property(e => e.AdminId).HasComment("idUsers who performed action");
+            entity.Property(e => e.KeyValue)
+                .HasMaxLength(255)
+                .HasComment("Primary key of affected row");
+            entity.Property(e => e.NewData).HasColumnType("json");
+            entity.Property(e => e.OldData).HasColumnType("json");
+            entity.Property(e => e.TableName).HasMaxLength(64);
         });
 
         modelBuilder.Entity<BindAddDiscipline>(entity =>
@@ -80,11 +111,9 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.AddDisciplinesId, "Bind_AddCourse_idx");
 
-            entity.HasIndex(e => e.StudentId, "Bind_Students_idx");
+            entity.HasIndex(e => e.StudentId, "Bind_Student_idx");
 
-            entity.Property(e => e.IdBindAddDisciplines)
-                .ValueGeneratedNever()
-                .HasColumnName("idBindAddDisciplines");
+            entity.Property(e => e.IdBindAddDisciplines).HasColumnName("idBindAddDisciplines");
             entity.Property(e => e.InProcess).HasColumnName("inProcess");
             entity.Property(e => e.Loans).HasDefaultValueSql("'5'");
 
@@ -105,9 +134,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.EducationalProgramId, "BindMainDisciplines_EducationalProgram_idx");
 
-            entity.Property(e => e.IdBindMainDisciplines)
-                .ValueGeneratedNever()
-                .HasColumnName("idBindMainDisciplines");
+            entity.Property(e => e.IdBindMainDisciplines).HasColumnName("idBindMainDisciplines");
             entity.Property(e => e.CodeMainDisciplines)
                 .HasMaxLength(45)
                 .HasColumnName("codeMainDisciplines");
@@ -160,12 +187,10 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.DegreeId, "EducationalProgram_EducationalDegree_idx");
 
-            entity.Property(e => e.IdEducationalProgram)
-                .ValueGeneratedNever()
-                .HasColumnName("idEducationalProgram");
+            entity.Property(e => e.IdEducationalProgram).HasColumnName("idEducationalProgram");
             entity.Property(e => e.Accreditation).HasColumnName("accreditation");
             entity.Property(e => e.AccreditationType)
-                .HasMaxLength(200)
+                .HasMaxLength(400)
                 .HasColumnName("accreditationType");
             entity.Property(e => e.CountAddSemestr3).HasColumnName("countAddSemestr3");
             entity.Property(e => e.CountAddSemestr4).HasColumnName("countAddSemestr4");
@@ -178,7 +203,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("nameEducationalProgram");
             entity.Property(e => e.Speciality)
-                .HasMaxLength(200)
+                .HasMaxLength(400)
                 .HasColumnName("speciality");
             entity.Property(e => e.StudentsAmount).HasColumnName("studentsAmount");
 
@@ -238,9 +263,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.IdStudents, "idStudents_UNIQUE").IsUnique();
 
-            entity.Property(e => e.IdStudents)
-                .ValueGeneratedNever()
-                .HasColumnName("idStudents");
+            entity.Property(e => e.IdStudents).HasColumnName("idStudents");
             entity.Property(e => e.NameStudent)
                 .HasMaxLength(200)
                 .HasColumnName("nameStudent");

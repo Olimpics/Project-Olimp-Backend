@@ -31,7 +31,9 @@ public partial class AddDiscipline
 
     public string? Prerequisites { get; set; }
 
-    public string? DegreeLevel { get; set; }
+    public int? DegreeLevel { get; set; }
 
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
+
+    public virtual EducationalDegree? DegreeLevelNavigation { get; set; }
 }
