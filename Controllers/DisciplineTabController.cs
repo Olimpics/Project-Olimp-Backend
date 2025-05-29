@@ -138,7 +138,7 @@ namespace OlimpBack.Controllers
                 int targetCourse = currentCourse + 1;
                 int targetSemester = (targetCourse * 2) - dto.Semester;
 
-                // Validate semester
+                // Validate course
                 if (targetCourse > 4)
                 {
                     return BadRequest(new { error = $"You can`t choice disciplines on 5 course" });
