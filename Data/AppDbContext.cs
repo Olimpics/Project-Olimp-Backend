@@ -217,9 +217,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdFaculty).HasName("PRIMARY");
 
-            entity.Property(e => e.IdFaculty)
-                .ValueGeneratedNever()
-                .HasColumnName("idFaculty");
+            entity.Property(e => e.IdFaculty).HasColumnName("idFaculty");
+            entity.Property(e => e.Abbreviation).HasMaxLength(45);
             entity.Property(e => e.NameFaculty)
                 .HasMaxLength(200)
                 .HasColumnName("nameFaculty");
@@ -259,7 +258,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.StudyFormId, "Students_StudyForm_idx");
 
-            entity.HasIndex(e => e.UserId, "UserId_UNIQUE").IsUnique();
+            entity.HasIndex(e => e.UserId, "Students_Users_idx");
 
             entity.HasIndex(e => e.IdStudents, "idStudents_UNIQUE").IsUnique();
 
@@ -293,8 +292,8 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Students_StudyForm");
 
-            entity.HasOne(d => d.User).WithOne(p => p.Student)
-                .HasForeignKey<Student>(d => d.UserId)
+            entity.HasOne(d => d.User).WithMany(p => p.Students)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Students_Users");
         });
@@ -323,9 +322,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.IdUsers, "idUsers_UNIQUE").IsUnique();
 
-            entity.Property(e => e.IdUsers)
-                .ValueGeneratedNever()
-                .HasColumnName("idUsers");
+            entity.Property(e => e.IdUsers).HasColumnName("idUsers");
             entity.Property(e => e.Email).HasMaxLength(200);
             entity.Property(e => e.LastLoginAt).HasColumnType("datetime");
             entity.Property(e => e.Password).HasMaxLength(200);

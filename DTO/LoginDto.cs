@@ -1,9 +1,12 @@
+using OlimpBack.Models;
+
 namespace OlimpBack.DTO
 {
     public class LoginRequestDto
     {
         public string Email { get; set; } = null!;
         public string Password { get; set; } = null!;
+        public virtual Student? Student { get; set; }
     }
 
     public class LoginResponseDto

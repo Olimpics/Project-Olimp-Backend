@@ -20,7 +20,7 @@ namespace OlimpBack.Controllers
             _mapper = mapper;
         }
 
-        private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople)
+        private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople, string abbreviation)
         {
             // ��� ������� �� ����������
             if (student.BindAddDisciplines.Any(b => b.AddDisciplinesId == discipline.IdAddDisciplines))
@@ -49,6 +49,9 @@ namespace OlimpBack.Controllers
                 };
             }
 
+            if (discipline.Faculty != abbreviation)
+                return false;
+
             // �������� ����� ���������
             if (discipline.MaxCountPeople.HasValue && countOfPeople >= discipline.MaxCountPeople.Value)
                 return false;
@@ -76,16 +79,20 @@ namespace OlimpBack.Controllers
                 .ToListAsync();
 
             var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess == (sbyte)1)
+                .Where(b => b.InProcess == 1)
                 .GroupBy(b => b.AddDisciplinesId)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
+            var abbreviation = await _context.Faculties
+    .Where(f => f.IdFaculty == student.FacultyId)
+    .Select(f => f.Abbreviation)
+    .FirstOrDefaultAsync();
 
             var availableDisciplines = disciplines
                 .Where(d =>
                 {
                     int count = disciplineCounts.TryGetValue(d.IdAddDisciplines, out var c) ? c : 0;
-                    return IsDisciplineAvailableForStudent(d, student, currentCourse, count);
+                    return IsDisciplineAvailableForStudent(d, student, currentCourse, count, abbreviation);
                 })
                 .Select(d => new SimpleDisciplineDto
                 {
@@ -155,11 +162,14 @@ namespace OlimpBack.Controllers
                 // Get count of people for the discipline
                 var countOfPeople = await _context.BindAddDisciplines
                     .AsQueryable()
-                    .Where(b => b.AddDisciplinesId == dto.DisciplineId && b.InProcess == (sbyte)1)
+                    .Where(b => b.AddDisciplinesId == dto.DisciplineId && b.InProcess == 1)
                     .CountAsync();
-
+                var abbreviation = await _context.Faculties
+   .Where(f => f.IdFaculty == student.FacultyId)
+   .Select(f => f.Abbreviation)
+   .FirstOrDefaultAsync();
                 // Check if discipline is available for the student
-                if (!IsDisciplineAvailableForStudent(discipline, student, currentCourse, countOfPeople))
+                if (!IsDisciplineAvailableForStudent(discipline, student, currentCourse, countOfPeople, abbreviation))
                 {
                     return BadRequest(new { error = "Discipline is not available for this student" });
                 }
@@ -170,10 +180,10 @@ namespace OlimpBack.Controllers
                     StudentId = dto.StudentId,
                     AddDisciplinesId = dto.DisciplineId,
                     Semestr = targetSemester,
-                    InProcess = (sbyte)1,
+                    InProcess = 1,
                     Loans = 5 // Default value
                 };
-                
+
                 _context.BindAddDisciplines.Add(bindDiscipline);
                 await _context.SaveChangesAsync();
 
@@ -208,19 +218,22 @@ namespace OlimpBack.Controllers
             var allDisciplines = await _context.AddDisciplines.ToListAsync();
 
             var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess == (sbyte)1)
+                .Where(b => b.InProcess == 1)
                 .GroupBy(b => b.AddDisciplinesId)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
 
             var result = new List<FullDisciplineDto>();
-
+            var abbreviation = await _context.Faculties
+   .Where(f => f.IdFaculty == student.FacultyId)
+   .Select(f => f.Abbreviation)
+   .FirstOrDefaultAsync();
             foreach (var discipline in allDisciplines)
             {
                 var dto = _mapper.Map<FullDisciplineDto>(discipline);
                 int count = disciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c) ? c : 0;
                 dto.CountOfPeople = count;
-                dto.IsAvailable = IsDisciplineAvailableForStudent(discipline, student, currentCourse, count);
+                dto.IsAvailable = IsDisciplineAvailableForStudent(discipline, student, currentCourse, count, abbreviation);
                 result.Add(dto);
             }
 

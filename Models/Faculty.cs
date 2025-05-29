@@ -7,7 +7,9 @@ public partial class Faculty
 {
     public int IdFaculty { get; set; }
 
-    public string NameFaculty { get; set; } = null!;
+    public string? NameFaculty { get; set; }
+
+    public string? Abbreviation { get; set; }
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

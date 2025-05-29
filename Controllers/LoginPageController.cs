@@ -24,9 +24,9 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<LoginResponseDto>> Login([FromQuery] LoginRequestDto request)
         {
             var user = await _context.Users
-                .Include(u => u.Student)
+                .Include(u => u.Students)
                     .ThenInclude(s => s.Faculty)
-                .Include(u => u.Student)
+                .Include(u => u.Students)
                     .ThenInclude(s => s.EducationalProgram)
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
