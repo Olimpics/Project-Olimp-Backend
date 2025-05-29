@@ -204,11 +204,11 @@ namespace OlimpBack.Controllers
             }
         }
         [HttpGet("GetAllDisciplinesWithAvailability")]
-        public async Task<ActionResult<List<FullDisciplineDto>>> GetAllDisciplinesWithAvailability(
-     [FromQuery] int studentId,
-     [FromQuery] int page = 1,
-     [FromQuery] int pageSize = 50,
-     [FromQuery] bool onlyAvailable = false)
+        public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
+    [FromQuery] int studentId,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 50,
+    [FromQuery] bool onlyAvailable = false)
         {
             var student = await _context.Students
                 .Include(s => s.EducationalDegree)
@@ -230,9 +230,10 @@ namespace OlimpBack.Controllers
 
             var result = new List<FullDisciplineDto>();
             var abbreviation = await _context.Faculties
-   .Where(f => f.IdFaculty == student.FacultyId)
-   .Select(f => f.Abbreviation)
-   .FirstOrDefaultAsync();
+                .Where(f => f.IdFaculty == student.FacultyId)
+                .Select(f => f.Abbreviation)
+                .FirstOrDefaultAsync();
+
             foreach (var discipline in allDisciplines)
             {
                 var dto = _mapper.Map<FullDisciplineDto>(discipline);
@@ -247,13 +248,24 @@ namespace OlimpBack.Controllers
                 result = result.Where(d => d.IsAvailable).ToList();
             }
 
+            int totalItems = result.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             var paginatedResult = result
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            return Ok(paginatedResult);
+            var response = new
+            {
+                totalPages,
+                totalItems,
+                disciplines = paginatedResult
+            };
+
+            return Ok(response);
         }
+
 
     }
 }
