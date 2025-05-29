@@ -49,7 +49,7 @@ namespace OlimpBack.Controllers
                 };
             }
 
-            if (discipline.Faculty != abbreviation)
+            if (discipline.Faculty != abbreviation && !discipline.CodeAddDisciplines.Contains("у-"))
                 return false;
 
             // �������� ����� ���������
