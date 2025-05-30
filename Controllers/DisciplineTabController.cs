@@ -22,23 +22,18 @@ namespace OlimpBack.Controllers
 
         private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople, string abbreviation)
         {
-            // ��� ������� �� ����������
             if (student.BindAddDisciplines.Any(b => b.AddDisciplinesId == discipline.IdAddDisciplines))
                 return false;
 
-            // ������� ����������� �� ���������
             if (discipline.DegreeLevel.HasValue && discipline.DegreeLevel != student.EducationalDegree.IdEducationalDegree)
                 return false;
 
-            // ���� ������ ������������
             if (discipline.MinCourse.HasValue && (currentCourse + 1) < discipline.MinCourse)
                 return false;
 
-            // ���� ������ �������������
             if (discipline.MaxCourse.HasValue && (currentCourse + 1) > discipline.MaxCourse)
                 return false;
 
-            // �������� ��������
             if (discipline.AddSemestr.HasValue)
             {
                 bool currentIsEven = DateTime.Now.Month switch
@@ -52,7 +47,6 @@ namespace OlimpBack.Controllers
             if (discipline.Faculty != abbreviation && !discipline.CodeAddDisciplines.Contains("у-"))
                 return false;
 
-            // �������� ����� ���������
             if (discipline.MaxCountPeople.HasValue && countOfPeople >= discipline.MaxCountPeople.Value)
                 return false;
 
@@ -205,10 +199,11 @@ namespace OlimpBack.Controllers
         }
         [HttpGet("GetAllDisciplinesWithAvailability")]
         public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
-    [FromQuery] int studentId,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 50,
-    [FromQuery] bool onlyAvailable = false)
+     [FromQuery] int studentId,
+     [FromQuery] int page = 1,
+     [FromQuery] int pageSize = 50,
+     [FromQuery] bool onlyAvailable = false,
+     [FromQuery] string? search = null)
         {
             var student = await _context.Students
                 .Include(s => s.EducationalDegree)
@@ -228,11 +223,12 @@ namespace OlimpBack.Controllers
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
 
-            var result = new List<FullDisciplineDto>();
             var abbreviation = await _context.Faculties
                 .Where(f => f.IdFaculty == student.FacultyId)
                 .Select(f => f.Abbreviation)
                 .FirstOrDefaultAsync();
+
+            var result = new List<FullDisciplineDto>();
 
             foreach (var discipline in allDisciplines)
             {
@@ -243,9 +239,20 @@ namespace OlimpBack.Controllers
                 result.Add(dto);
             }
 
+            // 🔍 Фильтрация по доступности
             if (onlyAvailable)
             {
                 result = result.Where(d => d.IsAvailable).ToList();
+            }
+
+            // 🔍 Фильтрация по ключевому слову
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                string lowerSearch = search.Trim().ToLower();
+                result = result.Where(d =>
+                    (!string.IsNullOrEmpty(d.NameAddDisciplines) && d.NameAddDisciplines.ToLower().Contains(lowerSearch)) ||
+                    (!string.IsNullOrEmpty(d.CodeAddDisciplines) && d.CodeAddDisciplines.ToLower().Contains(lowerSearch))
+                ).ToList();
             }
 
             int totalItems = result.Count;
@@ -260,6 +267,8 @@ namespace OlimpBack.Controllers
             {
                 totalPages,
                 totalItems,
+                currentPage = page,
+                pageSize,
                 disciplines = paginatedResult
             };
 
