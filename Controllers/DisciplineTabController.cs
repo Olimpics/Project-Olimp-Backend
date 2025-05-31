@@ -21,20 +21,19 @@ namespace OlimpBack.Controllers
 
         [HttpGet("GetAllDisciplinesWithAvailability")]
         public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
-            [FromQuery] int studentId,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50,
-            [FromQuery] bool onlyAvailable = false,
-            [FromQuery] string? search = null)
+    [FromQuery] int studentId,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 50,
+    [FromQuery] bool onlyAvailable = false,
+    [FromQuery] string? search = null)
         {
             var context = await DisciplineAvailabilityService.BuildAvailabilityContext(studentId, _context);
             if (context == null)
                 return NotFound("Student not found");
 
-
             var query = _context.AddDisciplines
-    .Include(d => d.EducationalDegree)
-    .AsQueryable();
+                .Include(d => d.EducationalDegree)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -44,15 +43,13 @@ namespace OlimpBack.Controllers
                     d.CodeAddDisciplines.ToLower().Contains(lowerSearch));
             }
 
-            var totalItems = await query.CountAsync();
-
-            var disciplinesPage = await query
+            // Загружаем все подходящие дисциплины
+            var allDisciplines = await query
                 .OrderBy(d => d.NameAddDisciplines)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .ToListAsync();
 
-            var result = disciplinesPage.Select(discipline =>
+            // Маппим и вычисляем доступность
+            var fullList = allDisciplines.Select(discipline =>
             {
                 var dto = _mapper.Map<FullDisciplineDto>(discipline);
                 dto.CountOfPeople = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c) ? c : 0;
@@ -60,12 +57,19 @@ namespace OlimpBack.Controllers
                 return dto;
             }).ToList();
 
+            // Фильтруем, если нужно
             if (onlyAvailable)
             {
-                result = result.Where(d => d.IsAvailable).ToList();
+                fullList = fullList.Where(d => d.IsAvailable).ToList();
             }
 
+            var totalItems = fullList.Count;
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var paginatedResult = fullList
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             var response = new
             {
@@ -73,12 +77,12 @@ namespace OlimpBack.Controllers
                 totalItems,
                 currentPage = page,
                 pageSize,
-                disciplines = result
+                disciplines = paginatedResult
             };
 
             return Ok(response);
-
         }
+
 
         [HttpGet("GetDisciplinesBySemester")]
         public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
