@@ -13,81 +13,88 @@ namespace OlimpBack.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-
         public DisciplineTabController(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        private bool IsDisciplineAvailableForStudent(AddDiscipline discipline, Student student, int currentCourse, int countOfPeople, string abbreviation)
-        {
-            if (student.BindAddDisciplines.Any(b => b.AddDisciplinesId == discipline.IdAddDisciplines))
-                return false;
-
-            if (discipline.DegreeLevel.HasValue && discipline.DegreeLevel != student.EducationalDegree.IdEducationalDegree)
-                return false;
-
-            if (discipline.MinCourse.HasValue && (currentCourse + 1) < discipline.MinCourse)
-                return false;
-
-            if (discipline.MaxCourse.HasValue && (currentCourse + 1) > discipline.MaxCourse)
-                return false;
-
-            if (discipline.AddSemestr.HasValue)
-            {
-                bool currentIsEven = DateTime.Now.Month switch
-                {
-                    >= 2 and <= 6 => true,
-                    >= 9 and <= 12 => true,
-                    _ => false
-                };
-            }
-
-            if (discipline.Faculty != abbreviation && !discipline.CodeAddDisciplines.Contains("у-"))
-                return false;
-
-            if (discipline.MaxCountPeople.HasValue && countOfPeople >= discipline.MaxCountPeople.Value)
-                return false;
-
-            return true;
-        }
-        [HttpGet("GetDisciplinesBySemester")]
-        public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
+        [HttpGet("GetAllDisciplinesWithAvailability")]
+        public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
             [FromQuery] int studentId,
-            [FromQuery] bool isEvenSemester)
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] bool onlyAvailable = false,
+            [FromQuery] string? search = null)
         {
-            var student = await _context.Students
-                .Include(s => s.EducationalDegree)
-                .Include(s => s.BindAddDisciplines)
-                .FirstOrDefaultAsync(s => s.IdStudents == studentId);
-
-            if (student == null)
+            var context = await DisciplineAvailabilityService.BuildAvailabilityContext(studentId, _context);
+            if (context == null)
                 return NotFound("Student not found");
 
-            int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
+
+            var query = _context.AddDisciplines
+    .Include(d => d.EducationalDegree)
+    .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(d =>
+                    d.NameAddDisciplines.ToLower().Contains(lowerSearch) ||
+                    d.CodeAddDisciplines.ToLower().Contains(lowerSearch));
+            }
+
+            var totalItems = await query.CountAsync();
+
+            var disciplinesPage = await query
+                .OrderBy(d => d.NameAddDisciplines)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = disciplinesPage.Select(discipline =>
+            {
+                var dto = _mapper.Map<FullDisciplineDto>(discipline);
+                dto.CountOfPeople = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c) ? c : 0;
+                dto.IsAvailable = DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context);
+                return dto;
+            }).ToList();
+
+            if (onlyAvailable)
+            {
+                result = result.Where(d => d.IsAvailable).ToList();
+            }
+
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var response = new
+            {
+                totalPages,
+                totalItems,
+                currentPage = page,
+                pageSize,
+                disciplines = result
+            };
+
+            return Ok(response);
+
+        }
+
+        [HttpGet("GetDisciplinesBySemester")]
+        public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
+    [FromQuery] int studentId,
+    [FromQuery] bool isEvenSemester)
+        {
+            var context = await DisciplineAvailabilityService.BuildAvailabilityContext(studentId, _context);
+            if (context == null)
+                return NotFound("Student not found");
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
-                .Where(d => d.DegreeLevel == student.EducationalDegree.IdEducationalDegree)
                 .ToListAsync();
 
-            var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess == 1)
-                .GroupBy(b => b.AddDisciplinesId)
-                .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
-            var abbreviation = await _context.Faculties
-    .Where(f => f.IdFaculty == student.FacultyId)
-    .Select(f => f.Abbreviation)
-    .FirstOrDefaultAsync();
-
             var availableDisciplines = disciplines
-                .Where(d =>
-                {
-                    int count = disciplineCounts.TryGetValue(d.IdAddDisciplines, out var c) ? c : 0;
-                    return IsDisciplineAvailableForStudent(d, student, currentCourse, count, abbreviation);
-                })
+                .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
                 .Select(d => new SimpleDisciplineDto
                 {
                     IdAddDisciplines = d.IdAddDisciplines,
@@ -98,182 +105,75 @@ namespace OlimpBack.Controllers
 
             return Ok(new DisciplineTabResponseDto
             {
-                StudentId = student.IdStudents,
-                StudentName = student.NameStudent,
-                CurrentCourse = currentCourse,
+                StudentId = context.Student.IdStudents,
+                StudentName = context.Student.NameStudent,
+                CurrentCourse = context.CurrentCourse,
                 IsEvenSemester = isEvenSemester,
                 Disciplines = availableDisciplines
             });
         }
+
         [HttpPost("AddDisciplineBind")]
         public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
         {
             try
             {
-                // Check if student exists
-                var student = await _context.Students
-                    .Include(s => s.EducationalDegree)
-                    .Include(s => s.BindAddDisciplines)
-                    .FirstOrDefaultAsync(s => s.IdStudents == dto.StudentId);
-
-                if (student == null)
-                {
+                var context = await DisciplineAvailabilityService.BuildAvailabilityContext(dto.StudentId, _context);
+                if (context == null)
                     return NotFound(new { error = $"Student not found {dto.StudentId}" });
-                }
 
                 if (dto.Semester != 0 && dto.Semester != 1)
-                {
-                    return NotFound(new { error = "Semester non binary like 1 or 0 " });
-                }
+                    return BadRequest(new { error = "Semester must be 0 or 1" });
 
-                int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
-
-                // Calculate target semester (next course)
-                int targetCourse = currentCourse + 1;
+                int targetCourse = context.CurrentCourse + 1;
                 int targetSemester = (targetCourse * 2) - dto.Semester;
 
-                // Validate course
                 if (targetCourse > 4)
-                {
-                    return BadRequest(new { error = $"You can`t choice disciplines on 5 course" });
-                }
-                // Validate semester
-                if (targetSemester > 8)
-                {
-                    return BadRequest(new { error = $"Invalid semester. Expected semester for next course is {targetSemester}" });
-                }
+                    return BadRequest(new { error = "You can’t choose disciplines in 5th course" });
 
-                // Check if discipline exists
+                if (targetSemester > 8)
+                    return BadRequest(new { error = $"Invalid semester: {targetSemester}" });
+
                 var discipline = await _context.AddDisciplines
                     .FirstOrDefaultAsync(d => d.IdAddDisciplines == dto.DisciplineId);
 
                 if (discipline == null)
-                {
                     return NotFound(new { error = "Discipline not found" });
-                }
 
-                // Check if student is already enrolled in this discipline
-                if (student.BindAddDisciplines.AsQueryable().Any(b => b.AddDisciplinesId == dto.DisciplineId))
-                {
+                if (context.BoundDisciplineIds.Contains(dto.DisciplineId))
                     return BadRequest(new { error = "Student is already enrolled in this discipline" });
-                }
 
-                // Get count of people for the discipline
-                var countOfPeople = await _context.BindAddDisciplines
-                    .AsQueryable()
-                    .Where(b => b.AddDisciplinesId == dto.DisciplineId && b.InProcess == 1)
-                    .CountAsync();
-                var abbreviation = await _context.Faculties
-   .Where(f => f.IdFaculty == student.FacultyId)
-   .Select(f => f.Abbreviation)
-   .FirstOrDefaultAsync();
-                // Check if discipline is available for the student
-                if (!IsDisciplineAvailableForStudent(discipline, student, currentCourse, countOfPeople, abbreviation))
-                {
+                if (!DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context))
                     return BadRequest(new { error = "Discipline is not available for this student" });
-                }
 
-                // Create new bind
-                var bindDiscipline = new BindAddDiscipline
+                var bind = new BindAddDiscipline
                 {
                     StudentId = dto.StudentId,
                     AddDisciplinesId = dto.DisciplineId,
                     Semestr = targetSemester,
                     InProcess = 1,
-                    Loans = 5 // Default value
+                    Loans = 5
                 };
 
-                _context.BindAddDisciplines.Add(bindDiscipline);
+                _context.BindAddDisciplines.Add(bind);
                 await _context.SaveChangesAsync();
 
                 return Ok(new
                 {
                     message = "Discipline successfully bound to student",
-                    bindId = bindDiscipline.IdBindAddDisciplines
+                    bindId = bind.IdBindAddDisciplines
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "An error occurred while processing your request", details = ex.Message });
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while processing your request",
+                    details = ex.Message
+                });
             }
         }
-        [HttpGet("GetAllDisciplinesWithAvailability")]
-        public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
-     [FromQuery] int studentId,
-     [FromQuery] int page = 1,
-     [FromQuery] int pageSize = 50,
-     [FromQuery] bool onlyAvailable = false,
-     [FromQuery] string? search = null)
-        {
-            var student = await _context.Students
-                .Include(s => s.EducationalDegree)
-                .Include(s => s.BindAddDisciplines)
-                .FirstOrDefaultAsync(s => s.IdStudents == studentId);
 
-            if (student == null)
-                return NotFound("Student not found");
-
-            int currentCourse = await CourseCalculator.CalculateCurrentCourse(student, _context);
-
-            var allDisciplines = await _context.AddDisciplines.ToListAsync();
-
-            var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess == 1)
-                .GroupBy(b => b.AddDisciplinesId)
-                .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
-
-            var abbreviation = await _context.Faculties
-                .Where(f => f.IdFaculty == student.FacultyId)
-                .Select(f => f.Abbreviation)
-                .FirstOrDefaultAsync();
-
-            var result = new List<FullDisciplineDto>();
-
-            foreach (var discipline in allDisciplines)
-            {
-                var dto = _mapper.Map<FullDisciplineDto>(discipline);
-                int count = disciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c) ? c : 0;
-                dto.CountOfPeople = count;
-                dto.IsAvailable = IsDisciplineAvailableForStudent(discipline, student, currentCourse, count, abbreviation);
-                result.Add(dto);
-            }
-
-            // 🔍 Фильтрация по доступности
-            if (onlyAvailable)
-            {
-                result = result.Where(d => d.IsAvailable).ToList();
-            }
-
-            // 🔍 Фильтрация по ключевому слову
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                string lowerSearch = search.Trim().ToLower();
-                result = result.Where(d =>
-                    (!string.IsNullOrEmpty(d.NameAddDisciplines) && d.NameAddDisciplines.ToLower().Contains(lowerSearch)) ||
-                    (!string.IsNullOrEmpty(d.CodeAddDisciplines) && d.CodeAddDisciplines.ToLower().Contains(lowerSearch))
-                ).ToList();
-            }
-
-            int totalItems = result.Count;
-            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            var paginatedResult = result
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var response = new
-            {
-                totalPages,
-                totalItems,
-                currentPage = page,
-                pageSize,
-                disciplines = paginatedResult
-            };
-
-            return Ok(response);
-        }
 
 
     }

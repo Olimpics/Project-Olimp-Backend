@@ -41,10 +41,14 @@ namespace OlimpBack.MappingProfiles
             CreateMap<UpdateStudentDto, Student>();
 
             //AddDisciplines
-            CreateMap<AddDiscipline, AddDisciplineDto>();
+            CreateMap<AddDiscipline, AddDisciplineDto>()
+    .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec));
+
+            CreateMap<AddDiscipline, FullDisciplineDto>()
+              .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec));
             CreateMap<CreateAddDisciplineDto, AddDiscipline>();
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
-            CreateMap<AddDiscipline, FullDisciplineDto>();
+
 
             // BindAddDiscipline
             CreateMap<BindAddDiscipline, BindAddDisciplineDto>()

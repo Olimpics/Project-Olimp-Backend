@@ -1,4 +1,6 @@
-﻿namespace OlimpBack.DTO
+﻿using OlimpBack.Models;
+
+namespace OlimpBack.DTO
 {
     public class AddDisciplineDto
     {
@@ -15,7 +17,8 @@
         public string? Recomend { get; set; }
         public string? Teacher { get; set; }
         public string? Prerequisites { get; set; }
-        public string? DegreeLevel { get; set; }
+        public string DegreeLevelId { get; set; }
+        public string DegreeLevelName { get; set; }
     }
 
     public class CreateAddDisciplineDto

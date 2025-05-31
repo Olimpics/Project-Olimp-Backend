@@ -36,12 +36,7 @@ namespace OlimpBack.Controllers
                 .Include(s => s.EducationalDegree)
                 .Include(s => s.StudyForm)
                 .ToListAsync();
-
-            // Calculate course for students with course = 0
-            foreach (var student in students.Where(s => s.Course == 0))
-            {
-                student.Course = await CourseCalculator.CalculateCurrentCourse(student, _context);
-            }
+           
             await _context.SaveChangesAsync();
 
             var dtos = _mapper.Map<IEnumerable<StudentDto>>(students);

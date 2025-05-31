@@ -1,3 +1,4 @@
+using OlimpBack.Models;
 using System.Collections.Generic;
 
 namespace OlimpBack.DTO
@@ -33,9 +34,11 @@ namespace OlimpBack.DTO
         public string? Recomend { get; set; }
         public string? Teacher { get; set; }
         public string? Prerequisites { get; set; }
-        public string? DegreeLevel { get; set; }
+        public string DegreeLevelName { get; set; }
         public bool IsAvailable { get; set; }
         public int CountOfPeople { get; set; }
+
+
     }
 
     public class AddDisciplineBindDto
@@ -44,4 +47,14 @@ namespace OlimpBack.DTO
         public int DisciplineId { get; set; }
         public int Semester { get; set; }
     }
-} 
+
+    public class DisciplineAvailabilityContext
+    {
+        public Student Student { get; set; } = null!;
+        public int CurrentCourse { get; set; }
+        public string? FacultyAbbreviation { get; set; }
+        public HashSet<int> BoundDisciplineIds { get; set; } = new();
+        public Dictionary<int, int> DisciplineCounts { get; set; } = new();
+    }
+
+}

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.MappingProfiles;
+using OlimpBack.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 

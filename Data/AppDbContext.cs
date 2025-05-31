@@ -55,7 +55,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdAddDisciplines).HasName("PRIMARY");
 
-            entity.HasIndex(e => e.DegreeLevel, "AddDisciplines_EducationalDegree_idx");
+            entity.HasIndex(e => e.DegreeLevelId, "AddDisciplines_EducationalDegree_idx");
 
             entity.HasIndex(e => e.IdAddDisciplines, "idAddDisciplines_UNIQUE").IsUnique();
 
@@ -76,8 +76,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Recomend).HasMaxLength(700);
             entity.Property(e => e.Teacher).HasMaxLength(700);
 
-            entity.HasOne(d => d.DegreeLevelNavigation).WithMany(p => p.AddDisciplines)
-                .HasForeignKey(d => d.DegreeLevel)
+            entity.HasOne(d => d.EducationalDegree).WithMany(p => p.AddDisciplines)
+                .HasForeignKey(d => d.DegreeLevelId)
                 .HasConstraintName("AddDisciplines_EducationalDegree");
         });
 
