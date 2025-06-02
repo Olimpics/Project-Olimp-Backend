@@ -23,6 +23,8 @@ public partial class EducationalProgram
 
     public int DegreeId { get; set; }
 
+    public string SpecialityCode { get; set; } = null!;
+
     public string Speciality { get; set; } = null!;
 
     public sbyte Accreditation { get; set; }
@@ -30,6 +32,8 @@ public partial class EducationalProgram
     public string AccreditationType { get; set; } = null!;
 
     public uint StudentsAmount { get; set; }
+
+    public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 
     public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
 

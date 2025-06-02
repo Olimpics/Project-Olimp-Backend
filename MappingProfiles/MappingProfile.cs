@@ -42,10 +42,10 @@ namespace OlimpBack.MappingProfiles
 
             //AddDisciplines
             CreateMap<AddDiscipline, AddDisciplineDto>()
-    .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec));
+    .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
 
             CreateMap<AddDiscipline, FullDisciplineDto>()
-              .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec));
+              .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
             CreateMap<CreateAddDisciplineDto, AddDiscipline>();
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
 
@@ -112,6 +112,49 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.CurrentCourse, opt => opt.MapFrom(src => src.currentCourse))
                 .ForMember(dest => dest.IsEvenSemester, opt => opt.MapFrom(src => src.isEvenSemester))
                 .ForMember(dest => dest.Disciplines, opt => opt.MapFrom(src => src.disciplines));
+
+            CreateMap<(AddDiscipline discipline, AddDetail details), FullDisciplineWithDetailsDto>()
+                .ForMember(dest => dest.IdAddDisciplines, opt => opt.MapFrom(src => src.discipline.IdAddDisciplines))
+                .ForMember(dest => dest.NameAddDisciplines, opt => opt.MapFrom(src => src.discipline.NameAddDisciplines))
+                .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.discipline.CodeAddDisciplines))
+                .ForMember(dest => dest.Faculty, opt => opt.MapFrom(src => src.discipline.Faculty))
+                .ForMember(dest => dest.MinCountPeople, opt => opt.MapFrom(src => src.discipline.MinCountPeople))
+                .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
+                .ForMember(dest => dest.MinCourse, opt => opt.MapFrom(src => src.discipline.MinCourse))
+                .ForMember(dest => dest.MaxCourse, opt => opt.MapFrom(src => src.discipline.MaxCourse))
+                .ForMember(dest => dest.AddSemestr, opt => opt.MapFrom(src => src.discipline.AddSemestr))
+                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegreec))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.details.Department.NameDepartment))
+                .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teacher))
+                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recomend))
+                .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
+                .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.details.Language))
+                .ForMember(dest => dest.Determination, opt => opt.MapFrom(src => src.details.Determination))
+                .ForMember(dest => dest.WhyInterestingDetermination, opt => opt.MapFrom(src => src.details.WhyInterestingDetermination))
+                .ForMember(dest => dest.ResultEducation, opt => opt.MapFrom(src => src.details.ResultEducation))
+                .ForMember(dest => dest.UsingIrl, opt => opt.MapFrom(src => src.details.UsingIrl))
+                .ForMember(dest => dest.AdditionaLiterature, opt => opt.MapFrom(src => src.details.AdditionaLiterature))
+                .ForMember(dest => dest.TypesOfTraining, opt => opt.MapFrom(src => src.details.TypesOfTraining))
+                .ForMember(dest => dest.TypeOfControll, opt => opt.MapFrom(src => src.details.TypeOfControll));
+
+            //Department
+            CreateMap<Department, DepartmentDto>()
+                .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
+            CreateMap<CreateDepartmentDto, Department>();
+            CreateMap<UpdateDepartmentDto, Department>();
+
+            //BindLoansMain
+            CreateMap<BindLoansMain, BindLoansMainDto>()
+                .ForMember(dest => dest.AddDisciplineName, opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines))
+                .ForMember(dest => dest.EducationalProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram));
+            CreateMap<CreateBindLoansMainDto, BindLoansMain>();
+            CreateMap<UpdateBindLoansMainDto, BindLoansMain>();
+
+            //AddDetail
+            CreateMap<AddDetail, AddDetailDto>()
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
+            CreateMap<CreateAddDetailDto, AddDetail>();
+            CreateMap<UpdateAddDetailDto, AddDetail>();
         }
 
     }

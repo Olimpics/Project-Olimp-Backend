@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace OlimpBack.Models;
+
+public partial class AdminsPersonal
+{
+    public int IdAdmins { get; set; }
+
+    public int UserId { get; set; }
+
+    public string NameAdmin { get; set; } = null!;
+
+    public int? FacultyId { get; set; }
+
+    public int? DepartmentId { get; set; }
+
+    public byte[]? Photo { get; set; }
+
+    public virtual Department? Department { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
+
+    public virtual User User { get; set; } = null!;
+}

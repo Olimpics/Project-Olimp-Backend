@@ -17,13 +17,21 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<AddDetail> AddDetails { get; set; }
+
     public virtual DbSet<AddDiscipline> AddDisciplines { get; set; }
 
     public virtual DbSet<AdminLog> AdminLogs { get; set; }
 
+    public virtual DbSet<AdminsPersonal> AdminsPersonals { get; set; }
+
     public virtual DbSet<BindAddDiscipline> BindAddDisciplines { get; set; }
 
+    public virtual DbSet<BindLoansMain> BindLoansMains { get; set; }
+
     public virtual DbSet<BindMainDiscipline> BindMainDisciplines { get; set; }
+
+    public virtual DbSet<Department> Departments { get; set; }
 
     public virtual DbSet<EducationStatus> EducationStatuses { get; set; }
 
@@ -51,6 +59,40 @@ public partial class AppDbContext : DbContext
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
 
+        modelBuilder.Entity<AddDetail>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.HasIndex(e => e.DepartmentId, "AddDetails_Department_idx");
+
+            entity.HasIndex(e => e.IdAddDetails, "idAddDetails_UNIQUE").IsUnique();
+
+            entity.Property(e => e.AdditionaLiterature).HasMaxLength(800);
+            entity.Property(e => e.Determination).HasMaxLength(800);
+            entity.Property(e => e.IdAddDetails).HasColumnName("idAddDetails");
+            entity.Property(e => e.Language).HasMaxLength(200);
+            entity.Property(e => e.Prerequisites).HasMaxLength(800);
+            entity.Property(e => e.Recomend).HasMaxLength(800);
+            entity.Property(e => e.ResultEducation).HasMaxLength(800);
+            entity.Property(e => e.Teacher).HasMaxLength(800);
+            entity.Property(e => e.TypeOfControll).HasMaxLength(100);
+            entity.Property(e => e.TypesOfTraining).HasMaxLength(200);
+            entity.Property(e => e.UsingIrl)
+                .HasMaxLength(800)
+                .HasColumnName("UsingIRL");
+            entity.Property(e => e.WhyInterestingDetermination).HasMaxLength(800);
+
+            entity.HasOne(d => d.Department).WithMany()
+                .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("AddDetails_Department");
+
+            entity.HasOne(d => d.IdAddDetailsNavigation).WithOne()
+                .HasForeignKey<AddDetail>(d => d.IdAddDetails)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("AddDetails_AddDisciples");
+        });
+
         modelBuilder.Entity<AddDiscipline>(entity =>
         {
             entity.HasKey(e => e.IdAddDisciplines).HasName("PRIMARY");
@@ -63,7 +105,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodeAddDisciplines)
                 .HasMaxLength(200)
                 .HasColumnName("codeAddDisciplines");
-            entity.Property(e => e.Department).HasMaxLength(200);
             entity.Property(e => e.Faculty).HasMaxLength(200);
             entity.Property(e => e.MaxCountPeople).HasColumnName("maxCountPeople");
             entity.Property(e => e.MaxCourse).HasColumnName("maxCourse");
@@ -72,11 +113,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameAddDisciplines)
                 .HasMaxLength(200)
                 .HasColumnName("nameAddDisciplines");
-            entity.Property(e => e.Prerequisites).HasMaxLength(700);
-            entity.Property(e => e.Recomend).HasMaxLength(700);
-            entity.Property(e => e.Teacher).HasMaxLength(700);
 
-            entity.HasOne(d => d.EducationalDegree).WithMany(p => p.AddDisciplines)
+            entity.HasOne(d => d.DegreeLevel).WithMany(p => p.AddDisciplines)
                 .HasForeignKey(d => d.DegreeLevelId)
                 .HasConstraintName("AddDisciplines_EducationalDegree");
         });
@@ -105,6 +143,38 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.TableName).HasMaxLength(64);
         });
 
+        modelBuilder.Entity<AdminsPersonal>(entity =>
+        {
+            entity.HasKey(e => e.IdAdmins).HasName("PRIMARY");
+
+            entity.ToTable("AdminsPersonal");
+
+            entity.HasIndex(e => e.DepartmentId, "AdminsPersonal_Deopartment_idx");
+
+            entity.HasIndex(e => e.FacultyId, "AdminsPersonal_Faculties_idx");
+
+            entity.HasIndex(e => e.UserId, "AdminsPersonal_Users_idx");
+
+            entity.Property(e => e.IdAdmins).HasColumnName("idAdmins");
+            entity.Property(e => e.NameAdmin)
+                .HasMaxLength(200)
+                .HasColumnName("nameAdmin");
+            entity.Property(e => e.Photo).HasColumnType("blob");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.AdminsPersonals)
+                .HasForeignKey(d => d.DepartmentId)
+                .HasConstraintName("AdminsPersonal_Deopartment");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.AdminsPersonals)
+                .HasForeignKey(d => d.FacultyId)
+                .HasConstraintName("AdminsPersonal_Faculties");
+
+            entity.HasOne(d => d.User).WithMany(p => p.AdminsPersonals)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("AdminsPersonal_Users");
+        });
+
         modelBuilder.Entity<BindAddDiscipline>(entity =>
         {
             entity.HasKey(e => e.IdBindAddDisciplines).HasName("PRIMARY");
@@ -128,6 +198,29 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("Bind_Student");
         });
 
+        modelBuilder.Entity<BindLoansMain>(entity =>
+        {
+            entity.HasKey(e => e.IdBindLoan).HasName("PRIMARY");
+
+            entity.ToTable("BindLoansMain");
+
+            entity.HasIndex(e => e.AddDisciplinesId, "BindLoansMain_AddDisciplines_idx");
+
+            entity.HasIndex(e => e.EducationalProgramId, "BindLoansMain_EducationalProgram_idx");
+
+            entity.Property(e => e.IdBindLoan).HasColumnName("idBindLoan");
+
+            entity.HasOne(d => d.AddDisciplines).WithMany(p => p.BindLoansMains)
+                .HasForeignKey(d => d.AddDisciplinesId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindLoansMain_AddDisciplines");
+
+            entity.HasOne(d => d.EducationalProgram).WithMany(p => p.BindLoansMains)
+                .HasForeignKey(d => d.EducationalProgramId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindLoansMain_EducationalProgram");
+        });
+
         modelBuilder.Entity<BindMainDiscipline>(entity =>
         {
             entity.HasKey(e => e.IdBindMainDisciplines).HasName("PRIMARY");
@@ -147,6 +240,28 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.EducationalProgramId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BindMainDisciplines_EducationalProgram");
+        });
+
+        modelBuilder.Entity<Department>(entity =>
+        {
+            entity.HasKey(e => e.IdDepartment).HasName("PRIMARY");
+
+            entity.ToTable("Department");
+
+            entity.HasIndex(e => e.FacultyId, "Department_Faculties_idx");
+
+            entity.Property(e => e.IdDepartment)
+                .ValueGeneratedNever()
+                .HasColumnName("idDepartment");
+            entity.Property(e => e.Abbreviation).HasMaxLength(200);
+            entity.Property(e => e.NameDepartment)
+                .HasMaxLength(200)
+                .HasColumnName("nameDepartment");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.Departments)
+                .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Department_Faculties");
         });
 
         modelBuilder.Entity<EducationStatus>(entity =>
@@ -205,6 +320,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Speciality)
                 .HasMaxLength(400)
                 .HasColumnName("speciality");
+            entity.Property(e => e.SpecialityCode)
+                .HasMaxLength(45)
+                .HasColumnName("specialityCode");
             entity.Property(e => e.StudentsAmount).HasColumnName("studentsAmount");
 
             entity.HasOne(d => d.Degree).WithMany(p => p.EducationalPrograms)
@@ -248,6 +366,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Student");
 
+            entity.HasIndex(e => e.DepartmentId, "Students_Department_idx");
+
             entity.HasIndex(e => e.StatusId, "Students_EducationStatus_idx");
 
             entity.HasIndex(e => e.EducationalDegreeId, "Students_EducationalDegree_idx");
@@ -266,6 +386,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameStudent)
                 .HasMaxLength(200)
                 .HasColumnName("nameStudent");
+            entity.Property(e => e.Photo).HasColumnType("blob");
 
             entity.HasOne(d => d.EducationalDegree).WithMany(p => p.Students)
                 .HasForeignKey(d => d.EducationalDegreeId)

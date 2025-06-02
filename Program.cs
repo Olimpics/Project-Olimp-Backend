@@ -44,6 +44,8 @@ builder.Services.AddCors(options =>
 
 // Authorization
 builder.Services.AddAuthorization();
+builder.Services.AddHostedService<FileCleanupService>();
+
 
 var app = builder.Build();
 

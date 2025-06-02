@@ -6,7 +6,6 @@ using OlimpBack.Models;
 namespace OlimpBack.Utils
 {
 
-
     public static class DisciplineAvailabilityService
     {
         public static async Task<DisciplineAvailabilityContext?> BuildAvailabilityContext(int studentId, AppDbContext _context)
@@ -46,8 +45,8 @@ namespace OlimpBack.Utils
             if (context.BoundDisciplineIds.Contains(discipline.IdAddDisciplines))
                 return false;
 
-            if (discipline.EducationalDegree != null &&
-                discipline.EducationalDegree != context.Student.EducationalDegree)
+            if (discipline.DegreeLevel != null &&
+                discipline.DegreeLevel != context.Student.EducationalDegree)
                 return false;
 
             if (discipline.MinCourse.HasValue && (context.CurrentCourse + 1) < discipline.MinCourse)

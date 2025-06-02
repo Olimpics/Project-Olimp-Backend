@@ -13,8 +13,6 @@ public partial class AddDiscipline
 
     public string Faculty { get; set; } = null!;
 
-    public string Department { get; set; } = null!;
-
     public int? MinCountPeople { get; set; }
 
     public int? MaxCountPeople { get; set; }
@@ -25,15 +23,11 @@ public partial class AddDiscipline
 
     public sbyte? AddSemestr { get; set; }
 
-    public string? Recomend { get; set; }
-
-    public string? Teacher { get; set; }
-
-    public string? Prerequisites { get; set; }
-
     public int? DegreeLevelId { get; set; }
 
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
 
-    public virtual EducationalDegree EducationalDegree { get; set; } = null!;
+    public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
+
+    public virtual EducationalDegree? DegreeLevel { get; set; }
 }

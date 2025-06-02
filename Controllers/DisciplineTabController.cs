@@ -32,7 +32,7 @@ namespace OlimpBack.Controllers
                 return NotFound("Student not found");
 
             var query = _context.AddDisciplines
-                .Include(d => d.EducationalDegree)
+                .Include(d => d.DegreeLevelId)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -133,7 +133,7 @@ namespace OlimpBack.Controllers
                 int targetSemester = (targetCourse * 2) - dto.Semester;
 
                 if (targetCourse > 4)
-                    return BadRequest(new { error = "You can’t choose disciplines in 5th course" });
+                    return BadRequest(new { error = "You can't choose disciplines in 5th course" });
 
                 if (targetSemester > 8)
                     return BadRequest(new { error = $"Invalid semester: {targetSemester}" });
@@ -178,7 +178,25 @@ namespace OlimpBack.Controllers
             }
         }
 
+        [HttpGet("GetDisciplineWithDetails/{id}")]
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetDisciplineWithDetails(int id)
+        {
+            var discipline = await _context.AddDisciplines
+                .Include(d => d.DegreeLevel)
+                .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
 
+            if (discipline == null)
+                return NotFound("Discipline not found");
 
+            var details = await _context.AddDetails
+                .Include(d => d.Department)
+                .FirstOrDefaultAsync(d => d.IdAddDetails == id);
+
+            if (details == null)
+                return NotFound("Discipline details not found");
+
+            var result = _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
+            return Ok(result);
+        }
     }
 }
