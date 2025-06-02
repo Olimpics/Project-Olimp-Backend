@@ -90,22 +90,27 @@ namespace OlimpBack.Controllers
             if (!string.IsNullOrWhiteSpace(degreeLevelIds))
             {
                 var levelIds = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+
                 var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
                 var property = Expression.Property(parameter, nameof(AddDiscipline.DegreeLevelId));
 
-                // Приводим levelId к типу property.Type (вдруг это int? или что-то ещё)
-                var conditions = levelIds.Select(levelId =>
+                // Привести levelId к int? для корректного сравнения
+                var equalsExpressions = levelIds.Select(levelId =>
                     Expression.Equal(
                         property,
-                        Expression.Constant(Convert.ChangeType(levelId, property.Type), property.Type)
+                        Expression.Constant((int?)levelId, typeof(int?))
                     )
                 );
 
-                var orExpression = conditions.Aggregate((a, b) => Expression.OrElse(a, b));
-                var levelPredicate = Expression.Lambda<Func<AddDiscipline, bool>>(orExpression, parameter);
+                // Объединить через OR
+                Expression combinedOr = equalsExpressions.Aggregate((a, b) => Expression.OrElse(a, b));
 
-                query = query.Where(levelPredicate);
+                var lambda = Expression.Lambda<Func<AddDiscipline, bool>>(combinedOr, parameter);
+
+                // Применить фильтр к запросу
+                query = query.Where(lambda);
             }
+
 
 
             // Load filtered disciplines
