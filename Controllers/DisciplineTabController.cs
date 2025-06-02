@@ -5,6 +5,8 @@ using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
 using OlimpBack.Utils;
+using System.Linq.Expressions;
+
 namespace OlimpBack.Controllers
 {
     [Route("api/[controller]")]
@@ -21,34 +23,97 @@ namespace OlimpBack.Controllers
 
         [HttpGet("GetAllDisciplinesWithAvailability")]
         public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
-    [FromQuery] int studentId,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 50,
-    [FromQuery] bool onlyAvailable = false,
-    [FromQuery] string? search = null)
+            [FromQuery] int studentId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] bool onlyAvailable = false,
+            [FromQuery] string? search = null,
+            [FromQuery] string? faculties = null,
+            [FromQuery] string? courses = null,
+            [FromQuery] bool? isEvenSemester = null,
+            [FromQuery] string? degreeLevelIds = null)
         {
             var context = await DisciplineAvailabilityService.BuildAvailabilityContext(studentId, _context);
             if (context == null)
                 return NotFound("Student not found");
 
             var query = _context.AddDisciplines
-                .Include(d => d.DegreeLevelId)
+                .Include(d => d.DegreeLevel)
                 .AsQueryable();
 
+            // Apply search filter
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var lowerSearch = search.Trim().ToLower();
                 query = query.Where(d =>
-                    d.NameAddDisciplines.ToLower().Contains(lowerSearch) ||
-                    d.CodeAddDisciplines.ToLower().Contains(lowerSearch));
+                    EF.Functions.Like(d.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
             }
 
-            // Загружаем все подходящие дисциплины
+            // Apply faculty filter
+            if (!string.IsNullOrWhiteSpace(faculties))
+            {
+                var facultyList = faculties.Split(',').Select(f => f.Trim()).ToList();
+                Expression<Func<AddDiscipline, bool>> facultyPredicate = d => false;
+                var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
+                
+                var conditions = facultyList.Select(faculty =>
+                    Expression.Equal(
+                        Expression.Property(parameter, "Faculty"),
+                        Expression.Constant(faculty)
+                    )
+                );
+                
+                var orExpression = conditions.Aggregate((a, b) => Expression.OrElse(a, b));
+                facultyPredicate = Expression.Lambda<Func<AddDiscipline, bool>>(orExpression, parameter);
+                
+                query = query.Where(facultyPredicate);
+            }
+
+            // Apply course filter
+            if (!string.IsNullOrWhiteSpace(courses))
+            {
+                var courseList = courses.Split(',').Select(int.Parse).ToList();
+                query = query.Where(d =>
+                    (!d.MinCourse.HasValue || courseList.Contains(d.MinCourse.Value)) &&
+                    (!d.MaxCourse.HasValue || courseList.Contains(d.MaxCourse.Value)));
+            }
+
+            // Apply semester filter
+            if (isEvenSemester.HasValue)
+            {
+                var semesterValue = isEvenSemester.Value ? (sbyte)0 : (sbyte)1;
+                query = query.Where(d => d.AddSemestr == semesterValue);
+            }
+
+            // Apply degree level filter
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var levelIds = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+                var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
+                var property = Expression.Property(parameter, nameof(AddDiscipline.DegreeLevelId));
+
+                // �������� levelId � ���� property.Type (����� ��� int? ��� ���-�� ���)
+                var conditions = levelIds.Select(levelId =>
+                    Expression.Equal(
+                        property,
+                        Expression.Constant(Convert.ChangeType(levelId, property.Type), property.Type)
+                    )
+                );
+
+                var orExpression = conditions.Aggregate((a, b) => Expression.OrElse(a, b));
+                var levelPredicate = Expression.Lambda<Func<AddDiscipline, bool>>(orExpression, parameter);
+
+                query = query.Where(levelPredicate);
+            }
+
+
+            // Load filtered disciplines
             var allDisciplines = await query
                 .OrderBy(d => d.NameAddDisciplines)
                 .ToListAsync();
 
-            // Маппим и вычисляем доступность
+            // Map and calculate availability
             var fullList = allDisciplines.Select(discipline =>
             {
                 var dto = _mapper.Map<FullDisciplineDto>(discipline);
@@ -57,7 +122,7 @@ namespace OlimpBack.Controllers
                 return dto;
             }).ToList();
 
-            // Фильтруем, если нужно
+            // Filter by availability if needed
             if (onlyAvailable)
             {
                 fullList = fullList.Where(d => d.IsAvailable).ToList();
@@ -77,7 +142,14 @@ namespace OlimpBack.Controllers
                 totalItems,
                 currentPage = page,
                 pageSize,
-                disciplines = paginatedResult
+                disciplines = paginatedResult,
+                filters = new
+                {
+                    faculties = faculties?.Split(',').Select(f => f.Trim()).ToList(),
+                    courses = courses?.Split(',').Select(int.Parse).ToList(),
+                    isEvenSemester,
+                    degreeLevelIds = degreeLevelIds?.Split(',').Select(int.Parse).ToList()
+                }
             };
 
             return Ok(response);

@@ -79,4 +79,12 @@ namespace OlimpBack.DTO
         public string TypesOfTraining { get; set; } = null!;
         public string TypeOfControll { get; set; } = null!;
     }
+
+    public class DisciplineFiltersDto
+    {
+        public List<string>? Faculties { get; set; }
+        public List<int>? Courses { get; set; }
+        public bool? IsEvenSemester { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+    }
 }
