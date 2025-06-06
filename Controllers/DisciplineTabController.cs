@@ -31,7 +31,8 @@ namespace OlimpBack.Controllers
             [FromQuery] string? faculties = null,
             [FromQuery] string? courses = null,
             [FromQuery] bool? isEvenSemester = null,
-            [FromQuery] string? degreeLevelIds = null)
+            [FromQuery] string? degreeLevelIds = null,
+            [FromQuery] int sortOrder = 0)
         {
             var context = await DisciplineAvailabilityService.BuildAvailabilityContext(studentId, _context);
             if (context == null)
@@ -56,17 +57,17 @@ namespace OlimpBack.Controllers
                 var facultyList = faculties.Split(',').Select(f => f.Trim()).ToList();
                 Expression<Func<AddDiscipline, bool>> facultyPredicate = d => false;
                 var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
-                
+
                 var conditions = facultyList.Select(faculty =>
                     Expression.Equal(
                         Expression.Property(parameter, "Faculty"),
                         Expression.Constant(faculty)
                     )
                 );
-                
+
                 var orExpression = conditions.Aggregate((a, b) => Expression.OrElse(a, b));
                 facultyPredicate = Expression.Lambda<Func<AddDiscipline, bool>>(orExpression, parameter);
-                
+
                 query = query.Where(facultyPredicate);
             }
 
@@ -115,7 +116,6 @@ namespace OlimpBack.Controllers
 
             // Load filtered disciplines
             var allDisciplines = await query
-                .OrderBy(d => d.NameAddDisciplines)
                 .ToListAsync();
 
             // Map and calculate availability
@@ -133,6 +133,13 @@ namespace OlimpBack.Controllers
                 fullList = fullList.Where(d => d.IsAvailable).ToList();
             }
 
+            fullList = sortOrder switch
+            {
+                1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
+                2 => fullList.OrderBy(d => d.CountOfPeople).ToList(),
+                3 => fullList.OrderByDescending(d => d.CountOfPeople).ToList(),
+                _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
+            };
             var totalItems = fullList.Count;
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
