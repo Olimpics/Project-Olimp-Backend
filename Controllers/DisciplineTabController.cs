@@ -113,7 +113,6 @@ namespace OlimpBack.Controllers
             }
 
 
-
             // Load filtered disciplines
             var allDisciplines = await query
                 .ToListAsync();

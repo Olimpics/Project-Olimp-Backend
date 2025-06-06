@@ -106,6 +106,9 @@ namespace OlimpBack.MappingProfiles
             //Faculty
             CreateMap<Faculty, FacultyDto>().ReverseMap();
 
+            //Filters
+            CreateMap<Department, FiltersDepartmentDTO>();
+
             //Role
             CreateMap<Role, RoleDto>().ReverseMap();
 
