@@ -9,6 +9,7 @@ using OlimpBack.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace OlimpBack.Controllers
 {
@@ -27,20 +28,126 @@ namespace OlimpBack.Controllers
 
         // GET: api/Student
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
+        public async Task<ActionResult<object>> GetStudents(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] string? faculties = null,
+            [FromQuery] string? speciality = null,
+            [FromQuery] string? group = null,
+            [FromQuery] string? courses = null,
+            [FromQuery] string? studyForm = null,
+            [FromQuery] string? degreeLevelIds = null)
         {
-            var students = await _context.Students
+            var query = _context.Students
                 .Include(s => s.Status)
                 .Include(s => s.Faculty)
                 .Include(s => s.EducationalProgram)
                 .Include(s => s.EducationalDegree)
+                .Include(s => s.Group)
                 .Include(s => s.StudyForm)
-                .ToListAsync();
-           
-            await _context.SaveChangesAsync();
+                .AsQueryable();
 
-            var dtos = _mapper.Map<IEnumerable<StudentDto>>(students);
-            return Ok(dtos);
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(s =>
+                    EF.Functions.Like(s.NameStudent.ToLower(), $"%{lowerSearch}%"));
+            }
+
+            // Apply faculty filter
+            if (!string.IsNullOrWhiteSpace(faculties))
+            {
+                var facultyValues = faculties.Split(',').Select(f => f.Trim()).ToList();
+                var numericValues = facultyValues.Where(f => int.TryParse(f, out _)).Select(int.Parse).ToList();
+                var textValues = facultyValues.Where(f => !int.TryParse(f, out _)).Select(f => f.ToLower()).ToList();
+
+                if (numericValues.Any())
+                {
+                    query = query.Where(s => numericValues.Contains(s.FacultyId));
+                }
+
+                if (textValues.Any())
+                {
+                    foreach (var val in textValues)
+                    {
+                        var temp = val; // Avoid closure issue
+                        query = query.Where(s =>
+                            EF.Functions.Like(s.Faculty.NameFaculty.ToLower(), $"%{temp}%") ||
+                            EF.Functions.Like(s.Faculty.Abbreviation.ToLower(), $"%{temp}%"));
+                    }
+                }
+            }
+
+
+            // Apply speciality filter
+            if (!string.IsNullOrWhiteSpace(speciality))
+            {
+                query = query.Where(s => 
+                    EF.Functions.Like(s.EducationalProgram.Speciality.ToLower(), $"%{speciality.ToLower()}%"));
+            }
+
+            // Apply group filter
+            if (!string.IsNullOrWhiteSpace(group))
+            {
+                query = query.Where(s => 
+                    EF.Functions.Like(s.GroupId, $"%{group.ToLower()}%"));
+            }
+
+            // Apply course filter
+            if (!string.IsNullOrWhiteSpace(courses))
+            {
+                var courseList = courses.Split(',').Select(int.Parse).ToList();
+                query = query.Where(s => courseList.Contains(s.Course));
+            }
+
+            // Apply study form filter
+            if (!string.IsNullOrWhiteSpace(studyForm))
+            {
+                var studyFormIds = studyForm.Split(',').Select(int.Parse).ToList();
+                query = query.Where(s => studyFormIds.Contains(s.StudyFormId));
+            }
+
+            // Apply degree level filter
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var levelIds = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+                query = query.Where(s => levelIds.Contains(s.EducationalDegreeId));
+            }
+
+            // Get total count for pagination
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Apply pagination
+            var students = await query
+                .OrderBy(s => s.NameStudent)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var studentDtos = _mapper.Map<IEnumerable<StudentDto>>(students);
+
+            var response = new
+            {
+                totalPages,
+                totalItems,
+                currentPage = page,
+                pageSize,
+                students = studentDtos,
+                filters = new
+                {
+                    faculties = faculties?.Split(',').Select(f => f.Trim()).ToList(),
+                    speciality,
+                    group,
+                    courses = courses?.Split(',').Select(int.Parse).ToList(),
+                    studyForm = studyForm?.Split(',').Select(int.Parse).ToList(),
+                    degreeLevelIds = degreeLevelIds?.Split(',').Select(int.Parse).ToList()
+                }
+            };
+
+            return Ok(response);
         }
 
         // GET: api/Student/5

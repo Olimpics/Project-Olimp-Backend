@@ -10,7 +10,6 @@ namespace OlimpBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     public class AddDisciplineController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -23,69 +22,153 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AddDisciplineDto>>> GetAddDisciplines()
+        public async Task<ActionResult<IEnumerable<FullDisciplineWithDetailsDto>>> GetAddDisciplines()
         {
             var disciplines = await _context.AddDisciplines
-                .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
+                .Include(d => d.DegreeLevel)
                 .ToListAsync();
-            return Ok(disciplines);
+
+            var result = new List<FullDisciplineWithDetailsDto>();
+
+            foreach (var discipline in disciplines)
+            {
+                var details = await _context.AddDetails
+                    .Include(d => d.Department)
+                    .FirstOrDefaultAsync(d => d.IdAddDetails == discipline.IdAddDisciplines);
+
+                if (details != null)
+                {
+                    result.Add(_mapper.Map<FullDisciplineWithDetailsDto>((discipline, details)));
+                }
+            }
+
+            return Ok(result);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<AddDisciplineDto>> GetAddDiscipline(int id)
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetAddDiscipline(int id)
         {
             var discipline = await _context.AddDisciplines
-                .Where(d => d.IdAddDisciplines == id)
-                .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync();
+                .Include(d => d.DegreeLevel)
+                .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
 
             if (discipline == null)
             {
-                return NotFound();
+                return NotFound("Discipline not found");
             }
 
-            return Ok(discipline);
+            var details = await _context.AddDetails
+                .Include(d => d.Department)
+                .FirstOrDefaultAsync(d => d.IdAddDetails == id);
+
+            if (details == null)
+            {
+                return NotFound("Discipline details not found");
+            }
+
+            var result = _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<ActionResult<AddDisciplineDto>> CreateAddDiscipline(CreateAddDisciplineDto dto)
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateAddDiscipline(CreateAddDisciplineWithDetailsDto dto)
         {
-            var discipline = _mapper.Map<AddDiscipline>(dto);
-            _context.AddDisciplines.Add(discipline);
-            await _context.SaveChangesAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var discipline = _mapper.Map<AddDiscipline>(dto);
+                _context.AddDisciplines.Add(discipline);
+                await _context.SaveChangesAsync();
 
-            var result = _mapper.Map<AddDisciplineDto>(discipline);
-            return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.IdAddDisciplines }, result);
+                var details = _mapper.Map<AddDetail>(dto.Details);
+                details.IdAddDetails = discipline.IdAddDisciplines;
+                _context.AddDetails.Add(details);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                var createdDiscipline = await _context.AddDisciplines
+                    .Include(d => d.DegreeLevel)
+                    .FirstOrDefaultAsync(d => d.IdAddDisciplines == discipline.IdAddDisciplines);
+
+                var createdDetails = await _context.AddDetails
+                    .Include(d => d.Department)
+                    .FirstOrDefaultAsync(d => d.IdAddDetails == discipline.IdAddDisciplines);
+
+                var result = _mapper.Map<FullDisciplineWithDetailsDto>((createdDiscipline, createdDetails));
+                return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.IdAddDisciplines }, result);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAddDiscipline(int id, CreateAddDisciplineDto dto)
+        public async Task<IActionResult> UpdateAddDiscipline(int id, UpdateAddDisciplineWithDetailsDto dto)
         {
-            var discipline = await _context.AddDisciplines.FindAsync(id);
-            if (discipline == null) return NotFound();
+            if (id != dto.IdAddDisciplines)
+                return BadRequest();
 
-            _mapper.Map(dto, discipline);
-            await _context.SaveChangesAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var discipline = await _context.AddDisciplines.FindAsync(id);
+                if (discipline == null)
+                    return NotFound("Discipline not found");
 
-            return NoContent();
+                var details = await _context.AddDetails.FindAsync(id);
+                if (details == null)
+                    return NotFound("Discipline details not found");
+
+                _mapper.Map(dto, discipline);
+                _mapper.Map(dto.Details, details);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddDiscipline(int id)
         {
-            var discipline = await _context.AddDisciplines.FindAsync(id);
-            if (discipline == null) return NotFound();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var discipline = await _context.AddDisciplines.FindAsync(id);
+                if (discipline == null)
+                    return NotFound("Discipline not found");
 
-            _context.AddDisciplines.Remove(discipline);
-            await _context.SaveChangesAsync();
+                var details = await _context.AddDetails.FindAsync(id);
+                if (details != null)
+                {
+                    _context.AddDetails.Remove(details);
+                }
 
-            return NoContent();
+                _context.AddDisciplines.Remove(discipline);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private bool AddDisciplineExists(int id)
         {
             return _context.AddDisciplines.Any(e => e.IdAddDisciplines == id);
         }
-
-    } 
+    }
 }

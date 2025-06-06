@@ -41,6 +41,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Faculty> Faculties { get; set; }
 
+    public virtual DbSet<Group> Groups { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
@@ -63,9 +65,9 @@ public partial class AppDbContext : DbContext
         {
             entity.HasNoKey();
 
-            entity.HasIndex(e => e.DepartmentId, "AddDetails_Department_idx");
+            entity.HasIndex(e => e.DepartmentId, "AddDeteils_Department_idx");
 
-            entity.HasIndex(e => e.IdAddDetails, "idAddDetails_UNIQUE").IsUnique();
+            entity.HasIndex(e => e.IdAddDetails, "idAddDeteils_UNIQUE").IsUnique();
 
             entity.Property(e => e.AdditionaLiterature).HasMaxLength(800);
             entity.Property(e => e.Determination).HasMaxLength(800);
@@ -85,12 +87,12 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Department).WithMany()
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("AddDetails_Department");
+                .HasConstraintName("AddDeteils_Department");
 
             entity.HasOne(d => d.IdAddDetailsNavigation).WithOne()
                 .HasForeignKey<AddDetail>(d => d.IdAddDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("AddDetails_AddDisciples");
+                .HasConstraintName("AddDeteils_AddDisciples");
         });
 
         modelBuilder.Entity<AddDiscipline>(entity =>
@@ -149,7 +151,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("AdminsPersonal");
 
-            entity.HasIndex(e => e.DepartmentId, "AdminsPersonal_Deopartment_idx");
+            entity.HasIndex(e => e.DepartmentId, "AdminsPersonal_Department_idx");
 
             entity.HasIndex(e => e.FacultyId, "AdminsPersonal_Faculties_idx");
 
@@ -163,7 +165,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Department).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.DepartmentId)
-                .HasConstraintName("AdminsPersonal_Deopartment");
+                .HasConstraintName("AdminsPersonal_Department");
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.FacultyId)
@@ -250,9 +252,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.FacultyId, "Department_Faculties_idx");
 
-            entity.Property(e => e.IdDepartment)
-                .ValueGeneratedNever()
-                .HasColumnName("idDepartment");
+            entity.Property(e => e.IdDepartment).HasColumnName("idDepartment");
             entity.Property(e => e.Abbreviation).HasMaxLength(200);
             entity.Property(e => e.NameDepartment)
                 .HasMaxLength(200)
@@ -342,6 +342,16 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("nameFaculty");
         });
 
+        modelBuilder.Entity<Group>(entity =>
+        {
+            entity.HasKey(e => e.IdGroup).HasName("PRIMARY");
+
+            entity.ToTable("Group");
+
+            entity.Property(e => e.IdGroup).HasColumnName("idGroup");
+            entity.Property(e => e.GroupCode).HasMaxLength(45);
+        });
+
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.IdRole).HasName("PRIMARY");
@@ -376,6 +386,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.FacultyId, "Students_Faculties_idx");
 
+            entity.HasIndex(e => e.GroupId, "Students_Group_idx");
+
             entity.HasIndex(e => e.StudyFormId, "Students_StudyForm_idx");
 
             entity.HasIndex(e => e.UserId, "Students_Users_idx");
@@ -402,6 +414,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Students_Faculties");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Students)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Students_Group");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Students)
                 .HasForeignKey(d => d.StatusId)

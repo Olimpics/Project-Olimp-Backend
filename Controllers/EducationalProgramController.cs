@@ -35,6 +35,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<EducationalProgramDto>> GetEducationalProgram(int id)
         {
             var program = await _context.EducationalPrograms
+                .Include(d => d.Degree)
                 .FirstOrDefaultAsync(p => p.IdEducationalProgram == id);
 
             if (program == null)

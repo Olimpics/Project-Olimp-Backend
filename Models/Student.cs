@@ -31,6 +31,8 @@ public partial class Student
 
     public int? DepartmentId { get; set; }
 
+    public int GroupId { get; set; }
+
     public byte[]? Photo { get; set; }
 
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
@@ -40,6 +42,8 @@ public partial class Student
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
 
     public virtual Faculty Faculty { get; set; } = null!;
+
+    public virtual Group Group { get; set; } = null!;
 
     public virtual EducationStatus Status { get; set; } = null!;
 

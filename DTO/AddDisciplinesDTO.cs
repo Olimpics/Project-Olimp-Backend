@@ -30,4 +30,13 @@ namespace OlimpBack.DTO
         public string? DegreeLevel { get; set; }
     }
 
+    public class CreateAddDisciplineWithDetailsDto : CreateAddDisciplineDto
+    {
+        public CreateAddDetailDto Details { get; set; } = null!;
+    }
+
+    public class UpdateAddDisciplineWithDetailsDto : CreateAddDisciplineWithDetailsDto
+    {
+        public int IdAddDisciplines { get; set; }
+    }
 }

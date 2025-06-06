@@ -10,6 +10,7 @@
         public string ProgramName { get; set; }
         public string DegreeName { get; set; }
         public string StudyFormName { get; set; }
+        public string GroupName { get; set; }
         public DateOnly EducationStart { get; set; }
         public DateOnly EducationEnd { get; set; }
         public int Course { get; set; }

@@ -35,6 +35,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
                 .ForMember(dest => dest.ProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram))
                 .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec))
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupCode))
                 .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm));
 
             CreateMap<CreateStudentDto, Student>();
@@ -42,13 +43,18 @@ namespace OlimpBack.MappingProfiles
 
             //AddDisciplines
             CreateMap<AddDiscipline, AddDisciplineDto>()
-    .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
+                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
 
             CreateMap<AddDiscipline, FullDisciplineDto>()
-              .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
+                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
             CreateMap<CreateAddDisciplineDto, AddDiscipline>();
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
 
+            CreateMap<CreateAddDisciplineWithDetailsDto, AddDiscipline>()
+                .IncludeBase<CreateAddDisciplineDto, AddDiscipline>();
+
+            CreateMap<UpdateAddDisciplineWithDetailsDto, AddDiscipline>()
+                .IncludeBase<CreateAddDisciplineDto, AddDiscipline>();
 
             // BindAddDiscipline
             CreateMap<BindAddDiscipline, BindAddDisciplineDto>()
@@ -87,6 +93,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<EducationalProgram, EducationalProgramDto>()
           .ForMember(dest => dest.StudentsCount,
                      opt => opt.MapFrom(src => src.Students.Count))
+          .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree.NameEducationalDegreec))
           .ForMember(dest => dest.DisciplinesCount,
                      opt => opt.MapFrom(src => src.BindMainDisciplines.Count));
 

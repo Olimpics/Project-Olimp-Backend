@@ -96,20 +96,42 @@ namespace OlimpBack.Controllers
             return NoContent();
         }
 
-        // DELETE: api/BindAddDiscipline/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBindAddDiscipline(int id)
+        // DELETE: api/BindAddDiscipline
+        [HttpDelete]
+        public async Task<IActionResult> DeleteBindAddDiscipline([FromBody] int[] ids)
         {
-            var bind = await _context.BindAddDisciplines.FindAsync(id);
-            if (bind == null)
+            if (ids == null || ids.Length == 0)
             {
-                return NotFound();
+                return BadRequest("No IDs provided for deletion");
             }
 
-            _context.BindAddDisciplines.Remove(bind);
-            await _context.SaveChangesAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var bindsToDelete = await _context.BindAddDisciplines
+                    .Where(b => ids.Contains(b.IdBindAddDisciplines))
+                    .ToListAsync();
 
-            return NoContent();
+                if (!bindsToDelete.Any())
+                {
+                    return NotFound("None of the specified bindings were found");
+                }
+
+                _context.BindAddDisciplines.RemoveRange(bindsToDelete);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new { 
+                    message = "Bindings successfully deleted",
+                    deletedCount = bindsToDelete.Count,
+                    totalRequested = ids.Length
+                });
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private bool BindAddDisciplineExists(int id)
