@@ -16,6 +16,16 @@
         public int Course { get; set; }
         public SByte IsShort { get; set; }
     }
+    public class StudentForCatalogDto
+    {
+        public int IdStudents { get; set; }
+        public string NameStudent { get; set; }
+        public string FacultyAbbreviation { get; set; }
+        public string Speciality { get; set; }
+        public string DegreeName { get; set; }
+        public string GroupName { get; set; }
+        public int Course { get; set; }
+    }
 
     // DTO/CreateStudentDto.cs
     public class CreateStudentDto

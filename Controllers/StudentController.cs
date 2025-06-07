@@ -80,7 +80,6 @@ namespace OlimpBack.Controllers
                 }
             }
 
-
             // Apply speciality filter
             if (!string.IsNullOrWhiteSpace(speciality))
             {
@@ -127,7 +126,7 @@ namespace OlimpBack.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            var studentDtos = _mapper.Map<IEnumerable<StudentDto>>(students);
+            var studentDtos = _mapper.Map<IEnumerable<StudentForCatalogDto>>(students);
 
             var response = new
             {

@@ -38,6 +38,12 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupCode))
                 .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm));
 
+            CreateMap<Student, StudentForCatalogDto>()
+                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Faculty.Abbreviation))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
+                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec))
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupCode));
+
             CreateMap<CreateStudentDto, Student>();
             CreateMap<UpdateStudentDto, Student>();
 
