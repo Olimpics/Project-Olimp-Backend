@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using Microsoft.Data.SqlClient;
 
 namespace OlimpBack.Controllers
 {
@@ -37,7 +38,8 @@ namespace OlimpBack.Controllers
             [FromQuery] string? group = null,
             [FromQuery] string? courses = null,
             [FromQuery] string? studyForm = null,
-            [FromQuery] string? degreeLevelIds = null)
+            [FromQuery] string? degreeLevelIds = null,
+            [FromQuery] int sortOrder = 0)
         {
             var query = _context.Students
                 .Include(s => s.Status)
@@ -115,16 +117,20 @@ namespace OlimpBack.Controllers
                 query = query.Where(s => levelIds.Contains(s.EducationalDegreeId));
             }
 
+            // Apply pagination
+            var students = await query.ToListAsync();
+            students = sortOrder switch
+            {
+                1 => students.OrderByDescending(d => d.NameStudent).ToList(),
+                2 => students.OrderBy(d => d.Faculty.Abbreviation).ToList(),
+                3 => students.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
+                _ => students.OrderBy(d => d.NameStudent).ToList()
+            };
             // Get total count for pagination
             var totalItems = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-            // Apply pagination
-            var students = await query
-                .OrderBy(s => s.NameStudent)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+           
 
             var studentDtos = _mapper.Map<IEnumerable<StudentForCatalogDto>>(students);
 

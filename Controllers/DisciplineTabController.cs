@@ -137,6 +137,7 @@ namespace OlimpBack.Controllers
                 1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
                 2 => fullList.OrderBy(d => d.CountOfPeople).ToList(),
                 3 => fullList.OrderByDescending(d => d.CountOfPeople).ToList(),
+                4 => fullList.OrderBy(d => d.Faculty).ToList(),
                 _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
             };
             var totalItems = fullList.Count;
