@@ -127,12 +127,15 @@ namespace OlimpBack.Controllers
                 _ => students.OrderBy(d => d.NameStudent).ToList()
             };
             // Get total count for pagination
-            var totalItems = await query.CountAsync();
+            var totalItems = students.Count();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-           
+            var paginatedResult = students
+                 .Skip((page - 1) * pageSize)
+                 .Take(pageSize)
+                 .ToList();
 
-            var studentDtos = _mapper.Map<IEnumerable<StudentForCatalogDto>>(students);
+            var studentDtos = _mapper.Map<IEnumerable<StudentForCatalogDto>>(paginatedResult);
 
             var response = new
             {
