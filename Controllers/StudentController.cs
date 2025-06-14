@@ -163,7 +163,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
             var student = await _context.Students
-                .Where(s => s.IdStudents == id)
+                .Where(s => s.IdStudent == id)
                 .ProjectTo<StudentDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 
@@ -184,7 +184,7 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             var dto = _mapper.Map<StudentDto>(student);
-            return CreatedAtAction(nameof(GetStudent), new { id = student.IdStudents }, dto);
+            return CreatedAtAction(nameof(GetStudent), new { id = student.IdStudent }, dto);
         }
 
         // PUT: api/Student/5
@@ -236,7 +236,7 @@ namespace OlimpBack.Controllers
 
         private bool StudentExists(int id)
         {
-            return _context.Students.Any(e => e.IdStudents == id);
+            return _context.Students.Any(e => e.IdStudent == id);
         }
     }
 }

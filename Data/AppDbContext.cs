@@ -17,6 +17,8 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Achievement> Achievements { get; set; }
+
     public virtual DbSet<AddDetail> AddDetails { get; set; }
 
     public virtual DbSet<AddDiscipline> AddDisciplines { get; set; }
@@ -27,9 +29,15 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<BindAddDiscipline> BindAddDisciplines { get; set; }
 
+    public virtual DbSet<BindEvent> BindEvents { get; set; }
+
+    public virtual DbSet<BindExtraActivity> BindExtraActivities { get; set; }
+
     public virtual DbSet<BindLoansMain> BindLoansMains { get; set; }
 
     public virtual DbSet<BindMainDiscipline> BindMainDisciplines { get; set; }
+
+    public virtual DbSet<BindRolePermission> BindRolePermissions { get; set; }
 
     public virtual DbSet<Department> Departments { get; set; }
 
@@ -39,15 +47,33 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<EducationalProgram> EducationalPrograms { get; set; }
 
+    public virtual DbSet<Event> Events { get; set; }
+
     public virtual DbSet<Faculty> Faculties { get; set; }
 
     public virtual DbSet<Group> Groups { get; set; }
 
+    public virtual DbSet<MainGrade> MainGrades { get; set; }
+
+    public virtual DbSet<Member> Members { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+
+    public virtual DbSet<Permission> Permissions { get; set; }
+
+    public virtual DbSet<RegulationOnAddPoint> RegulationOnAddPoints { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<RolesInSg> RolesInSgs { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
 
     public virtual DbSet<StudyForm> StudyForms { get; set; }
+
+    public virtual DbSet<SubDivisionsSg> SubDivisionsSgs { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -60,6 +86,17 @@ public partial class AppDbContext : DbContext
         modelBuilder
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
+
+        modelBuilder.Entity<Achievement>(entity =>
+        {
+            entity.HasKey(e => e.IdAchievement).HasName("PRIMARY");
+
+            entity.ToTable("Achievement");
+
+            entity.Property(e => e.IdAchievement).HasColumnName("idAchievement");
+            entity.Property(e => e.Name).HasMaxLength(45);
+            entity.Property(e => e.Photo).HasColumnType("blob");
+        });
 
         modelBuilder.Entity<AddDetail>(entity =>
         {
@@ -200,6 +237,55 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("Bind_Student");
         });
 
+        modelBuilder.Entity<BindEvent>(entity =>
+        {
+            entity.HasKey(e => e.IdBindEvent).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.EventId, "EventID");
+
+            entity.HasIndex(e => e.StudentId, "StudentId");
+
+            entity.Property(e => e.IdBindEvent).HasColumnName("idBindEvent");
+            entity.Property(e => e.EventId).HasColumnName("EventID");
+            entity.Property(e => e.Points).HasColumnName("points");
+
+            entity.HasOne(d => d.Event).WithMany(p => p.BindEvents)
+                .HasForeignKey(d => d.EventId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindEvent_Event");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.BindEvents)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindEvents_Student");
+        });
+
+        modelBuilder.Entity<BindExtraActivity>(entity =>
+        {
+            entity.HasKey(e => e.IdBindExtraActivity).HasName("PRIMARY");
+
+            entity.ToTable("BindExtraActivity");
+
+            entity.HasIndex(e => e.RefulationId, "BindExtraActivity_Regulation_idx");
+
+            entity.HasIndex(e => e.StudentId, "BindExtraActivity_Student");
+
+            entity.Property(e => e.IdBindExtraActivity)
+                .ValueGeneratedNever()
+                .HasColumnName("idBindExtraActivity");
+            entity.Property(e => e.Points).HasColumnName("points");
+
+            entity.HasOne(d => d.Refulation).WithMany(p => p.BindExtraActivities)
+                .HasForeignKey(d => d.RefulationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindExtraActivity_Regulation");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.BindExtraActivities)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindExtraActivity_Student");
+        });
+
         modelBuilder.Entity<BindLoansMain>(entity =>
         {
             entity.HasKey(e => e.IdBindLoan).HasName("PRIMARY");
@@ -242,6 +328,31 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.EducationalProgramId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BindMainDisciplines_EducationalProgram");
+        });
+
+        modelBuilder.Entity<BindRolePermission>(entity =>
+        {
+            entity.HasKey(e => e.IdBindRolePermission).HasName("PRIMARY");
+
+            entity.ToTable("BindRolePermission");
+
+            entity.HasIndex(e => e.PermissionId, "BindRolePermission_Permission_idx");
+
+            entity.HasIndex(e => e.RoleId, "BindRolePermission_Role_idx");
+
+            entity.Property(e => e.IdBindRolePermission)
+                .ValueGeneratedNever()
+                .HasColumnName("idBindRolePermission");
+
+            entity.HasOne(d => d.Permission).WithMany(p => p.BindRolePermissions)
+                .HasForeignKey(d => d.PermissionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindRolePermission_Permission");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.BindRolePermissions)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BindRolePermission_Role");
         });
 
         modelBuilder.Entity<Department>(entity =>
@@ -331,6 +442,26 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("EducationalProgram_EducationalDegree");
         });
 
+        modelBuilder.Entity<Event>(entity =>
+        {
+            entity.HasKey(e => e.IdEvent).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.RegulationId, "Event_Regultion_idx");
+
+            entity.Property(e => e.IdEvent).HasColumnName("idEvent");
+            entity.Property(e => e.Description).HasColumnType("text");
+            entity.Property(e => e.LinkToRegistration).HasMaxLength(255);
+            entity.Property(e => e.Location).HasMaxLength(255);
+            entity.Property(e => e.NameEvent)
+                .HasMaxLength(255)
+                .HasColumnName("nameEvent");
+
+            entity.HasOne(d => d.Regulation).WithMany(p => p.Events)
+                .HasForeignKey(d => d.RegulationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Event_Regultion");
+        });
+
         modelBuilder.Entity<Faculty>(entity =>
         {
             entity.HasKey(e => e.IdFaculty).HasName("PRIMARY");
@@ -352,6 +483,122 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.GroupCode).HasMaxLength(45);
         });
 
+        modelBuilder.Entity<MainGrade>(entity =>
+        {
+            entity.HasKey(e => e.IdMainGrade).HasName("PRIMARY");
+
+            entity.ToTable("MainGrade");
+
+            entity.HasIndex(e => e.StudentId, "FK_MainGrade_Student");
+
+            entity.HasIndex(e => e.MainDisciplinesId, "MainGrade_MainDisciplines_idx");
+
+            entity.Property(e => e.IdMainGrade).HasColumnName("idMainGrade");
+            entity.Property(e => e.MainGrade1).HasColumnName("MainGrade");
+
+            entity.HasOne(d => d.MainDisciplines).WithMany(p => p.MainGrades)
+                .HasForeignKey(d => d.MainDisciplinesId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("MainGrade_MainDisciplines");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.MainGrades)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MainGrade_Student");
+        });
+
+        modelBuilder.Entity<Member>(entity =>
+        {
+            entity.HasKey(e => e.IdMember).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.RoleInSgid, "RoleInSGID");
+
+            entity.HasIndex(e => e.StudentId, "StudentId");
+
+            entity.HasIndex(e => e.SubDivisionId, "SubDivisionId");
+
+            entity.Property(e => e.IdMember).HasColumnName("idMember");
+            entity.Property(e => e.RoleInSgid).HasColumnName("RoleInSGID");
+
+            entity.HasOne(d => d.RoleInSg).WithMany(p => p.Members)
+                .HasForeignKey(d => d.RoleInSgid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Members_RoleInSG");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.Members)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Members_Students");
+
+            entity.HasOne(d => d.SubDivision).WithMany(p => p.Members)
+                .HasForeignKey(d => d.SubDivisionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Members_SubDivisionsSG");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.IdNotification).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.TemplateId, "Notification_NotificationTemplate_idx");
+
+            entity.HasIndex(e => e.UserId, "Notification_Users_idx");
+
+            entity.Property(e => e.IdNotification).HasColumnName("idNotification");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp");
+            entity.Property(e => e.CustomMessage).HasMaxLength(1000);
+            entity.Property(e => e.CustomTitle).HasMaxLength(255);
+            entity.Property(e => e.Metadata).HasColumnType("json");
+            entity.Property(e => e.NotificationType).HasMaxLength(50);
+
+            entity.HasOne(d => d.Template).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.TemplateId)
+                .HasConstraintName("Notification_NotificationTemplate");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Notification_Users");
+        });
+
+        modelBuilder.Entity<NotificationTemplate>(entity =>
+        {
+            entity.HasKey(e => e.IdNotificationTemplates).HasName("PRIMARY");
+
+            entity.Property(e => e.IdNotificationTemplates).HasColumnName("idNotificationTemplates");
+            entity.Property(e => e.Message).HasMaxLength(1000);
+            entity.Property(e => e.NotificationType).HasMaxLength(100);
+            entity.Property(e => e.Title).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasKey(e => e.IdPermissions).HasName("PRIMARY");
+
+            entity.Property(e => e.IdPermissions)
+                .ValueGeneratedNever()
+                .HasColumnName("idPermissions");
+            entity.Property(e => e.NamePermission).HasMaxLength(45);
+        });
+
+        modelBuilder.Entity<RegulationOnAddPoint>(entity =>
+        {
+            entity.HasKey(e => e.IdRegulationOnAddPoints).HasName("PRIMARY");
+
+            entity.Property(e => e.IdRegulationOnAddPoints).HasColumnName("idRegulationOnAddPoints");
+            entity.Property(e => e.AmountMax).HasColumnName("amountMax");
+            entity.Property(e => e.AmountMin).HasColumnName("amountMin");
+            entity.Property(e => e.CodeRegulationOnAddPoints)
+                .HasMaxLength(45)
+                .HasColumnName("codeRegulationOnAddPoints");
+            entity.Property(e => e.Notes).HasMaxLength(100);
+            entity.Property(e => e.TypeOfActivitys)
+                .HasMaxLength(500)
+                .HasColumnName("typeOfActivitys");
+        });
+
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.IdRole).HasName("PRIMARY");
@@ -370,9 +617,22 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("nameRole");
         });
 
+        modelBuilder.Entity<RolesInSg>(entity =>
+        {
+            entity.HasKey(e => e.IdRoleSg).HasName("PRIMARY");
+
+            entity.ToTable("RolesInSG");
+
+            entity.Property(e => e.IdRoleSg).HasColumnName("idRoleSG");
+            entity.Property(e => e.NameRole)
+                .HasMaxLength(100)
+                .HasColumnName("nameRole");
+            entity.Property(e => e.Points).HasColumnName("points");
+        });
+
         modelBuilder.Entity<Student>(entity =>
         {
-            entity.HasKey(e => e.IdStudents).HasName("PRIMARY");
+            entity.HasKey(e => e.IdStudent).HasName("PRIMARY");
 
             entity.ToTable("Student");
 
@@ -392,9 +652,11 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.UserId, "Students_Users_idx");
 
-            entity.HasIndex(e => e.IdStudents, "idStudents_UNIQUE").IsUnique();
+            entity.HasIndex(e => e.IdStudent, "IdStudent_UNIQUE").IsUnique();
 
-            entity.Property(e => e.IdStudents).HasColumnName("idStudents");
+            entity.Property(e => e.IdStudent).HasColumnName("idStudent");
+            entity.Property(e => e.Achievement).HasColumnType("json");
+            entity.Property(e => e.IsInSg).HasColumnName("IsInSG");
             entity.Property(e => e.NameStudent)
                 .HasMaxLength(200)
                 .HasColumnName("nameStudent");
@@ -448,6 +710,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameStudyForm)
                 .HasMaxLength(45)
                 .HasColumnName("nameStudyForm");
+        });
+
+        modelBuilder.Entity<SubDivisionsSg>(entity =>
+        {
+            entity.HasKey(e => e.IdSubDivision).HasName("PRIMARY");
+
+            entity.ToTable("SubDivisionsSG");
+
+            entity.Property(e => e.IdSubDivision).HasColumnName("idSubDivision");
+            entity.Property(e => e.NameDivision).HasMaxLength(100);
         });
 
         modelBuilder.Entity<User>(entity =>

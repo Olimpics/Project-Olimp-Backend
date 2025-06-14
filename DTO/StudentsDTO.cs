@@ -3,7 +3,7 @@
     // DTO/StudentDto.cs
     public class StudentDto
     {
-        public int IdStudents { get; set; }
+        public int IdStudent { get; set; }
         public string NameStudent { get; set; }
         public string StatusName { get; set; }
         public string FacultyName { get; set; }
@@ -18,7 +18,7 @@
     }
     public class StudentForCatalogDto
     {
-        public int IdStudents { get; set; }
+        public int IdStudent { get; set; }
         public string NameStudent { get; set; }
         public string FacultyAbbreviation { get; set; }
         public string Speciality { get; set; }

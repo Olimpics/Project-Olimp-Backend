@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class Student
 {
-    public int IdStudents { get; set; }
+    public int IdStudent { get; set; }
 
     public int UserId { get; set; }
 
@@ -35,7 +35,15 @@ public partial class Student
 
     public byte[]? Photo { get; set; }
 
+    public bool IsInSg { get; set; }
+
+    public string? Achievement { get; set; }
+
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
+
+    public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
+
+    public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 
     public virtual EducationalDegree EducationalDegree { get; set; } = null!;
 
@@ -44,6 +52,10 @@ public partial class Student
     public virtual Faculty Faculty { get; set; } = null!;
 
     public virtual Group Group { get; set; } = null!;
+
+    public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
+
+    public virtual ICollection<Member> Members { get; set; } = new List<Member>();
 
     public virtual EducationStatus Status { get; set; } = null!;
 

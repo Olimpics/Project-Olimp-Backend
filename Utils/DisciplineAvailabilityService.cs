@@ -14,7 +14,7 @@ namespace OlimpBack.Utils
                 .Include(s => s.EducationalDegree)
                 .Include(s => s.BindAddDisciplines)
                 .Include(s => s.Faculty)
-                .FirstOrDefaultAsync(s => s.IdStudents == studentId);
+                .FirstOrDefaultAsync(s => s.IdStudent == studentId);
 
             if (student == null)
                 return null;

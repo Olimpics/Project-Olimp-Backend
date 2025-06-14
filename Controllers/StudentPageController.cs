@@ -40,7 +40,7 @@ public class StudentPageController:ControllerBase
                 .ThenInclude(bad => bad.AddDisciplines)
             .Include(s => s.EducationalProgram)
                 .ThenInclude(ep => ep.BindMainDisciplines)
-            .FirstOrDefaultAsync(s => s.IdStudents == studentId);
+            .FirstOrDefaultAsync(s => s.IdStudent == studentId);
 
         if (student == null)
         {
@@ -49,7 +49,7 @@ public class StudentPageController:ControllerBase
 
         var result = new StudentDisciplinesDto
         {
-            StudentId = student.IdStudents,
+            StudentId = student.IdStudent,
             StudentName = student.NameStudent,
             MainDisciplines = _mapper.Map<List<BindMainDisciplineDto>>(student.EducationalProgram.BindMainDisciplines),
             AdditionalDisciplines = _mapper.Map<List<BindAddDisciplineDto>>(student.BindAddDisciplines)
@@ -67,7 +67,7 @@ public class StudentPageController:ControllerBase
             .Include(s => s.EducationalProgram)
                 .ThenInclude(ep => ep.BindMainDisciplines)
             .Include(s => s.EducationalDegree)
-            .FirstOrDefaultAsync(s => s.IdStudents == studentId);
+            .FirstOrDefaultAsync(s => s.IdStudent == studentId);
 
         if (student == null)
         {
@@ -76,7 +76,7 @@ public class StudentPageController:ControllerBase
 
         var result = new StudentDisciplinesBySemesterDTO
         {
-            StudentId = student.IdStudents,
+            StudentId = student.IdStudent,
             StudentName = student.NameStudent,
             DegreeName = student.EducationalDegree.NameEducationalDegreec
         };

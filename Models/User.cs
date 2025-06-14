@@ -17,6 +17,8 @@ public partial class User
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
     public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();

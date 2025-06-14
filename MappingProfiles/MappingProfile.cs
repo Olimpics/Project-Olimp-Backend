@@ -20,7 +20,7 @@ namespace OlimpBack.MappingProfiles
 
             // Login mapping
             CreateMap<Student, LoginResponseDto>()
-    .ForMember(dest => dest.IdStudents, opt => opt.MapFrom(src => src.IdStudents))
+    .ForMember(dest => dest.IdStudent, opt => opt.MapFrom(src => src.IdStudent))
     .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
     .ForMember(dest => dest.NameStudent, opt => opt.MapFrom(src => src.NameStudent))
     .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
@@ -123,7 +123,7 @@ namespace OlimpBack.MappingProfiles
 
             //DisciplineTab
             CreateMap<(Student student, List<AddDiscipline> disciplines, int currentCourse, bool isEvenSemester), DisciplineTabResponseDto>()
-                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.student.IdStudents))
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.student.IdStudent))
                 .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.student.NameStudent))
                 .ForMember(dest => dest.CurrentCourse, opt => opt.MapFrom(src => src.currentCourse))
                 .ForMember(dest => dest.IsEvenSemester, opt => opt.MapFrom(src => src.isEvenSemester))

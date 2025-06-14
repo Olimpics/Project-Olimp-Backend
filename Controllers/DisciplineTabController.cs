@@ -193,7 +193,7 @@ namespace OlimpBack.Controllers
 
             return Ok(new DisciplineTabResponseDto
             {
-                StudentId = context.Student.IdStudents,
+                StudentId = context.Student.IdStudent,
                 StudentName = context.Student.NameStudent,
                 CurrentCourse = context.CurrentCourse,
                 IsEvenSemester = isEvenSemester,

@@ -17,6 +17,8 @@ public partial class BindAddDiscipline
 
     public sbyte InProcess { get; set; }
 
+    public int? Grade { get; set; }
+
     public virtual AddDiscipline AddDisciplines { get; set; } = null!;
 
     public virtual Student Student { get; set; } = null!;
