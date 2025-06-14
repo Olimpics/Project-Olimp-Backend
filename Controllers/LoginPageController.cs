@@ -33,7 +33,7 @@ namespace OlimpBack.Controllers
             if (user.Password != Password)
                 return BadRequest("Incorrect password");
 
-            if (user.Role.NameRole == "Адміністратор")
+            if (user.Role.NameRole == "Administrator")
             {
                 var admin = await _context.AdminsPersonals
                     .Include(a => a.Faculty)

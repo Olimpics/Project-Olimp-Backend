@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.DTO;
 using System;
+using System.Linq;
 using System.Text.Json;
 
 namespace OlimpBack.Controllers
@@ -25,10 +26,72 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetNotifications()
+        public async Task<ActionResult<object>> GetNotifications(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null,
+            [FromQuery] string? notificationTypes = null,
+            [FromQuery] bool? isRead = null,
+            [FromQuery] int sortOrder = 0)
         {
-            var notifications = await _context.Notifications
+            var query = _context.Notifications
                 .Include(n => n.Template)
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(n =>
+                    EF.Functions.Like(n.CustomTitle.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(n.CustomMessage.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(n.Template.Title.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(n.Template.Message.ToLower(), $"%{lowerSearch}%"));
+            }
+
+            // Apply date range filter
+            if (dateFrom.HasValue)
+            {
+                query = query.Where(n => n.CreatedAt >= dateFrom.Value);
+            }
+            if (dateTo.HasValue)
+            {
+                query = query.Where(n => n.CreatedAt <= dateTo.Value);
+            }
+
+            // Apply notification type filter
+            if (!string.IsNullOrWhiteSpace(notificationTypes))
+            {
+                var types = notificationTypes.Split(',').Select(t => t.Trim()).ToList();
+                query = query.Where(n => n.Template != null && types.Contains(n.Template.NotificationType));
+            }
+
+            // Apply read status filter
+            if (isRead.HasValue)
+            {
+                query = query.Where(n => n.IsRead == isRead.Value);
+            }
+
+            // Get total count for pagination
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Apply sorting
+            query = sortOrder switch
+            {
+                1 => query.OrderByDescending(n => n.CreatedAt), // Newest first
+                2 => query.OrderBy(n => n.CreatedAt), // Oldest first
+                3 => query.OrderByDescending(n => n.IsRead), // Unread first
+                4 => query.OrderBy(n => n.IsRead), // Read first
+                _ => query.OrderByDescending(n => n.CreatedAt) // Default: newest first
+            };
+
+            // Apply pagination
+            var notifications = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             var response = notifications.Select(n => new NotificationDto
@@ -44,7 +107,123 @@ namespace OlimpBack.Controllers
                 Metadata = n.Metadata != null ? JsonDocument.Parse(n.Metadata) : null
             });
 
-            return Ok(response);
+            return Ok(new
+            {
+                totalPages,
+                totalItems,
+                currentPage = page,
+                pageSize,
+                notifications = response,
+                filters = new
+                {
+                    search,
+                    dateFrom,
+                    dateTo,
+                    notificationTypes = notificationTypes?.Split(',').Select(t => t.Trim()).ToList(),
+                    isRead
+                }
+            });
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<object>> GetUserNotifications(
+            int userId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null,
+            [FromQuery] string? notificationTypes = null,
+            [FromQuery] bool? isRead = null,
+            [FromQuery] int sortOrder = 0)
+        {
+            var query = _context.Notifications
+                .Include(n => n.Template)
+                .Where(n => n.UserId == userId);
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(n =>
+                    EF.Functions.Like(n.CustomTitle.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(n.CustomMessage.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(n.Template.Title.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(n.Template.Message.ToLower(), $"%{lowerSearch}%"));
+            }
+
+            // Apply date range filter
+            if (dateFrom.HasValue)
+            {
+                query = query.Where(n => n.CreatedAt >= dateFrom.Value);
+            }
+            if (dateTo.HasValue)
+            {
+                query = query.Where(n => n.CreatedAt <= dateTo.Value);
+            }
+
+            // Apply notification type filter
+            if (!string.IsNullOrWhiteSpace(notificationTypes))
+            {
+                var types = notificationTypes.Split(',').Select(t => t.Trim()).ToList();
+                query = query.Where(n => n.Template != null && types.Contains(n.Template.NotificationType));
+            }
+
+            // Apply read status filter
+            if (isRead.HasValue)
+            {
+                query = query.Where(n => n.IsRead == isRead.Value);
+            }
+
+            // Get total count for pagination
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Apply sorting
+            query = sortOrder switch
+            {
+                1 => query.OrderByDescending(n => n.CreatedAt), // Newest first
+                2 => query.OrderBy(n => n.CreatedAt), // Oldest first
+                3 => query.OrderByDescending(n => n.IsRead), // Unread first
+                4 => query.OrderBy(n => n.IsRead), // Read first
+                _ => query.OrderByDescending(n => n.CreatedAt) // Default: newest first
+            };
+
+            // Apply pagination
+            var notifications = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var response = notifications.Select(n => new NotificationDto
+            {
+                IdNotification = n.IdNotification,
+                UserId = n.UserId,
+                TemplateId = n.TemplateId ?? 0,
+                Title = n.CustomTitle ?? n.Template?.Title ?? string.Empty,
+                Message = n.CustomMessage ?? n.Template?.Message ?? string.Empty,
+                IsRead = n.IsRead,
+                CreatedAt = n.CreatedAt,
+                NotificationType = n.NotificationType,
+                Metadata = n.Metadata != null ? JsonDocument.Parse(n.Metadata) : null
+            });
+
+            return Ok(new
+            {
+                totalPages,
+                totalItems,
+                currentPage = page,
+                pageSize,
+                notifications = response,
+                filters = new
+                {
+                    search,
+                    dateFrom,
+                    dateTo,
+                    notificationTypes = notificationTypes?.Split(',').Select(t => t.Trim()).ToList(),
+                    isRead
+                }
+            });
         }
 
         [HttpGet("{id}")]
@@ -73,38 +252,6 @@ namespace OlimpBack.Controllers
             return Ok(response);
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications(
-            int userId,
-            [FromQuery] bool includeRead = false)
-        {
-            var query = _context.Notifications
-                .Include(n => n.Template)
-                .Where(n => n.UserId == userId);
-
-            if (!includeRead)
-            {
-                query = query.Where(n => !n.IsRead);
-            }
-
-            var notifications = await query.ToListAsync();
-
-            var response = notifications.Select(n => new NotificationDto
-            {
-                IdNotification = n.IdNotification,
-                UserId = n.UserId,
-                TemplateId = n.TemplateId ?? 0,
-                Title = n.CustomTitle ?? n.Template?.Title ?? string.Empty,
-                Message = n.CustomMessage ?? n.Template?.Message ?? string.Empty,
-                IsRead = n.IsRead,
-                CreatedAt = n.CreatedAt,
-                NotificationType = n.NotificationType,
-                Metadata = n.Metadata != null ? JsonDocument.Parse(n.Metadata) : null
-            });
-
-            return Ok(response);
-        }
-
         [HttpPost]
         public async Task<ActionResult<NotificationDto>> CreateNotification(CreateNotificationDto dto)
         {
@@ -129,7 +276,7 @@ namespace OlimpBack.Controllers
                 IdNotification = notification.IdNotification,
                 UserId = notification.UserId,
                 TemplateId = notification.TemplateId ?? 0,
-                Title = notification.CustomTitle?? template?.Title ?? string.Empty,
+                Title = notification.CustomTitle ?? template?.Title ?? string.Empty,
                 Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
                 IsRead = notification.IsRead,
                 CreatedAt = notification.CreatedAt,
