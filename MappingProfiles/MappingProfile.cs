@@ -178,6 +178,11 @@ namespace OlimpBack.MappingProfiles
         
             CreateMap<CreateNotificationDto, Notification>();
             CreateMap<UpdateNotificationDto, Notification>();
+
+            //NotificationTemplate
+            CreateMap<NotificationTemplate, NotificationTemplateDto>();
+            CreateMap<CreateNotificationTemplateDto, NotificationTemplate>();
+            CreateMap<UpdateNotificationTemplateDto, NotificationTemplate>();
         }
 
     }
