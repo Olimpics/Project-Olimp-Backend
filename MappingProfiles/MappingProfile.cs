@@ -20,9 +20,9 @@ namespace OlimpBack.MappingProfiles
 
             // Login mapping
             CreateMap<Student, LoginResponseDto>()
-    .ForMember(dest => dest.IdStudent, opt => opt.MapFrom(src => src.IdStudent))
+    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
     .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
-    .ForMember(dest => dest.NameStudent, opt => opt.MapFrom(src => src.NameStudent))
+    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
     .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
     .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
     .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
@@ -171,6 +171,13 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
             CreateMap<CreateAddDetailDto, AddDetail>();
             CreateMap<UpdateAddDetailDto, AddDetail>();
+
+            //Notification
+             CreateMap<Notification, NotificationDto>()
+            .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => src.IsRead));
+        
+            CreateMap<CreateNotificationDto, Notification>();
+            CreateMap<UpdateNotificationDto, Notification>();
         }
 
     }

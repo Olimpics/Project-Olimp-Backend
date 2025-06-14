@@ -23,25 +23,50 @@ namespace OlimpBack.Controllers
         [HttpGet]
         public async Task<ActionResult<LoginResponseDto>> Login([FromQuery] string Email, [FromQuery] string Password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == Email);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == Email);
 
             if (user == null)
                 return NotFound("This user doesn't exist");
 
-            var student = await _context.Students
-                .Include(s => s.Faculty)
-                .Include(s => s.EducationalProgram)
-                .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
-
-            if (student == null)
-                return NotFound("This student doesn't exist");
-
-            if (student.User.Password != Password)
+            if (user.Password != Password)
                 return BadRequest("Incorrect password");
 
-            var response = _mapper.Map<LoginResponseDto>(student);
-            return Ok(response);
-        }
+            if (user.Role.NameRole == "Адміністратор")
+            {
+                var admin = await _context.AdminsPersonals
+                    .Include(a => a.Faculty)
+                    .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
 
+                if (admin == null)
+                    return NotFound("Admin profile not found");
+
+                var response = new LoginResponseDto
+                {
+                    Id = admin.IdAdmins,
+                    RoleId = user.RoleId,
+                    Name = admin.NameAdmin,
+                    NameFaculty = admin.Faculty?.NameFaculty,
+                    Speciality = null,
+                    Course = null
+                };
+
+                return Ok(response);
+            }
+            else
+            {
+                var student = await _context.Students
+                    .Include(s => s.Faculty)
+                    .Include(s => s.EducationalProgram)
+                    .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
+
+                if (student == null)
+                    return NotFound("This student doesn't exist");
+
+                var response = _mapper.Map<LoginResponseDto>(student);
+                return Ok(response);
+            }
+        }
     }
 } 
