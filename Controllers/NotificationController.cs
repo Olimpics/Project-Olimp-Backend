@@ -83,8 +83,6 @@ namespace OlimpBack.Controllers
             {
                 1 => query.OrderByDescending(n => n.CreatedAt), // Newest first
                 2 => query.OrderBy(n => n.CreatedAt), // Oldest first
-                3 => query.OrderByDescending(n => n.IsRead), // Unread first
-                4 => query.OrderBy(n => n.IsRead), // Read first
                 _ => query.OrderByDescending(n => n.CreatedAt) // Default: newest first
             };
 

@@ -121,6 +121,11 @@ namespace OlimpBack.MappingProfiles
             //StudyForm
             CreateMap<StudyForm, StudyFormDto>().ReverseMap();
 
+            //Group
+            CreateMap<Group, GroupDto>().ReverseMap();
+            CreateMap<CreateGroupDto, Group>();
+            CreateMap<UpdateGroupDto, Group>();
+
             //DisciplineTab
             CreateMap<(Student student, List<AddDiscipline> disciplines, int currentCourse, bool isEvenSemester), DisciplineTabResponseDto>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.student.IdStudent))
