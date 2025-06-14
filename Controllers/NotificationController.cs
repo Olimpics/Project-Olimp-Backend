@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.DTO;
 using System;
+using System.Text.Json;
 
 namespace OlimpBack.Controllers
 {
@@ -26,19 +27,50 @@ namespace OlimpBack.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NotificationDto>>> GetNotifications()
         {
-            var notifications = await _context.Notifications.ToListAsync();
-            return Ok(_mapper.Map<IEnumerable<NotificationDto>>(notifications));
+            var notifications = await _context.Notifications
+                .Include(n => n.Template)
+                .ToListAsync();
+
+            var response = notifications.Select(n => new NotificationDto
+            {
+                IdNotification = n.IdNotification,
+                UserId = n.UserId,
+                TemplateId = n.TemplateId ?? 0,
+                Title = n.CustomTitle ?? n.Template?.Title ?? string.Empty,
+                Message = n.CustomMessage ?? n.Template?.Message ?? string.Empty,
+                IsRead = n.IsRead,
+                CreatedAt = n.CreatedAt,
+                NotificationType = n.NotificationType,
+                Metadata = n.Metadata != null ? JsonDocument.Parse(n.Metadata) : null
+            });
+
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<NotificationDto>> GetNotification(int id)
         {
-            var notification = await _context.Notifications.FindAsync(id);
+            var notification = await _context.Notifications
+                .Include(n => n.Template)
+                .FirstOrDefaultAsync(n => n.IdNotification == id);
 
             if (notification == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<NotificationDto>(notification));
+            var response = new NotificationDto
+            {
+                IdNotification = notification.IdNotification,
+                UserId = notification.UserId,
+                TemplateId = notification.TemplateId ?? 0,
+                Title = notification.CustomTitle ?? notification.Template?.Title ?? string.Empty,
+                Message = notification.CustomMessage ?? notification.Template?.Message ?? string.Empty,
+                IsRead = notification.IsRead,
+                CreatedAt = notification.CreatedAt,
+                NotificationType = notification.NotificationType,
+                Metadata = notification.Metadata != null ? JsonDocument.Parse(notification.Metadata) : null
+            };
+
+            return Ok(response);
         }
 
         [HttpGet("user/{userId}")]
@@ -47,6 +79,7 @@ namespace OlimpBack.Controllers
             [FromQuery] bool includeRead = false)
         {
             var query = _context.Notifications
+                .Include(n => n.Template)
                 .Where(n => n.UserId == userId);
 
             if (!includeRead)
@@ -55,21 +88,56 @@ namespace OlimpBack.Controllers
             }
 
             var notifications = await query.ToListAsync();
-            return Ok(_mapper.Map<IEnumerable<NotificationDto>>(notifications));
+
+            var response = notifications.Select(n => new NotificationDto
+            {
+                IdNotification = n.IdNotification,
+                UserId = n.UserId,
+                TemplateId = n.TemplateId ?? 0,
+                Title = n.CustomTitle ?? n.Template?.Title ?? string.Empty,
+                Message = n.CustomMessage ?? n.Template?.Message ?? string.Empty,
+                IsRead = n.IsRead,
+                CreatedAt = n.CreatedAt,
+                NotificationType = n.NotificationType,
+                Metadata = n.Metadata != null ? JsonDocument.Parse(n.Metadata) : null
+            });
+
+            return Ok(response);
         }
 
         [HttpPost]
         public async Task<ActionResult<NotificationDto>> CreateNotification(CreateNotificationDto dto)
         {
-            var notification = _mapper.Map<Notification>(dto);
-            notification.CreatedAt = DateTime.UtcNow;
-            notification.IsRead = false;
+            var notification = new Notification
+            {
+                UserId = dto.UserId,
+                TemplateId = dto.TemplateId,
+                CustomTitle = dto.Title,
+                CustomMessage = dto.Message,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                NotificationType = dto.NotificationType,
+                Metadata = dto.Metadata?.ToString()
+            };
 
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetNotification), new { id = notification.IdNotification }, 
-                _mapper.Map<NotificationDto>(notification));
+            var template = await _context.NotificationTemplates.FindAsync(dto.TemplateId);
+            var response = new NotificationDto
+            {
+                IdNotification = notification.IdNotification,
+                UserId = notification.UserId,
+                TemplateId = notification.TemplateId ?? 0,
+                Title = notification.CustomTitle?? template?.Title ?? string.Empty,
+                Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
+                IsRead = notification.IsRead,
+                CreatedAt = notification.CreatedAt,
+                NotificationType = notification.NotificationType,
+                Metadata = dto.Metadata
+            };
+
+            return CreatedAtAction(nameof(GetNotification), new { id = notification.IdNotification }, response);
         }
 
         [HttpPut("{id}")]
@@ -79,7 +147,11 @@ namespace OlimpBack.Controllers
             if (notification == null)
                 return NotFound();
 
-            _mapper.Map(dto, notification);
+            notification.TemplateId = dto.TemplateId;
+            notification.CustomTitle = dto.Title;
+            notification.CustomMessage = dto.Message;
+            notification.NotificationType = dto.NotificationType;
+            notification.Metadata = dto.Metadata?.ToString();
 
             try
             {
