@@ -22,4 +22,10 @@ namespace OlimpBack.DTO
         public string Code { get; set; }
         public int? StudentsCount { get; set; }
     }
+
+    public class NotificationTemplateFilterDto
+    {
+        public int IdNotificationTemplates { get; set; }
+        public string NotificationType { get; set; } = null!;
+    }
 }

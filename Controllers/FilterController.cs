@@ -76,5 +76,29 @@ namespace OlimpBack.Controllers
 
             return Ok(groups);
         }
+
+        [HttpGet("notification-templates")]
+        public async Task<ActionResult<IEnumerable<NotificationTemplateFilterDto>>> GetNotificationTemplates([FromQuery] string? search = null)
+        {
+            var query = _context.NotificationTemplates
+                .Select(t => new NotificationTemplateFilterDto
+                {
+                    IdNotificationTemplates = t.IdNotificationTemplates,
+                    NotificationType = t.NotificationType
+                });
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.Trim().ToLower();
+                query = query.Where(t => 
+                    EF.Functions.Like(t.NotificationType.ToLower(), $"%{searchLower}%"));
+            }
+
+            var templates = await query
+                .OrderBy(t => t.NotificationType)
+                .ToListAsync();
+
+            return Ok(templates);
+        }
     }
 }
