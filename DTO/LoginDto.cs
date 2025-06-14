@@ -11,6 +11,7 @@ namespace OlimpBack.DTO
     public class LoginResponseDto
     {
         public int? Id { get; set; }
+        public int? UserId { get; set; }
         public int RoleId { get; set; }
         public string? Name{ get; set; }
         public string? NameFaculty { get; set; }
