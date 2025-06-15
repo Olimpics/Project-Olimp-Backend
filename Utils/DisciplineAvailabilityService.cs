@@ -49,21 +49,28 @@ namespace OlimpBack.Utils
                 discipline.DegreeLevel != context.Student.EducationalDegree)
                 return false;
 
-            if (discipline.MinCourse.HasValue && (context.CurrentCourse + 1) < discipline.MinCourse)
+            if (discipline.Faculty != context.Student.FacultyId)
                 return false;
 
-            if (discipline.MaxCourse.HasValue && (context.CurrentCourse + 1) > discipline.MaxCourse)
+            if (discipline.MinCourse.HasValue && context.CurrentCourse < discipline.MinCourse.Value)
                 return false;
 
-            if (!string.IsNullOrEmpty(discipline.Faculty) &&
-                discipline.Faculty != context.FacultyAbbreviation &&
-                !discipline.CodeAddDisciplines.Contains("у-"))
+            if (discipline.MaxCourse.HasValue && context.CurrentCourse > discipline.MaxCourse.Value)
                 return false;
 
-            if (discipline.MaxCountPeople.HasValue &&
-                context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var currentCount) &&
-                currentCount >= discipline.MaxCountPeople.Value)
-                return false;
+            if (discipline.MinCountPeople.HasValue)
+            {
+                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var count) ? count : 0;
+                if (currentCount < discipline.MinCountPeople.Value)
+                    return false;
+            }
+
+            if (discipline.MaxCountPeople.HasValue)
+            {
+                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var count) ? count : 0;
+                if (currentCount >= discipline.MaxCountPeople.Value)
+                    return false;
+            }
 
             return true;
         }

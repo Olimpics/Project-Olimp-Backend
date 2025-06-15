@@ -23,14 +23,80 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BindLoansMainDto>>> GetBindLoansMain()
+        public async Task<ActionResult<object>> GetBindLoansMain([FromQuery] BindLoansMainFilterDto filter)
         {
-            var bindings = await _context.BindLoansMains
+            var query = _context.BindLoansMains
                 .Include(b => b.AddDisciplines)
+                    .ThenInclude(d => d.FacultyNavigation)
                 .Include(b => b.EducationalProgram)
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var searchLower = filter.Search.Trim().ToLower();
+                query = query.Where(b =>
+                    EF.Functions.Like(b.AddDisciplines.NameAddDisciplines.ToLower(), $"%{searchLower}%") ||
+                    EF.Functions.Like(b.EducationalProgram.NameEducationalProgram.ToLower(), $"%{searchLower}%"));
+            }
+
+            // Apply faculty filter
+            if (!string.IsNullOrWhiteSpace(filter.Faculties))
+            {
+                var facultyValues = filter.Faculties.Split(',').Select(f => f.Trim()).ToList();
+                var numericValues = facultyValues.Where(f => int.TryParse(f, out _)).Select(int.Parse).ToList();
+                var textValues = facultyValues.Where(f => !int.TryParse(f, out _)).Select(f => f.ToLower()).ToList();
+
+                if (numericValues.Any())
+                {
+                    query = query.Where(b => numericValues.Contains(b.AddDisciplines.Faculty));
+                }
+
+                if (textValues.Any())
+                {
+                    foreach (var val in textValues)
+                    {
+                        var temp = val; // Avoid closure issue
+                        query = query.Where(b =>
+                            EF.Functions.Like(b.AddDisciplines.FacultyNavigation.NameFaculty.ToLower(), $"%{temp}%") ||
+                            EF.Functions.Like(b.AddDisciplines.FacultyNavigation.Abbreviation.ToLower(), $"%{temp}%"));
+                    }
+                }
+            }
+
+            // Apply speciality filter
+            if (!string.IsNullOrWhiteSpace(filter.Specialities))
+            {
+                var specialityValues = filter.Specialities.Split(',').Select(s => s.Trim().ToLower()).ToList();
+                query = query.Where(b => 
+                    specialityValues.Any(s => 
+                        EF.Functions.Like(b.EducationalProgram.Speciality.ToLower(), $"%{s}%")));
+            }
+
+            // Get total count for pagination
+            var totalCount = await query.CountAsync();
+
+            // Apply pagination
+            var items = await query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
-            return Ok(_mapper.Map<IEnumerable<BindLoansMainDto>>(bindings));
+            var result = new
+            {
+                Items = _mapper.Map<IEnumerable<BindLoansMainDto>>(items),
+                TotalCount = totalCount,
+                Page = filter.Page,
+                PageSize = filter.PageSize,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize),
+                Filters = new
+                {
+                    Faculties = filter.Faculties?.Split(',').Select(f => f.Trim()).ToList(),
+                    Specialities = filter.Specialities?.Split(',').Select(s => s.Trim()).ToList()
+                }
+            };
+
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

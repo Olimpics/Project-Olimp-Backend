@@ -1,4 +1,4 @@
-using AutoMapper;
+п»їusing AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
@@ -54,21 +54,12 @@ namespace OlimpBack.Controllers
             // Apply faculty filter
             if (!string.IsNullOrWhiteSpace(faculties))
             {
-                var facultyList = faculties.Split(',').Select(f => f.Trim()).ToList();
-                Expression<Func<AddDiscipline, bool>> facultyPredicate = d => false;
-                var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
+                var facultyIds = faculties
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.Parse(id.Trim()))
+                    .ToList();
 
-                var conditions = facultyList.Select(faculty =>
-                    Expression.Equal(
-                        Expression.Property(parameter, "Faculty"),
-                        Expression.Constant(faculty)
-                    )
-                );
-
-                var orExpression = conditions.Aggregate((a, b) => Expression.OrElse(a, b));
-                facultyPredicate = Expression.Lambda<Func<AddDiscipline, bool>>(orExpression, parameter);
-
-                query = query.Where(facultyPredicate);
+                query = query.Where(d => facultyIds.Contains(d.Faculty));
             }
 
             // Apply course filter
@@ -95,7 +86,7 @@ namespace OlimpBack.Controllers
                 var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
                 var property = Expression.Property(parameter, nameof(AddDiscipline.DegreeLevelId));
 
-                // Привести levelId к int? для корректного сравнения
+                // РџСЂРёРІРµСЃС‚Рё levelId Рє int? РґР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕРіРѕ СЃСЂР°РІРЅРµРЅРёСЏ
                 var equalsExpressions = levelIds.Select(levelId =>
                     Expression.Equal(
                         property,
@@ -103,12 +94,12 @@ namespace OlimpBack.Controllers
                     )
                 );
 
-                // Объединить через OR
+                // РћР±СЉРµРґРёРЅРёС‚СЊ С‡РµСЂРµР· OR
                 Expression combinedOr = equalsExpressions.Aggregate((a, b) => Expression.OrElse(a, b));
 
                 var lambda = Expression.Lambda<Func<AddDiscipline, bool>>(combinedOr, parameter);
 
-                // Применить фильтр к запросу
+                // РџСЂРёРјРµРЅРёС‚СЊ С„РёР»СЊС‚СЂ Рє Р·Р°РїСЂРѕСЃСѓ
                 query = query.Where(lambda);
             }
 
@@ -166,6 +157,133 @@ namespace OlimpBack.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("GetAllDisciplines")]
+        public async Task<ActionResult<object>> GetAllDisciplines(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] string? faculties = null,
+            [FromQuery] string? courses = null,
+            [FromQuery] bool? isEvenSemester = null,
+            [FromQuery] string? degreeLevelIds = null,
+            [FromQuery] int sortOrder = 0)
+        {
+            var query = _context.AddDisciplines
+                .Include(d => d.DegreeLevel)
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(d =>
+                    EF.Functions.Like(d.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
+            }
+            // Apply faculty filter
+            if (!string.IsNullOrWhiteSpace(faculties))
+            {
+                var facultyIds = faculties
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.Parse(id.Trim()))
+                    .ToList();
+
+                query = query.Where(d => facultyIds.Contains(d.Faculty));
+            }
+
+            // Apply course filter
+            if (!string.IsNullOrWhiteSpace(courses))
+            {
+                var courseList = courses.Split(',').Select(int.Parse).ToList();
+                query = query.Where(d =>
+                    (!d.MinCourse.HasValue || courseList.Contains(d.MinCourse.Value)) &&
+                    (!d.MaxCourse.HasValue || courseList.Contains(d.MaxCourse.Value)));
+            }
+
+            // Apply semester filter
+            if (isEvenSemester.HasValue)
+            {
+                var semesterValue = isEvenSemester.Value ? (sbyte)0 : (sbyte)1;
+                query = query.Where(d => d.AddSemestr == semesterValue);
+            }
+
+            // Apply degree level filter
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var levelIds = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+
+                var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
+                var property = Expression.Property(parameter, nameof(AddDiscipline.DegreeLevelId));
+
+                var equalsExpressions = levelIds.Select(levelId =>
+                    Expression.Equal(
+                        property,
+                        Expression.Constant((int?)levelId, typeof(int?))
+                    )
+                );
+
+                Expression combinedOr = equalsExpressions.Aggregate((a, b) => Expression.OrElse(a, b));
+                var lambda = Expression.Lambda<Func<AddDiscipline, bool>>(combinedOr, parameter);
+
+                query = query.Where(lambda);
+            }
+
+            // РџРѕР»СѓС‡Р°РµРј СЃРїРёСЃРѕРє РІСЃРµС… РґРёСЃС†РёРїР»РёРЅ Рё РєРѕР»РёС‡РµСЃС‚РІРѕ Р»СЋРґРµР№ РїРѕ РєР°Р¶РґРѕР№
+            var disciplineIds = await query.Select(d => d.IdAddDisciplines).ToListAsync();
+
+            var peopleCounts = await _context.BindAddDisciplines
+                .Where(b => disciplineIds.Contains(b.AddDisciplinesId))
+                .GroupBy(b => b.AddDisciplinesId)
+                .Select(g => new { AddDisciplinesId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.AddDisciplinesId, x => x.Count);
+
+            var disciplines = await query.ToListAsync();
+
+            var fullList = disciplines.Select(discipline =>
+            {
+                var dto = _mapper.Map<FullForAdminDisciplineDto>(discipline);
+                dto.CountOfPeople = peopleCounts.TryGetValue(discipline.IdAddDisciplines, out var count) ? count : 0;
+                return dto;
+            }).ToList();
+
+            // РЎРѕСЂС‚РёСЂРѕРІРєР°
+            fullList = sortOrder switch
+            {
+                1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
+                2 => fullList.OrderBy(d => d.CountOfPeople).ToList(),
+                3 => fullList.OrderByDescending(d => d.CountOfPeople).ToList(),
+                4 => fullList.OrderBy(d => d.Faculty).ToList(),
+                _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
+            };
+
+            var totalItems = fullList.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var paginatedResult = fullList
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var response = new
+            {
+                totalPages,
+                totalItems,
+                currentPage = page,
+                pageSize,
+                disciplines = paginatedResult,
+                filters = new
+                {
+                    faculties = faculties?.Split(',').Select(f => f.Trim()).ToList(),
+                    courses = courses?.Split(',').Select(int.Parse).ToList(),
+                    isEvenSemester,
+                    degreeLevelIds = degreeLevelIds?.Split(',').Select(int.Parse).ToList()
+                }
+            };
+
+            return Ok(response);
+        }
+
 
 
         [HttpGet("GetDisciplinesBySemester")]

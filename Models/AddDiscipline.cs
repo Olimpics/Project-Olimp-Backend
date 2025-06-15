@@ -11,7 +11,7 @@ public partial class AddDiscipline
 
     public string CodeAddDisciplines { get; set; } = null!;
 
-    public string Faculty { get; set; } = null!;
+    public int Faculty { get; set; }
 
     public int? MinCountPeople { get; set; }
 
@@ -30,4 +30,6 @@ public partial class AddDiscipline
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 
     public virtual EducationalDegree? DegreeLevel { get; set; }
+
+    public virtual Faculty FacultyNavigation { get; set; } = null!;
 }

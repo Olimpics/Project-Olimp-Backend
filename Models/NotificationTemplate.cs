@@ -11,7 +11,7 @@ public partial class NotificationTemplate
 
     public string Title { get; set; } = null!;
 
-    public string? Message { get; set; }
+    public string Message { get; set; } = null!;
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

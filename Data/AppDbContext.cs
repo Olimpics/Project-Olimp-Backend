@@ -136,6 +136,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdAddDisciplines).HasName("PRIMARY");
 
+            entity.HasIndex(e => e.Faculty, "AddDisciplines_ Faculties_idx");
+
             entity.HasIndex(e => e.DegreeLevelId, "AddDisciplines_EducationalDegree_idx");
 
             entity.HasIndex(e => e.IdAddDisciplines, "idAddDisciplines_UNIQUE").IsUnique();
@@ -144,7 +146,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodeAddDisciplines)
                 .HasMaxLength(200)
                 .HasColumnName("codeAddDisciplines");
-            entity.Property(e => e.Faculty).HasMaxLength(200);
             entity.Property(e => e.MaxCountPeople).HasColumnName("maxCountPeople");
             entity.Property(e => e.MaxCourse).HasColumnName("maxCourse");
             entity.Property(e => e.MinCountPeople).HasColumnName("minCountPeople");
@@ -156,6 +157,11 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.DegreeLevel).WithMany(p => p.AddDisciplines)
                 .HasForeignKey(d => d.DegreeLevelId)
                 .HasConstraintName("AddDisciplines_EducationalDegree");
+
+            entity.HasOne(d => d.FacultyNavigation).WithMany(p => p.AddDisciplines)
+                .HasForeignKey(d => d.Faculty)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("AddDisciplines_ Faculties");
         });
 
         modelBuilder.Entity<AdminLog>(entity =>
@@ -652,7 +658,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.UserId, "Students_Users_idx");
 
-            entity.HasIndex(e => e.IdStudent, "IdStudent_UNIQUE").IsUnique();
+            entity.HasIndex(e => e.IdStudent, "idStudents_UNIQUE").IsUnique();
 
             entity.Property(e => e.IdStudent).HasColumnName("idStudent");
             entity.Property(e => e.Achievement).HasColumnType("json");

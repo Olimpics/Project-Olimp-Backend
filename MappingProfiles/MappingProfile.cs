@@ -53,6 +53,8 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<AddDiscipline, FullDisciplineDto>()
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
+            CreateMap<AddDiscipline, FullForAdminDisciplineDto>()
+              .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
             CreateMap<CreateAddDisciplineDto, AddDiscipline>();
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
 

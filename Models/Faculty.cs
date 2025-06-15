@@ -11,6 +11,8 @@ public partial class Faculty
 
     public string? Abbreviation { get; set; }
 
+    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
+
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
