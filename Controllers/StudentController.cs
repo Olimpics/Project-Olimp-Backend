@@ -94,13 +94,17 @@ namespace OlimpBack.Controllers
             // Apply group filter
             if (!string.IsNullOrWhiteSpace(group))
             {
-                var groupValues = group.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(g => g.Trim().ToLower())
+                var groupIdList = group
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(g => int.TryParse(g.Trim(), out var id) ? id : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
                     .ToList();
 
-                query = query.Where(s =>
-                    groupValues.Any(val =>
-                        EF.Functions.Like(s.Group.GroupCode.ToLower(), $"%{val}%")));
+                if (groupIdList.Any())
+                {
+                    query = query.Where(s => groupIdList.Contains(s.Group.IdGroup));
+                }
             }
 
 
