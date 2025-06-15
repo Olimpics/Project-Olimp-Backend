@@ -59,7 +59,7 @@ namespace OlimpBack.Controllers
                     .Select(id => int.Parse(id.Trim()))
                     .ToList();
 
-                query = query.Where(d => facultyIds.Contains(d.Faculty));
+                query = query.Where(d => facultyIds.Contains(d.FacultyId));
             }
 
             // Apply course filter
@@ -192,7 +192,7 @@ namespace OlimpBack.Controllers
                     .Select(id => int.Parse(id.Trim()))
                     .ToList();
 
-                query = query.Where(d => facultyIds.Contains(d.Faculty));
+                query = query.Where(d => facultyIds.Contains(d.FacultyId));
             }
 
             // Apply course filter

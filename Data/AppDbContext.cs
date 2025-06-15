@@ -102,7 +102,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdAddDetails).HasName("PRIMARY");
 
-            entity.HasIndex(e => e.DepartmentId, "AddDeteils_Department_idx");
+            entity.HasIndex(e => e.DepartmentId, "AddDetails_Departments");
 
             entity.HasIndex(e => e.IdAddDetails, "idAddDeteils_UNIQUE").IsUnique();
 
@@ -125,20 +125,20 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Department).WithMany(p => p.AddDetails)
                 .HasForeignKey(d => d.DepartmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("AddDeteils_Department");
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("AddDetails_Departments");
 
             entity.HasOne(d => d.IdAddDetailsNavigation).WithOne(p => p.AddDetail)
                 .HasForeignKey<AddDetail>(d => d.IdAddDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("AddDeteils_AddDisciples");
+                .HasConstraintName("AddDeteils_AddDisciplines");
         });
 
         modelBuilder.Entity<AddDiscipline>(entity =>
         {
             entity.HasKey(e => e.IdAddDisciplines).HasName("PRIMARY");
 
-            entity.HasIndex(e => e.Faculty, "AddDisciplines_ Faculties_idx");
+            entity.HasIndex(e => e.FacultyId, "AddDisciplines_ Faculties_idx");
 
             entity.HasIndex(e => e.DegreeLevelId, "AddDisciplines_EducationalDegree_idx");
 
@@ -160,8 +160,8 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.DegreeLevelId)
                 .HasConstraintName("AddDisciplines_EducationalDegree");
 
-            entity.HasOne(d => d.FacultyNavigation).WithMany(p => p.AddDisciplines)
-                .HasForeignKey(d => d.Faculty)
+            entity.HasOne(d => d.Faculty).WithMany(p => p.AddDisciplines)
+                .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("AddDisciplines_ Faculties");
         });

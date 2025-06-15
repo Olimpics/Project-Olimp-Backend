@@ -159,14 +159,14 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.IdAddDisciplines, opt => opt.MapFrom(src => src.discipline.IdAddDisciplines))
                 .ForMember(dest => dest.NameAddDisciplines, opt => opt.MapFrom(src => src.discipline.NameAddDisciplines))
                 .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.discipline.CodeAddDisciplines))
-                .ForMember(dest => dest.Faculty, opt => opt.MapFrom(src => src.discipline.Faculty))
+                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.discipline.Faculty))
                 .ForMember(dest => dest.MinCountPeople, opt => opt.MapFrom(src => src.discipline.MinCountPeople))
                 .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
                 .ForMember(dest => dest.MinCourse, opt => opt.MapFrom(src => src.discipline.MinCourse))
                 .ForMember(dest => dest.MaxCourse, opt => opt.MapFrom(src => src.discipline.MaxCourse))
                 .ForMember(dest => dest.AddSemestr, opt => opt.MapFrom(src => src.discipline.AddSemestr))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegreec))
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.details.Department.NameDepartment))
+                //.ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.details.Department.NameDepartment))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teacher))
                 .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recomend))
                 .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
@@ -193,8 +193,8 @@ namespace OlimpBack.MappingProfiles
             CreateMap<UpdateBindLoansMainDto, BindLoansMain>();
 
             //AddDetail
-            CreateMap<AddDetail, AddDetailDto>()
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
+           // CreateMap<AddDetail, AddDetailDto>()
+              //  .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
             CreateMap<CreateAddDetailDto, AddDetail>();
             CreateMap<UpdateAddDetailDto, AddDetail>();
 

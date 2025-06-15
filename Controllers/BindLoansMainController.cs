@@ -27,7 +27,7 @@ namespace OlimpBack.Controllers
         {
             var query = _context.BindLoansMains
                 .Include(b => b.AddDisciplines)
-                    .ThenInclude(d => d.FacultyNavigation)
+                    .ThenInclude(d => d.Faculty)
                 .Include(b => b.EducationalProgram)
                 .AsQueryable();
 
@@ -49,7 +49,7 @@ namespace OlimpBack.Controllers
 
                 if (numericValues.Any())
                 {
-                    query = query.Where(b => numericValues.Contains(b.AddDisciplines.Faculty));
+                    query = query.Where(b => numericValues.Contains(b.AddDisciplines.FacultyId));
                 }
 
                 if (textValues.Any())
@@ -58,8 +58,8 @@ namespace OlimpBack.Controllers
                     {
                         var temp = val; // Avoid closure issue
                         query = query.Where(b =>
-                            EF.Functions.Like(b.AddDisciplines.FacultyNavigation.NameFaculty.ToLower(), $"%{temp}%") ||
-                            EF.Functions.Like(b.AddDisciplines.FacultyNavigation.Abbreviation.ToLower(), $"%{temp}%"));
+                            EF.Functions.Like(b.AddDisciplines.Faculty.NameFaculty.ToLower(), $"%{temp}%") ||
+                            EF.Functions.Like(b.AddDisciplines.Faculty.Abbreviation.ToLower(), $"%{temp}%"));
                     }
                 }
             }

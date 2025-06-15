@@ -49,7 +49,7 @@ namespace OlimpBack.Utils
                 discipline.DegreeLevel != context.Student.EducationalDegree)
                 return false;
 
-            if (discipline.Faculty != context.Student.FacultyId)
+            if (discipline.FacultyId != context.Student.FacultyId)
                 return false;
 
             if (discipline.MinCourse.HasValue && context.CurrentCourse < discipline.MinCourse.Value)
