@@ -35,13 +35,6 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("test")]
-    public IActionResult Test()
-    {
-        _logger.LogInformation("Test endpoint called");
-        return Ok(new { message = "Test endpoint is working" });
-    }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto model)
     {
