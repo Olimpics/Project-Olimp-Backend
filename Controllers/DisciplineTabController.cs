@@ -171,6 +171,8 @@ namespace OlimpBack.Controllers
         {
             var query = _context.AddDisciplines
                 .Include(d => d.DegreeLevel)
+                .Include(d => d.AddDetail)
+                    .ThenInclude(d => d.Department)
                 .AsQueryable();
 
             // Apply search filter
@@ -181,6 +183,7 @@ namespace OlimpBack.Controllers
                     EF.Functions.Like(d.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
                     EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
             }
+
             // Apply faculty filter
             if (!string.IsNullOrWhiteSpace(faculties))
             {
@@ -204,87 +207,47 @@ namespace OlimpBack.Controllers
             // Apply semester filter
             if (isEvenSemester.HasValue)
             {
-                var semesterValue = isEvenSemester.Value ? (sbyte)0 : (sbyte)1;
-                query = query.Where(d => d.AddSemestr == semesterValue);
+                query = query.Where(d => d.AddSemestr.HasValue && 
+                    ((isEvenSemester.Value && d.AddSemestr.Value % 2 == 0) || 
+                     (!isEvenSemester.Value && d.AddSemestr.Value % 2 == 1)));
             }
 
             // Apply degree level filter
             if (!string.IsNullOrWhiteSpace(degreeLevelIds))
             {
-                var levelIds = degreeLevelIds.Split(',').Select(int.Parse).ToList();
-
-                var parameter = Expression.Parameter(typeof(AddDiscipline), "d");
-                var property = Expression.Property(parameter, nameof(AddDiscipline.DegreeLevelId));
-
-                var equalsExpressions = levelIds.Select(levelId =>
-                    Expression.Equal(
-                        property,
-                        Expression.Constant((int?)levelId, typeof(int?))
-                    )
-                );
-
-                Expression combinedOr = equalsExpressions.Aggregate((a, b) => Expression.OrElse(a, b));
-                var lambda = Expression.Lambda<Func<AddDiscipline, bool>>(combinedOr, parameter);
-
-                query = query.Where(lambda);
+                var degreeLevelIdList = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+                query = query.Where(d => d.DegreeLevelId.HasValue && degreeLevelIdList.Contains(d.DegreeLevelId.Value));
             }
 
-            // Получаем список всех дисциплин и количество людей по каждой
-            var disciplineIds = await query.Select(d => d.IdAddDisciplines).ToListAsync();
-
-            var peopleCounts = await _context.BindAddDisciplines
-                .Where(b => disciplineIds.Contains(b.AddDisciplinesId))
-                .GroupBy(b => b.AddDisciplinesId)
-                .Select(g => new { AddDisciplinesId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.AddDisciplinesId, x => x.Count);
-
-            var disciplines = await query.ToListAsync();
-
-            var fullList = disciplines.Select(discipline =>
+            // Apply sorting
+            query = sortOrder switch
             {
-                var dto = _mapper.Map<FullForAdminDisciplineDto>(discipline);
-                dto.CountOfPeople = peopleCounts.TryGetValue(discipline.IdAddDisciplines, out var count) ? count : 0;
-                return dto;
-            }).ToList();
-
-            // Сортировка
-            fullList = sortOrder switch
-            {
-                1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
-                2 => fullList.OrderBy(d => d.CountOfPeople).ToList(),
-                3 => fullList.OrderByDescending(d => d.CountOfPeople).ToList(),
-                4 => fullList.OrderBy(d => d.Faculty).ToList(),
-                _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
+                1 => query.OrderBy(d => d.NameAddDisciplines),
+                2 => query.OrderByDescending(d => d.NameAddDisciplines),
+                3 => query.OrderBy(d => d.CodeAddDisciplines),
+                4 => query.OrderByDescending(d => d.CodeAddDisciplines),
+                _ => query.OrderBy(d => d.IdAddDisciplines)
             };
 
-            var totalItems = fullList.Count;
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            var paginatedResult = fullList
+            var disciplines = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
+                .ToListAsync();
 
-            var response = new
+            var result = disciplines.Select(d => _mapper.Map<FullDisciplineWithDetailsDto>((d, d.AddDetail))).ToList();
+
+            return Ok(new
             {
-                totalPages,
-                totalItems,
-                currentPage = page,
-                pageSize,
-                disciplines = paginatedResult,
-                filters = new
-                {
-                    faculties = faculties?.Split(',').Select(f => f.Trim()).ToList(),
-                    courses = courses?.Split(',').Select(int.Parse).ToList(),
-                    isEvenSemester,
-                    degreeLevelIds = degreeLevelIds?.Split(',').Select(int.Parse).ToList()
-                }
-            };
-
-            return Ok(response);
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = result
+            });
         }
-
-
 
         [HttpGet("GetDisciplinesBySemester")]
         public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
@@ -385,19 +348,17 @@ namespace OlimpBack.Controllers
         {
             var discipline = await _context.AddDisciplines
                 .Include(d => d.DegreeLevel)
+                .Include(d => d.AddDetail)
+                    .ThenInclude(d => d.Department)
                 .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
 
             if (discipline == null)
                 return NotFound("Discipline not found");
 
-            var details = await _context.AddDetails
-                .Include(d => d.Department)
-                .FirstOrDefaultAsync(d => d.IdAddDetails == id);
-
-            if (details == null)
+            if (discipline.AddDetail == null)
                 return NotFound("Discipline details not found");
 
-            var result = _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
+            var result = _mapper.Map<FullDisciplineWithDetailsDto>((discipline, discipline.AddDetail));
             return Ok(result);
         }
 
@@ -407,7 +368,7 @@ namespace OlimpBack.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var discipline = _mapper.Map<AddDiscipline>(dto);
+                var discipline = _mapper.Map<AddDiscipline>(dto, opts => opts.Items["DbContext"] = _context);
                 _context.AddDisciplines.Add(discipline);
                 await _context.SaveChangesAsync();
 
@@ -420,13 +381,11 @@ namespace OlimpBack.Controllers
 
                 var createdDiscipline = await _context.AddDisciplines
                     .Include(d => d.DegreeLevel)
+                    .Include(d => d.AddDetail)
+                        .ThenInclude(d => d.Department)
                     .FirstOrDefaultAsync(d => d.IdAddDisciplines == discipline.IdAddDisciplines);
 
-                var createdDetails = await _context.AddDetails
-                    .Include(d => d.Department)
-                    .FirstOrDefaultAsync(d => d.IdAddDetails == discipline.IdAddDisciplines);
-
-                var result = _mapper.Map<FullDisciplineWithDetailsDto>((createdDiscipline, createdDetails));
+                var result = _mapper.Map<FullDisciplineWithDetailsDto>((createdDiscipline, createdDiscipline.AddDetail));
                 return CreatedAtAction(nameof(GetDisciplineWithDetails), new { id = discipline.IdAddDisciplines }, result);
             }
             catch (Exception)
@@ -445,16 +404,18 @@ namespace OlimpBack.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var discipline = await _context.AddDisciplines.FindAsync(id);
+                var discipline = await _context.AddDisciplines
+                    .Include(d => d.AddDetail)
+                    .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
+
                 if (discipline == null)
                     return NotFound("Discipline not found");
 
-                var details = await _context.AddDetails.FindAsync(id);
-                if (details == null)
+                if (discipline.AddDetail == null)
                     return NotFound("Discipline details not found");
 
-                _mapper.Map(dto, discipline);
-                _mapper.Map(dto.Details, details);
+                _mapper.Map(dto, discipline, opts => opts.Items["DbContext"] = _context);
+                _mapper.Map(dto.Details, discipline.AddDetail);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -474,14 +435,16 @@ namespace OlimpBack.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var discipline = await _context.AddDisciplines.FindAsync(id);
+                var discipline = await _context.AddDisciplines
+                    .Include(d => d.AddDetail)
+                    .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
+
                 if (discipline == null)
                     return NotFound("Discipline not found");
 
-                var details = await _context.AddDetails.FindAsync(id);
-                if (details != null)
+                if (discipline.AddDetail != null)
                 {
-                    _context.AddDetails.Remove(details);
+                    _context.AddDetails.Remove(discipline.AddDetail);
                 }
 
                 _context.AddDisciplines.Remove(discipline);

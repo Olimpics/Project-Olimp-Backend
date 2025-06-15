@@ -33,6 +33,17 @@ namespace OlimpBack.Controllers
             if (user.Password != Password)
                 return BadRequest("Incorrect password");
 
+            // Get user's permissions
+            var permissions = await _context.BindRolePermissions
+                .Include(b => b.Permission)
+                .Where(b => b.RoleId == user.RoleId)
+                .Select(b => new PermissionInfo
+                {
+                    TypePermission = b.Permission.TypePermission,
+                    TableName = b.Permission.TableName
+                })
+                .ToListAsync();
+
             if (user.Role.NameRole == "Administrator")
             {
                 var admin = await _context.AdminsPersonals
@@ -48,7 +59,8 @@ namespace OlimpBack.Controllers
                     UserId = admin.UserId,
                     RoleId = user.RoleId,
                     Name = admin.NameAdmin,
-                    NameFaculty = admin.Faculty?.NameFaculty
+                    NameFaculty = admin.Faculty?.NameFaculty,
+                    Permissions = permissions
                 };
 
                 return Ok(response);
@@ -64,6 +76,7 @@ namespace OlimpBack.Controllers
                     return NotFound("This student doesn't exist");
 
                 var response = _mapper.Map<LoginResponseDto>(student);
+                response.Permissions = permissions;
                 return Ok(response);
             }
         }

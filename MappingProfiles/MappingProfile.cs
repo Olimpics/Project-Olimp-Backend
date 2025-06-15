@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
-using OlimpBack.Models;
+using Microsoft.EntityFrameworkCore;
+using OlimpBack.Data;
 using OlimpBack.DTO;
+using OlimpBack.Models;
 
 namespace OlimpBack.MappingProfiles
 {
@@ -55,7 +57,24 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
             CreateMap<AddDiscipline, FullForAdminDisciplineDto>()
               .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
-            CreateMap<CreateAddDisciplineDto, AddDiscipline>();
+            CreateMap<CreateAddDisciplineDto, AddDiscipline>()
+                .ForMember(dest => dest.DegreeLevelId, opt => opt.Ignore())
+                .AfterMap(async (src, dest, context) =>
+                {
+                    if (!string.IsNullOrEmpty(src.DegreeLevel))
+                    {
+                        var dbContext = context.Items["DbContext"] as AppDbContext;
+                        if (dbContext != null)
+                        {
+                            var degreeLevel = await dbContext.EducationalDegrees
+                                .FirstOrDefaultAsync(d => d.NameEducationalDegreec == src.DegreeLevel);
+                            if (degreeLevel != null)
+                            {
+                                dest.DegreeLevelId = degreeLevel.IdEducationalDegree;
+                            }
+                        }
+                    }
+                });
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
 
             CreateMap<CreateAddDisciplineWithDetailsDto, AddDiscipline>()
@@ -190,6 +209,18 @@ namespace OlimpBack.MappingProfiles
             CreateMap<NotificationTemplate, NotificationTemplateDto>();
             CreateMap<CreateNotificationTemplateDto, NotificationTemplate>();
             CreateMap<UpdateNotificationTemplateDto, NotificationTemplate>();
+
+            //Permission
+            CreateMap<Permission, PermissionDto>().ReverseMap();
+            CreateMap<CreatePermissionDto, Permission>();
+            CreateMap<UpdatePermissionDto, Permission>();
+
+            //BindRolePermission
+            CreateMap<BindRolePermission, BindRolePermissionDto>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.NameRole))
+                .ForMember(dest => dest.PermissionName, opt => opt.MapFrom(src => src.Permission.TypePermission));
+            CreateMap<CreateBindRolePermissionDto, BindRolePermission>();
+            CreateMap<UpdateBindRolePermissionDto, BindRolePermission>();
         }
 
     }

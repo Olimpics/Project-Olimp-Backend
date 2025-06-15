@@ -100,15 +100,17 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<AddDetail>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(e => e.IdAddDetails).HasName("PRIMARY");
 
             entity.HasIndex(e => e.DepartmentId, "AddDeteils_Department_idx");
 
             entity.HasIndex(e => e.IdAddDetails, "idAddDeteils_UNIQUE").IsUnique();
 
+            entity.Property(e => e.IdAddDetails)
+                .ValueGeneratedNever()
+                .HasColumnName("idAddDetails");
             entity.Property(e => e.AdditionaLiterature).HasMaxLength(800);
             entity.Property(e => e.Determination).HasMaxLength(800);
-            entity.Property(e => e.IdAddDetails).HasColumnName("idAddDetails");
             entity.Property(e => e.Language).HasMaxLength(200);
             entity.Property(e => e.Prerequisites).HasMaxLength(800);
             entity.Property(e => e.Recomend).HasMaxLength(800);
@@ -121,12 +123,12 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("UsingIRL");
             entity.Property(e => e.WhyInterestingDetermination).HasMaxLength(800);
 
-            entity.HasOne(d => d.Department).WithMany()
+            entity.HasOne(d => d.Department).WithMany(p => p.AddDetails)
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("AddDeteils_Department");
 
-            entity.HasOne(d => d.IdAddDetailsNavigation).WithOne()
+            entity.HasOne(d => d.IdAddDetailsNavigation).WithOne(p => p.AddDetail)
                 .HasForeignKey<AddDetail>(d => d.IdAddDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("AddDeteils_AddDisciples");
@@ -346,9 +348,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.RoleId, "BindRolePermission_Role_idx");
 
-            entity.Property(e => e.IdBindRolePermission)
-                .ValueGeneratedNever()
-                .HasColumnName("idBindRolePermission");
+            entity.Property(e => e.IdBindRolePermission).HasColumnName("idBindRolePermission");
 
             entity.HasOne(d => d.Permission).WithMany(p => p.BindRolePermissions)
                 .HasForeignKey(d => d.PermissionId)
@@ -367,13 +367,20 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Department");
 
+            entity.HasIndex(e => e.AdminId, "Department_Admin_idx");
+
             entity.HasIndex(e => e.FacultyId, "Department_Faculties_idx");
 
             entity.Property(e => e.IdDepartment).HasColumnName("idDepartment");
             entity.Property(e => e.Abbreviation).HasMaxLength(200);
+            entity.Property(e => e.Metadata).HasColumnType("json");
             entity.Property(e => e.NameDepartment)
                 .HasMaxLength(200)
                 .HasColumnName("nameDepartment");
+
+            entity.HasOne(d => d.Admin).WithMany(p => p.Departments)
+                .HasForeignKey(d => d.AdminId)
+                .HasConstraintName("Department_Admin");
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.Departments)
                 .HasForeignKey(d => d.FacultyId)
@@ -417,6 +424,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("EducationalProgram");
 
+            entity.HasIndex(e => e.DepartmentId, "EducationalProgram_Department_idx");
+
             entity.HasIndex(e => e.DegreeId, "EducationalProgram_EducationalDegree_idx");
 
             entity.Property(e => e.IdEducationalProgram).HasColumnName("idEducationalProgram");
@@ -446,6 +455,10 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.DegreeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("EducationalProgram_EducationalDegree");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.EducationalPrograms)
+                .HasForeignKey(d => d.DepartmentId)
+                .HasConstraintName("EducationalProgram_Department");
         });
 
         modelBuilder.Entity<Event>(entity =>
@@ -472,11 +485,18 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdFaculty).HasName("PRIMARY");
 
+            entity.HasIndex(e => e.AdminId, "Faculties_Admin_idx");
+
             entity.Property(e => e.IdFaculty).HasColumnName("idFaculty");
             entity.Property(e => e.Abbreviation).HasMaxLength(45);
+            entity.Property(e => e.Metadata).HasColumnType("json");
             entity.Property(e => e.NameFaculty)
                 .HasMaxLength(200)
                 .HasColumnName("nameFaculty");
+
+            entity.HasOne(d => d.Admin).WithMany(p => p.Faculties)
+                .HasForeignKey(d => d.AdminId)
+                .HasConstraintName("Faculties_Admin");
         });
 
         modelBuilder.Entity<Group>(entity =>
@@ -485,8 +505,14 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Group");
 
+            entity.HasIndex(e => e.AdminId, "Group_Admin_idx");
+
             entity.Property(e => e.IdGroup).HasColumnName("idGroup");
             entity.Property(e => e.GroupCode).HasMaxLength(45);
+
+            entity.HasOne(d => d.Admin).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.AdminId)
+                .HasConstraintName("Group_Admin");
         });
 
         modelBuilder.Entity<MainGrade>(entity =>
@@ -583,10 +609,9 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdPermissions).HasName("PRIMARY");
 
-            entity.Property(e => e.IdPermissions)
-                .ValueGeneratedNever()
-                .HasColumnName("idPermissions");
-            entity.Property(e => e.NamePermission).HasMaxLength(45);
+            entity.Property(e => e.IdPermissions).HasColumnName("idPermissions");
+            entity.Property(e => e.TableName).HasMaxLength(45);
+            entity.Property(e => e.TypePermission).HasMaxLength(45);
         });
 
         modelBuilder.Entity<RegulationOnAddPoint>(entity =>
@@ -615,9 +640,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.NameRole, "nameRole_UNIQUE").IsUnique();
 
-            entity.Property(e => e.IdRole)
-                .ValueGeneratedNever()
-                .HasColumnName("idRole");
+            entity.Property(e => e.IdRole).HasColumnName("idRole");
             entity.Property(e => e.NameRole)
                 .HasMaxLength(45)
                 .HasColumnName("nameRole");

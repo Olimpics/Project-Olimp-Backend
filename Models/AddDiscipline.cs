@@ -25,6 +25,8 @@ public partial class AddDiscipline
 
     public int? DegreeLevelId { get; set; }
 
+    public virtual AddDetail? AddDetail { get; set; }
+
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();

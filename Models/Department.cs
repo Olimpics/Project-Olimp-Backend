@@ -13,7 +13,17 @@ public partial class Department
 
     public string Abbreviation { get; set; } = null!;
 
+    public int? AdminId { get; set; }
+
+    public string? Metadata { get; set; }
+
+    public virtual ICollection<AddDetail> AddDetails { get; set; } = new List<AddDetail>();
+
+    public virtual AdminsPersonal? Admin { get; set; }
+
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
+
+    public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 
     public virtual Faculty Faculty { get; set; } = null!;
 }

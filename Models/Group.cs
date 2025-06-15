@@ -11,5 +11,9 @@ public partial class Group
 
     public int? NumberOfStudents { get; set; }
 
+    public int? AdminId { get; set; }
+
+    public virtual AdminsPersonal? Admin { get; set; }
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

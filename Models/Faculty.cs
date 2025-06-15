@@ -11,7 +11,13 @@ public partial class Faculty
 
     public string? Abbreviation { get; set; }
 
+    public int? AdminId { get; set; }
+
+    public string? Metadata { get; set; }
+
     public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
+
+    public virtual AdminsPersonal? Admin { get; set; }
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
