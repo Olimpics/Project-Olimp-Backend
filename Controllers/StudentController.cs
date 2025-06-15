@@ -61,7 +61,7 @@ namespace OlimpBack.Controllers
             // Apply faculty filter
             if (!string.IsNullOrWhiteSpace(faculties))
             {
-                var facultyValues = faculties.Split(',').Select(f => f.Trim()).ToList();
+                var facultyValues = faculties.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).ToList();
                 var numericValues = facultyValues.Where(f => int.TryParse(f, out _)).Select(int.Parse).ToList();
                 var textValues = facultyValues.Where(f => !int.TryParse(f, out _)).Select(f => f.ToLower()).ToList();
 
@@ -72,29 +72,37 @@ namespace OlimpBack.Controllers
 
                 if (textValues.Any())
                 {
-                    foreach (var val in textValues)
-                    {
-                        var temp = val; // Avoid closure issue
-                        query = query.Where(s =>
-                            EF.Functions.Like(s.Faculty.NameFaculty.ToLower(), $"%{temp}%") ||
-                            EF.Functions.Like(s.Faculty.Abbreviation.ToLower(), $"%{temp}%"));
-                    }
+                    query = query.Where(s =>
+                        textValues.Any(t =>
+                            EF.Functions.Like(s.Faculty.NameFaculty.ToLower(), $"%{t}%") ||
+                            EF.Functions.Like(s.Faculty.Abbreviation.ToLower(), $"%{t}%")));
                 }
             }
 
             // Apply speciality filter
             if (!string.IsNullOrWhiteSpace(speciality))
             {
-                query = query.Where(s => 
-                    EF.Functions.Like(s.EducationalProgram.Speciality.ToLower(), $"%{speciality.ToLower()}%"));
+                var specialityValues = speciality.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim().ToLower())
+                    .ToList();
+
+                query = query.Where(s =>
+                    specialityValues.Any(val =>
+                        EF.Functions.Like(s.EducationalProgram.Speciality.ToLower(), $"%{val}%")));
             }
 
             // Apply group filter
             if (!string.IsNullOrWhiteSpace(group))
             {
-                query = query.Where(s => 
-                    EF.Functions.Like(s.GroupId, $"%{group.ToLower()}%"));
+                var groupValues = group.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(g => g.Trim().ToLower())
+                    .ToList();
+
+                query = query.Where(s =>
+                    groupValues.Any(val =>
+                        EF.Functions.Like(s.Group.GroupCode.ToLower(), $"%{val}%")));
             }
+
 
             // Apply course filter
             if (!string.IsNullOrWhiteSpace(courses))

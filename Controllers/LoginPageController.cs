@@ -45,11 +45,10 @@ namespace OlimpBack.Controllers
                 var response = new LoginResponseDto
                 {
                     Id = admin.IdAdmins,
+                    UserId = admin.UserId,
                     RoleId = user.RoleId,
                     Name = admin.NameAdmin,
-                    NameFaculty = admin.Faculty?.NameFaculty,
-                    Speciality = null,
-                    Course = null
+                    NameFaculty = admin.Faculty?.NameFaculty
                 };
 
                 return Ok(response);

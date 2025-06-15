@@ -23,48 +23,88 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("departments")]
-        public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetDepartmentsByFaculty([FromQuery] int[]? facultyIds)
+        public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetDepartmentsByFaculty([FromQuery] string? facultyIds)
         {
             var query = _context.Departments
                 .Include(d => d.Faculty)
                 .AsQueryable();
 
-            if (facultyIds != null && facultyIds.Length > 0)
+            if (!string.IsNullOrWhiteSpace(facultyIds))
             {
-                query = query.Where(d => facultyIds.Contains(d.FacultyId));
+                var facultyIdList = facultyIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (facultyIdList.Any())
+                {
+                    query = query.Where(d => facultyIdList.Contains(d.FacultyId));
+                }
             }
 
             var departments = await query.ToListAsync();
             return Ok(_mapper.Map<IEnumerable<DepartmentDto>>(departments));
         }
-
         [HttpGet("groups")]
         public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups(
-            [FromQuery] int[]? facultyIds,
-            [FromQuery] int[]? educationalProgramIds,
-            [FromQuery] int[]? courses)
+            [FromQuery] string? facultyIds,
+            [FromQuery] string? educationalProgramIds,
+            [FromQuery] string? courses)
         {
             var query = _context.Groups
                 .Include(g => g.Students)
                 .AsQueryable();
 
-            if (facultyIds != null && facultyIds.Length > 0)
+            if (!string.IsNullOrWhiteSpace(facultyIds))
             {
-                query = query.Where(g => g.Students.Any(s => facultyIds.Contains(s.FacultyId)));
+                var facultyIdList = facultyIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (facultyIdList.Any())
+                {
+                    query = query.Where(g => g.Students.Any(s => facultyIdList.Contains(s.FacultyId)));
+                }
             }
 
-            if (educationalProgramIds != null && educationalProgramIds.Length > 0)
+            if (!string.IsNullOrWhiteSpace(educationalProgramIds))
             {
-                query = query.Where(g => g.Students.Any(s => educationalProgramIds.Contains(s.EducationalProgramId)));
+                var programIdList = educationalProgramIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (programIdList.Any())
+                {
+                    query = query.Where(g => g.Students.Any(s => programIdList.Contains(s.EducationalProgramId)));
+                }
             }
 
-            if (courses != null && courses.Length > 0)
+            if (!string.IsNullOrWhiteSpace(courses))
             {
-                query = query.Where(g => g.Students.Any(s => courses.Contains(s.Course)));
+                var courseList = courses
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (courseList.Any())
+                {
+                    query = query.Where(g => g.Students.Any(s => courseList.Contains(s.Course)));
+                }
             }
 
             var groups = await query.ToListAsync();
             return Ok(_mapper.Map<IEnumerable<GroupFilterDto>>(groups));
         }
+
     }
 }
