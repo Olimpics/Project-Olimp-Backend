@@ -400,5 +400,101 @@ namespace OlimpBack.Controllers
             var result = _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
             return Ok(result);
         }
+
+        [HttpPost("CreateDisciplineWithDetails")]
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateAddDisciplineWithDetailsDto dto)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var discipline = _mapper.Map<AddDiscipline>(dto);
+                _context.AddDisciplines.Add(discipline);
+                await _context.SaveChangesAsync();
+
+                var details = _mapper.Map<AddDetail>(dto.Details);
+                details.IdAddDetails = discipline.IdAddDisciplines;
+                _context.AddDetails.Add(details);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                var createdDiscipline = await _context.AddDisciplines
+                    .Include(d => d.DegreeLevel)
+                    .FirstOrDefaultAsync(d => d.IdAddDisciplines == discipline.IdAddDisciplines);
+
+                var createdDetails = await _context.AddDetails
+                    .Include(d => d.Department)
+                    .FirstOrDefaultAsync(d => d.IdAddDetails == discipline.IdAddDisciplines);
+
+                var result = _mapper.Map<FullDisciplineWithDetailsDto>((createdDiscipline, createdDetails));
+                return CreatedAtAction(nameof(GetDisciplineWithDetails), new { id = discipline.IdAddDisciplines }, result);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        [HttpPut("UpdateDisciplineWithDetails/{id}")]
+        public async Task<IActionResult> UpdateDisciplineWithDetails(int id, UpdateAddDisciplineWithDetailsDto dto)
+        {
+            if (id != dto.IdAddDisciplines)
+                return BadRequest();
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var discipline = await _context.AddDisciplines.FindAsync(id);
+                if (discipline == null)
+                    return NotFound("Discipline not found");
+
+                var details = await _context.AddDetails.FindAsync(id);
+                if (details == null)
+                    return NotFound("Discipline details not found");
+
+                _mapper.Map(dto, discipline);
+                _mapper.Map(dto.Details, details);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        [HttpDelete("DeleteDisciplineWithDetails/{id}")]
+        public async Task<IActionResult> DeleteDisciplineWithDetails(int id)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var discipline = await _context.AddDisciplines.FindAsync(id);
+                if (discipline == null)
+                    return NotFound("Discipline not found");
+
+                var details = await _context.AddDetails.FindAsync(id);
+                if (details != null)
+                {
+                    _context.AddDetails.Remove(details);
+                }
+
+                _context.AddDisciplines.Remove(discipline);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }
