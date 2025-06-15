@@ -82,13 +82,14 @@ namespace OlimpBack.Controllers
             // Apply speciality filter
             if (!string.IsNullOrWhiteSpace(speciality))
             {
-                var specialityValues = speciality.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim().ToLower())
+                var programIds = speciality
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var result) ? result : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
                     .ToList();
 
-                query = query.Where(s =>
-                    specialityValues.Any(val =>
-                        EF.Functions.Like(s.EducationalProgram.Speciality.ToLower(), $"%{val}%")));
+                query = query.Where(s => programIds.Contains(s.EducationalProgramId));
             }
 
             // Apply group filter
