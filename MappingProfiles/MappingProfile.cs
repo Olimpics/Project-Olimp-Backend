@@ -22,14 +22,26 @@ namespace OlimpBack.MappingProfiles
 
             // Login mapping
             CreateMap<Student, LoginResponseDto>()
-    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
-    .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
-    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
-    .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
-    .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
-    .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
+                .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
+                .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
 
+            CreateMap<Student, LoginResponseWithTokenDto>()
+                .IncludeBase<Student, LoginResponseDto>();
 
+            CreateMap<AdminsPersonal, LoginResponseDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdAdmins))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAdmin))
+                .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
+
+            CreateMap<AdminsPersonal, LoginResponseWithTokenDto>()
+                .IncludeBase<AdminsPersonal, LoginResponseDto>();
 
             //Student
             CreateMap<Student, StudentDto>()

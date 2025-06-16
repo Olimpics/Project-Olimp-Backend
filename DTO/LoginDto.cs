@@ -26,4 +26,9 @@ namespace OlimpBack.DTO
         public int? Course { get; set; }
         public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
     }
+
+    public class LoginResponseWithTokenDto : LoginResponseDto
+    {
+        public string Token { get; set; }
+    }
 } 

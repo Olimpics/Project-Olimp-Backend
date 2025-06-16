@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("authorization")]
-    public async Task<IActionResult> Authorization(LoginDto model)
+    public async Task<ActionResult<LoginResponseWithTokenDto>> Authorization(LoginDto model)
     {
         _logger.LogInformation($"Login attempt for email: {model.Email}");
         
@@ -48,58 +48,83 @@ public class AuthController : ControllerBase
         if (user == null)
         {
             _logger.LogWarning($"Login failed: User not found for email {model.Email}");
-            return Unauthorized("Invalid email or password");
+            return NotFound("This user doesn't exist");
         }
 
         bool isPasswordValid;
         try
         {
-            // Try BCrypt verification first
             isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
         }
         catch (BCrypt.Net.SaltParseException)
         {
-            // If BCrypt verification fails, check if it's a plain text password
             isPasswordValid = model.Password == user.Password;
-            
-            // If it's a plain text password, hash it and update the user's password
-            /*if (isPasswordValid)
-            {
-                user.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
-                await _context.SaveChangesAsync();
-            }
-            */
         }
 
         if (!isPasswordValid)
         {
             _logger.LogWarning($"Login failed: Invalid password for user {model.Email}");
-            return Unauthorized("Invalid email or password");
+            return BadRequest("Incorrect password");
         }
 
-        // Update last login time
-        user.LastLoginAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        // Get user permissions
+        // Get user's permissions
         var permissions = await _context.BindRolePermissions
             .Include(b => b.Permission)
             .Where(b => b.RoleId == user.RoleId)
             .Select(b => new PermissionDto
             {
-                IdPermissions = b.Permission.IdPermissions,
                 TypePermission = b.Permission.TypePermission,
                 TableName = b.Permission.TableName
             })
             .ToListAsync();
 
+        LoginResponseWithTokenDto response;
+
+        if (user.Role.NameRole == "Administrator")
+        {
+            var admin = await _context.AdminsPersonals
+                .Include(a => a.Faculty)
+                .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
+
+            if (admin == null)
+            {
+                _logger.LogWarning($"Admin profile not found for user {model.Email}");
+                return NotFound("Admin profile not found");
+            }
+
+            response = new LoginResponseWithTokenDto()
+            {
+                Id = admin.IdAdmins,
+                UserId = admin.UserId,
+                RoleId = user.RoleId,
+                Name = admin.NameAdmin,
+                NameFaculty = admin.Faculty?.NameFaculty,
+                Permissions = permissions
+            };
+        }
+        else
+        {
+            var student = await _context.Students
+                .Include(s => s.Faculty)
+                .Include(s => s.EducationalProgram)
+                .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
+
+            if (student == null)
+            {
+                _logger.LogWarning($"Student profile not found for user {model.Email}");
+                return NotFound("This student doesn't exist");
+            }
+
+            response = _mapper.Map<LoginResponseWithTokenDto>(student);
+            response.Permissions = permissions;
+        }
+
+        // Generate token
         var token = _jwtService.GenerateToken(
             user.IdUsers.ToString(),
             user.Email,
             user.Role.NameRole
         );
-
-        _logger.LogInformation($"Login successful for user {user.Email}. Token generated.");
 
         // Set secure HTTP-only cookies
         var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
@@ -115,11 +140,11 @@ public class AuthController : ControllerBase
         // Set user info cookie
         var userInfo = new
         {
-            Id = user.IdUsers,
-            UserId = user.IdUsers.ToString(),
-            Email = user.Email,
-            Role = user.Role.NameRole,
-            IdRole = user.RoleId
+            Id = response.Id,
+            UserId = response.UserId,
+            RoleId = response.RoleId,
+            Name = response.Name,
+            NameFaculty = response.NameFaculty
         };
         Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
 
@@ -129,41 +154,20 @@ public class AuthController : ControllerBase
         // Set token cookie
         Response.Cookies.Append("AuthToken", token, cookieOptions);
 
-        var response = new AuthResponseDto
-        {
-            Token = token,
-            Id = user.IdUsers,
-            UserId = user.IdUsers.ToString(),
-            Email = user.Email,
-            Role = user.Role.NameRole,
-            IdRole = user.RoleId,
-            Permissions = permissions
-        };
+        // Add token to response
+        response.Token = token;
 
+        _logger.LogInformation($"Login successful for user {model.Email}. Cookies set.");
         return Ok(response);
     }
 
     [Authorize]
     [HttpGet("AuthChecker")]
-    public async Task<IActionResult> GetCurrentUser()
+    public async Task<ActionResult<LoginResponseDto>> GetCurrentUser()
     {
         _logger.LogInformation("GetCurrentUser endpoint called");
         
-        var authHeader = Request.Headers["Authorization"].ToString();
-        _logger.LogInformation($"Authorization header: {authHeader}");
-
-        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-        {
-            _logger.LogWarning("No Bearer token found in Authorization header");
-            return Unauthorized("No Bearer token found in Authorization header");
-        }
-
-        var token = authHeader.Substring("Bearer ".Length).Trim();
-        _logger.LogInformation($"Extracted token: {token}");
-
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"User ID from token: {userId}");
-
         if (string.IsNullOrEmpty(userId))
         {
             _logger.LogWarning("No user ID found in token");
@@ -180,28 +184,82 @@ public class AuthController : ControllerBase
             return NotFound("User not found");
         }
 
-        // Get user permissions
+        // Get user's permissions
         var permissions = await _context.BindRolePermissions
             .Include(b => b.Permission)
             .Where(b => b.RoleId == user.RoleId)
             .Select(b => new PermissionDto
             {
-                IdPermissions = b.Permission.IdPermissions,
                 TypePermission = b.Permission.TypePermission,
                 TableName = b.Permission.TableName
             })
             .ToListAsync();
 
-        var roleName = user.RoleId > 1 ? "Administrator" : user.Role.NameRole;
+        LoginResponseDto response;
 
-        var response = new
+        if (user.Role.NameRole == "Administrator")
         {
-            Id = user.IdUsers,
-            user.Email,
-            Role = roleName,
-            IdRole = user.RoleId,
-            Permissions = permissions
+            var admin = await _context.AdminsPersonals
+                .Include(a => a.Faculty)
+                .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
+
+            if (admin == null)
+            {
+                _logger.LogWarning($"Admin profile not found for user {user.Email}");
+                return NotFound("Admin profile not found");
+            }
+
+            response = new LoginResponseDto
+            {
+                Id = admin.IdAdmins,
+                UserId = admin.UserId,
+                RoleId = user.RoleId,
+                Name = admin.NameAdmin,
+                NameFaculty = admin.Faculty?.NameFaculty,
+                Permissions = permissions
+            };
+        }
+        else
+        {
+            var student = await _context.Students
+                .Include(s => s.Faculty)
+                .Include(s => s.EducationalProgram)
+                .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
+
+            if (student == null)
+            {
+                _logger.LogWarning($"Student profile not found for user {user.Email}");
+                return NotFound("This student doesn't exist");
+            }
+
+            response = _mapper.Map<LoginResponseDto>(student);
+            response.Permissions = permissions;
+        }
+
+        // Set secure HTTP-only cookies
+        var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
+            Path = "/"
         };
+
+        // Set user info cookie
+        var userInfo = new
+        {
+            Id = response.Id,
+            UserId = response.UserId,
+            RoleId = response.RoleId,
+            Name = response.Name,
+            NameFaculty = response.NameFaculty
+        };
+        Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
+
+        // Set permissions cookie
+        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
 
         _logger.LogInformation($"Returning user data for {user.Email}");
         return Ok(response);
