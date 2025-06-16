@@ -10,6 +10,7 @@ namespace OlimpBack.DTO
 
     public class PermissionInfo
     {
+        public int IdPermissions { get; set; }
         public string TypePermission { get; set; } = null!;
         public string TableName { get; set; } = null!;
     }
