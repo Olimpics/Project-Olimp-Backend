@@ -100,18 +100,20 @@ public class AuthController : ControllerBase
         _logger.LogInformation($"Login successful for user {user.Email}. Token generated.");
 
         // Set secure HTTP-only cookies
+        var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddHours(3),
+            Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
             Path = "/"
         };
 
         // Set user info cookie
         var userInfo = new
         {
+            Id = user.IdUsers,
             UserId = user.IdUsers.ToString(),
             Email = user.Email,
             Role = user.Role.NameRole,
@@ -128,6 +130,7 @@ public class AuthController : ControllerBase
         var response = new AuthResponseDto
         {
             Token = token,
+            Id = user.IdUsers,
             UserId = user.IdUsers.ToString(),
             Email = user.Email,
             Role = user.Role.NameRole,
@@ -190,7 +193,7 @@ public class AuthController : ControllerBase
 
         var response = new
         {
-            user.IdUsers,
+            Id = user.IdUsers,
             user.Email,
             Role = roleName,
             IdRole = user.RoleId,

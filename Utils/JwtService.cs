@@ -31,16 +31,17 @@ public class JwtService
                 new Claim(ClaimTypes.Role, role)
             };
 
+            var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(3),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: credentials
             );
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            _logger.LogInformation($"Generated token for user {email} with role {role}");
+            _logger.LogInformation($"Generated token for user {email} with role {role}. Token expires in {expireMinutes} minutes");
             return tokenString;
         }
         catch (Exception ex)
