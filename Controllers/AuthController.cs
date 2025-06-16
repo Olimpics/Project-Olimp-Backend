@@ -8,6 +8,7 @@ using OlimpBack.Utils;
 using System.Security.Claims;
 using AutoMapper;
 using BCrypt.Net;
+using System.Text.Json;
 
 namespace OlimpBack.Controllers;
 
@@ -35,8 +36,8 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto model)
+    [HttpPost("authorization")]
+    public async Task<IActionResult> Authorization(LoginDto model)
     {
         _logger.LogInformation($"Login attempt for email: {model.Email}");
         
@@ -83,7 +84,11 @@ public class AuthController : ControllerBase
         var permissions = await _context.BindRolePermissions
             .Include(b => b.Permission)
             .Where(b => b.RoleId == user.RoleId)
-            .Select(b => _mapper.Map<PermissionDto>(b.Permission))
+            .Select(b => new PermissionDto
+            {
+                IdPermissions = b.Permission.IdPermissions,
+                NamePermission = b.Permission.TableName,
+            })
             .ToListAsync();
 
         var token = _jwtService.GenerateToken(
@@ -93,6 +98,32 @@ public class AuthController : ControllerBase
         );
 
         _logger.LogInformation($"Login successful for user {user.Email}. Token generated.");
+
+        // Set secure HTTP-only cookies
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddHours(3),
+            Path = "/"
+        };
+
+        // Set user info cookie
+        var userInfo = new
+        {
+            UserId = user.IdUsers.ToString(),
+            Email = user.Email,
+            Role = user.Role.NameRole,
+            IdRole = user.RoleId
+        };
+        Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
+
+        // Set permissions cookie
+        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
+
+        // Set token cookie
+        Response.Cookies.Append("AuthToken", token, cookieOptions);
 
         var response = new AuthResponseDto
         {
@@ -108,7 +139,7 @@ public class AuthController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("me")]
+    [HttpGet("AuthChecker")]
     public async Task<IActionResult> GetCurrentUser()
     {
         _logger.LogInformation("GetCurrentUser endpoint called");
@@ -148,7 +179,11 @@ public class AuthController : ControllerBase
         var permissions = await _context.BindRolePermissions
             .Include(b => b.Permission)
             .Where(b => b.RoleId == user.RoleId)
-            .Select(b => _mapper.Map<PermissionDto>(b.Permission))
+            .Select(b => new PermissionDto
+            {
+                IdPermissions = b.Permission.IdPermissions,
+                NamePermission = b.Permission.TableName,
+            })
             .ToListAsync();
 
         var roleName = user.RoleId > 1 ? "Administrator" : user.Role.NameRole;
