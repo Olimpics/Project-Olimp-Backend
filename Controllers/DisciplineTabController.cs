@@ -40,6 +40,7 @@ namespace OlimpBack.Controllers
 
             var query = _context.AddDisciplines
                 .Include(d => d.DegreeLevel)
+                .Include(d => d.Faculty)
                 .AsQueryable();
 
             // Apply search filter
@@ -128,7 +129,7 @@ namespace OlimpBack.Controllers
                 1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
                 2 => fullList.OrderBy(d => d.CountOfPeople).ToList(),
                 3 => fullList.OrderByDescending(d => d.CountOfPeople).ToList(),
-                4 => fullList.OrderBy(d => d.Faculty).ToList(),
+                4 => fullList.OrderBy(d => d.FacultyAbbreviation).ToList(),
                 _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
             };
             var totalItems = fullList.Count;
@@ -173,6 +174,7 @@ namespace OlimpBack.Controllers
                 .Include(d => d.DegreeLevel)
                 .Include(d => d.AddDetail)
                     .ThenInclude(d => d.Department)
+                .Include(d => d.Faculty)
                 .AsQueryable();
 
             // Apply search filter
