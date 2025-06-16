@@ -218,7 +218,8 @@ namespace OlimpBack.MappingProfiles
             //BindRolePermission
             CreateMap<BindRolePermission, BindRolePermissionDto>()
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.NameRole))
-                .ForMember(dest => dest.PermissionName, opt => opt.MapFrom(src => src.Permission.TypePermission));
+                .ForMember(dest => dest.TypePermission, opt => opt.MapFrom(src => src.Permission.TypePermission))
+                .ForMember(dest => dest.TableName, opt => opt.MapFrom(src => src.Permission.TableName));
             CreateMap<CreateBindRolePermissionDto, BindRolePermission>();
             CreateMap<UpdateBindRolePermissionDto, BindRolePermission>();
         }

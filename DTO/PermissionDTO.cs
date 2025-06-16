@@ -1,10 +1,5 @@
 namespace OlimpBack.DTO
 {
-    public class PermissionDto
-    {
-        public int IdPermissions { get; set; }
-        public string NamePermission { get; set; }
-    }
 
     public class CreatePermissionDto
     {
@@ -23,7 +18,8 @@ namespace OlimpBack.DTO
         public int RoleId { get; set; }
         public string RoleName { get; set; }
         public int PermissionId { get; set; }
-        public string PermissionName { get; set; }
+        public string TypePermission { get; set; }
+        public string TableName { get; set; }
     }
 
     public class CreateBindRolePermissionDto

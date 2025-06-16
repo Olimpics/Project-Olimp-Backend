@@ -37,7 +37,7 @@ namespace OlimpBack.Controllers
             var permissions = await _context.BindRolePermissions
                 .Include(b => b.Permission)
                 .Where(b => b.RoleId == user.RoleId)
-                .Select(b => new PermissionInfo
+                .Select(b => new PermissionDto
                 {
                     TypePermission = b.Permission.TypePermission,
                     TableName = b.Permission.TableName

@@ -88,7 +88,8 @@ public class AuthController : ControllerBase
             .Select(b => new PermissionDto
             {
                 IdPermissions = b.Permission.IdPermissions,
-                NamePermission = b.Permission.TableName,
+                TypePermission = b.Permission.TypePermission,
+                TableName = b.Permission.TableName
             })
             .ToListAsync();
 
@@ -186,7 +187,8 @@ public class AuthController : ControllerBase
             .Select(b => new PermissionDto
             {
                 IdPermissions = b.Permission.IdPermissions,
-                NamePermission = b.Permission.TableName,
+                TypePermission = b.Permission.TypePermission,
+                TableName = b.Permission.TableName
             })
             .ToListAsync();
 

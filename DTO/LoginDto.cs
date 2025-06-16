@@ -8,7 +8,7 @@ namespace OlimpBack.DTO
         public string Password { get; set; } = null!;
     }
 
-    public class PermissionInfo
+    public class PermissionDto
     {
         public int IdPermissions { get; set; }
         public string TypePermission { get; set; } = null!;
@@ -24,6 +24,6 @@ namespace OlimpBack.DTO
         public string? NameFaculty { get; set; }
         public string? Speciality { get; set; }
         public int? Course { get; set; }
-        public List<PermissionInfo> Permissions { get; set; } = new List<PermissionInfo>();
+        public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
     }
 } 
