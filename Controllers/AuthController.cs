@@ -80,7 +80,7 @@ public class AuthController : ControllerBase
 
         LoginResponseWithTokenDto response;
 
-        if (user.Role.NameRole == "Administrator")
+        if (user.Role.IdRole > 1)
         {
             var admin = await _context.AdminsPersonals
                 .Include(a => a.Faculty)
@@ -197,7 +197,7 @@ public class AuthController : ControllerBase
 
         LoginResponseDto response;
 
-        if (user.Role.NameRole == "Administrator")
+        if (user.Role.IdRole > 1)
         {
             var admin = await _context.AdminsPersonals
                 .Include(a => a.Faculty)
