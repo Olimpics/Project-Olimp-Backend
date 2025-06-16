@@ -63,11 +63,12 @@ public class AuthController : ControllerBase
             isPasswordValid = model.Password == user.Password;
             
             // If it's a plain text password, hash it and update the user's password
-            if (isPasswordValid)
+            /*if (isPasswordValid)
             {
                 user.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
                 await _context.SaveChangesAsync();
             }
+            */
         }
 
         if (!isPasswordValid)
