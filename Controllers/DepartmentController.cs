@@ -26,35 +26,42 @@ namespace OlimpBack.Controllers
 
         [HttpGet]
         public async Task<ActionResult<object>> GetDepartments(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50,
-            [FromQuery] int? facultyId = null,
-            [FromQuery] string? search = null)
+      [FromQuery] int page = 1,
+      [FromQuery] int pageSize = 50,
+      [FromQuery] string? facultyIds = null, // теперь строка с id, например "1,3,5"
+      [FromQuery] string? search = null)
         {
             var query = _context.Departments
                 .Include(d => d.Faculty)
                 .AsQueryable();
 
-            // Apply facultyId filter
-            if (facultyId.HasValue)
+            // Apply facultyIds filter
+            if (!string.IsNullOrWhiteSpace(facultyIds))
             {
-                query = query.Where(d => d.FacultyId == facultyId.Value);
+                var facultyIdList = facultyIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(id => int.TryParse(id, out var parsedId) ? parsedId : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .ToList();
+
+                if (facultyIdList.Any())
+                {
+                    query = query.Where(d => facultyIdList.Contains(d.FacultyId));
+                }
             }
 
             // Apply search filter for both idDepartment and nameDepartment
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var lowerSearch = search.Trim().ToLower();
-                
-                // Check if search is a number (for ID search)
+
                 if (int.TryParse(search.Trim(), out int searchId))
                 {
-                    // If search is a number, search by exact ID match
                     query = query.Where(d => d.IdDepartment == searchId);
                 }
                 else
                 {
-                    // If search is not a number, search by name and abbreviation
                     query = query.Where(d =>
                         EF.Functions.Like(d.NameDepartment.ToLower(), $"%{lowerSearch}%") ||
                         EF.Functions.Like(d.Abbreviation.ToLower(), $"%{lowerSearch}%"));
@@ -80,6 +87,7 @@ namespace OlimpBack.Controllers
                 Items = result
             });
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DepartmentDto>> GetDepartment(int id)
