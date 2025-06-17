@@ -77,6 +77,31 @@ namespace OlimpBack.Controllers
             return Ok(groups);
         }
 
+        [HttpGet("add-disciplines")]
+        public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetAddDisciplines([FromQuery] string? search = null)
+        {
+            var query = _context.AddDisciplines
+                .Select(ad => new SpecialityFilterDto
+                {
+                    Id = ad.IdAddDisciplines,
+                    Name = ad.NameAddDisciplines
+                });
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.Trim().ToLower();
+                query = query.Where(ad => 
+                    EF.Functions.Like(ad.Name.ToLower(), $"%{searchLower}%"));
+            }
+
+            var disciplines = await query
+                .OrderBy(ad => ad.Name)
+                .ToListAsync();
+
+            return Ok(disciplines);
+        }
+
+
         [HttpGet("notification-templates")]
         public async Task<ActionResult<IEnumerable<NotificationTemplateFilterDto>>> GetNotificationTemplates([FromQuery] string? search = null)
         {
