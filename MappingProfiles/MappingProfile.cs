@@ -28,7 +28,8 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
-                .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
+                .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course))
+                .ForMember(dest => dest.DegreeLevel, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec));
 
             CreateMap<Student, LoginResponseWithTokenDto>()
                 .IncludeBase<Student, LoginResponseDto>();
@@ -251,6 +252,10 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.TableName, opt => opt.MapFrom(src => src.Permission.TableName));
             CreateMap<CreateBindRolePermissionDto, BindRolePermission>();
             CreateMap<UpdateBindRolePermissionDto, BindRolePermission>();
+
+            CreateMap<User, AuthResponseDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdUsers))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.NameRole));
         }
 
     }

@@ -24,6 +24,7 @@ namespace OlimpBack.DTO
         public string? NameFaculty { get; set; }
         public string? Speciality { get; set; }
         public int? Course { get; set; }
+        public string? DegreeLevel { get; set; }
 
     }
 

@@ -24,55 +24,92 @@ namespace OlimpBack.Controllers
             _context = context;
             _mapper = mapper;
         }
-
         [HttpGet]
-        public async Task<ActionResult<object>> GetGroups(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50,
-            [FromQuery] string? search = null)
+        public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups(
+           [FromQuery] string? facultyIds,
+           [FromQuery] string? departmentIds,
+           [FromQuery] string? courses,
+           [FromQuery] string? degreeLevelIds,
+           [FromQuery] string? search = null)
         {
             var query = _context.Groups
                 .Include(g => g.Students)
+                .Include(g => g.Faculty)
+                .Include(g => g.Department)
+                .Include(g => g.Degree)
                 .AsQueryable();
 
-            // Apply search filter for both idGroup and groupCode
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var lowerSearch = search.Trim().ToLower();
-                
-                // Check if search is a number (for ID search)
-                if (int.TryParse(search.Trim(), out int searchId))
+                query = query.Where(g => EF.Functions.Like(g.GroupCode.ToLower(), $"%{lowerSearch}%"));
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(facultyIds))
+            {
+                var facultyIdList = facultyIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (facultyIdList.Any())
                 {
-                    // If search is a number, search by exact ID match
-                    query = query.Where(g => g.IdGroup == searchId);
-                }
-                else
-                {
-                    // If search is not a number, search by group code
-                    query = query.Where(g => EF.Functions.Like(g.GroupCode.ToLower(), $"%{lowerSearch}%"));
+                    query = query.Where(g => g.FacultyId.HasValue && facultyIdList.Contains(g.FacultyId.Value));
                 }
             }
 
-            var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-            var groups = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var result = groups.Select(g => _mapper.Map<GroupDto>(g)).ToList();
-
-            return Ok(new
+            if (!string.IsNullOrWhiteSpace(departmentIds))
             {
-                TotalCount = totalCount,
-                TotalPages = totalPages,
-                CurrentPage = page,
-                PageSize = pageSize,
-                Items = result
-            });
-        }
+                var departmentIdList = departmentIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
 
+                if (departmentIdList.Any())
+                {
+                    query = query.Where(g => g.DepartmentId.HasValue && departmentIdList.Contains(g.DepartmentId.Value));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(courses))
+            {
+                var courseList = courses
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (courseList.Any())
+                {
+                    query = query.Where(g => g.Course.HasValue && courseList.Contains(g.Course.Value));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var degreeLevelIdList = degreeLevelIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (degreeLevelIdList.Any())
+                {
+                    query = query.Where(g => g.DegreeId.HasValue && degreeLevelIdList.Contains(g.DegreeId.Value));
+                }
+            }
+
+            var groups = await query.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<GroupFilterDto>>(groups));
+        }
+       
         [HttpGet("{id}")]
         public async Task<ActionResult<GroupDto>> GetGroup(int id)
         {

@@ -90,6 +90,17 @@ public class AuthController : ControllerBase
             return BadRequest("Incorrect password");
         }
 
+        // Get user's permissions
+        var permissions = await _context.BindRolePermissions
+            .Include(b => b.Permission)
+            .Where(b => b.RoleId == user.RoleId)
+            .Select(b => new PermissionDto
+            {
+                TypePermission = b.Permission.TypePermission,
+                TableName = b.Permission.TableName
+            })
+            .ToListAsync();
+
         LoginResponseWithTokenDto response;
 
         if (user.Role.IdRole > 1)
@@ -103,21 +114,15 @@ public class AuthController : ControllerBase
                 _logger.LogWarning($"Admin profile not found for user {model.Email}");
                 return NotFound("Admin profile not found");
             }
+            response = _mapper.Map<LoginResponseWithTokenDto>(admin);
 
-            response = new LoginResponseWithTokenDto()
-            {
-                Id = admin.IdAdmins,
-                UserId = admin.UserId,
-                RoleId = user.RoleId,
-                Name = admin.NameAdmin,
-                NameFaculty = admin.Faculty?.NameFaculty
-            };
         }
         else
         {
             var student = await _context.Students
                 .Include(s => s.Faculty)
                 .Include(s => s.EducationalProgram)
+                .Include(s => s.EducationalDegree)
                 .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
 
             if (student == null)
@@ -150,13 +155,17 @@ public class AuthController : ControllerBase
         // Set user info cookie
         var userInfo = new
         {
-            Id = response.Id,
-            UserId = response.UserId,
-            RoleId = response.RoleId,
-            Name = response.Name,
-            NameFaculty = response.NameFaculty
+            response.Id,
+            response.UserId,
+            response.RoleId,
+            response.Name,
+            response.NameFaculty,
+            response.DegreeLevel
         };
         Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
+
+        // Set permissions cookie
+        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
 
         // Set token cookie
         Response.Cookies.Append("AuthToken", token, cookieOptions);
@@ -191,6 +200,17 @@ public class AuthController : ControllerBase
             return NotFound("User not found");
         }
 
+        // Get user's permissions
+        var permissions = await _context.BindRolePermissions
+            .Include(b => b.Permission)
+            .Where(b => b.RoleId == user.RoleId)
+            .Select(b => new PermissionDto
+            {
+                TypePermission = b.Permission.TypePermission,
+                TableName = b.Permission.TableName
+            })
+            .ToListAsync();
+
         LoginResponseDto response;
 
         if (user.Role.IdRole > 1)
@@ -205,20 +225,14 @@ public class AuthController : ControllerBase
                 return NotFound("Admin profile not found");
             }
 
-            response = new LoginResponseDto
-            {
-                Id = admin.IdAdmins,
-                UserId = admin.UserId,
-                RoleId = user.RoleId,
-                Name = admin.NameAdmin,
-                NameFaculty = admin.Faculty?.NameFaculty
-            };
+            response = _mapper.Map<LoginResponseDto>(admin);
         }
         else
         {
             var student = await _context.Students
                 .Include(s => s.Faculty)
                 .Include(s => s.EducationalProgram)
+                .Include(s => s.EducationalDegree)
                 .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
 
             if (student == null)
@@ -244,13 +258,17 @@ public class AuthController : ControllerBase
         // Set user info cookie
         var userInfo = new
         {
-            Id = response.Id,
-            UserId = response.UserId,
-            RoleId = response.RoleId,
-            Name = response.Name,
-            NameFaculty = response.NameFaculty
+            response.Id,
+            response.UserId,
+            response.RoleId,
+            response.Name,
+            response.NameFaculty,
+            response.DegreeLevel
         };
         Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
+
+        // Set permissions cookie
+        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
 
         _logger.LogInformation($"Returning user data for {user.Email}");
         return Ok(response);
