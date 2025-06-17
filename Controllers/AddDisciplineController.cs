@@ -1,55 +1,142 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
+using OlimpBack.Utils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OlimpBack.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AddDisciplineController : ControllerBase
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<AddDisciplineController> _logger;
 
-        public AddDisciplineController(AppDbContext context, IMapper mapper)
+        public AddDisciplineController(
+            AppDbContext context,
+            IMapper mapper,
+            ILogger<AddDisciplineController> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<FullDisciplineWithDetailsDto>>> GetAddDisciplines()
+        [HttpGet("GetAllDisciplines")]
+        public async Task<ActionResult<object>> GetAllDisciplines(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] string? faculties = null,
+            [FromQuery] string? courses = null,
+            [FromQuery] bool? isEvenSemester = null,
+            [FromQuery] string? degreeLevelIds = null,
+            [FromQuery] int sortOrder = 0)
         {
-            var disciplines = await _context.AddDisciplines
+            var query = _context.AddDisciplines
                 .Include(d => d.DegreeLevel)
-                .ToListAsync();
+                .Include(d => d.Faculty)
+                .Include(d => d.BindAddDisciplines)
+                .AsQueryable();
 
-            var result = new List<FullDisciplineWithDetailsDto>();
-
-            foreach (var discipline in disciplines)
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                var details = await _context.AddDetails
-                    .Include(d => d.Department)
-                    .FirstOrDefaultAsync(d => d.IdAddDetails == discipline.IdAddDisciplines);
-
-                if (details != null)
-                {
-                    result.Add(_mapper.Map<FullDisciplineWithDetailsDto>((discipline, details)));
-                }
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(d =>
+                    EF.Functions.Like(d.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
             }
 
-            return Ok(result);
+            // Apply faculty filter
+            if (!string.IsNullOrWhiteSpace(faculties))
+            {
+                var facultyIds = faculties
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.Parse(id.Trim()))
+                    .ToList();
+
+                query = query.Where(d => facultyIds.Contains(d.FacultyId));
+            }
+
+            // Apply course filter
+            if (!string.IsNullOrWhiteSpace(courses))
+            {
+                var courseList = courses.Split(',').Select(int.Parse).ToList();
+                query = query.Where(d =>
+                    (!d.MinCourse.HasValue || courseList.Contains(d.MinCourse.Value)) &&
+                    (!d.MaxCourse.HasValue || courseList.Contains(d.MaxCourse.Value)));
+            }
+
+            // Apply semester filter
+            if (isEvenSemester.HasValue)
+            {
+                query = query.Where(d => d.AddSemestr.HasValue && 
+                    ((isEvenSemester.Value && d.AddSemestr.Value % 2 == 0) || 
+                     (!isEvenSemester.Value && d.AddSemestr.Value % 2 == 1)));
+            }
+
+            // Apply degree level filter
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var degreeLevelIdList = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+                query = query.Where(d => d.DegreeLevelId.HasValue && degreeLevelIdList.Contains(d.DegreeLevelId.Value));
+            }
+
+            // Apply sorting
+            query = sortOrder switch
+            {
+                1 => query.OrderBy(d => d.NameAddDisciplines),
+                2 => query.OrderByDescending(d => d.NameAddDisciplines),
+                3 => query.OrderBy(d => d.CodeAddDisciplines),
+                4 => query.OrderByDescending(d => d.CodeAddDisciplines),
+                _ => query.OrderBy(d => d.IdAddDisciplines)
+            };
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var disciplines = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = disciplines.Select(d => _mapper.Map<FullDisciplineDto>(d)).ToList();
+
+            // Add count of people for each discipline
+            foreach (var discipline in result)
+            {
+                discipline.CountOfPeople = disciplines
+                    .First(d => d.IdAddDisciplines == discipline.IdAddDisciplines)
+                    .BindAddDisciplines.Count;
+            }
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = result
+            });
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetAddDiscipline(int id)
+        public async Task<ActionResult<FullDisciplineDto>> GetAddDiscipline(int id)
         {
             var discipline = await _context.AddDisciplines
                 .Include(d => d.DegreeLevel)
+                .Include(d => d.Faculty)
+                .Include(d => d.BindAddDisciplines)
                 .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
 
             if (discipline == null)
@@ -57,113 +144,75 @@ namespace OlimpBack.Controllers
                 return NotFound("Discipline not found");
             }
 
-            var details = await _context.AddDetails
-                .Include(d => d.Department)
-                .FirstOrDefaultAsync(d => d.IdAddDetails == id);
+            var result = _mapper.Map<FullDisciplineDto>(discipline);
+            result.CountOfPeople = discipline.BindAddDisciplines.Count;
 
-            if (details == null)
-            {
-                return NotFound("Discipline details not found");
-            }
-
-            var result = _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateAddDiscipline(CreateAddDisciplineWithDetailsDto dto)
+        public async Task<ActionResult<FullDisciplineDto>> CreateAddDiscipline(CreateAddDisciplineDto dto)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var discipline = _mapper.Map<AddDiscipline>(dto);
-                _context.AddDisciplines.Add(discipline);
-                await _context.SaveChangesAsync();
+            var discipline = _mapper.Map<AddDiscipline>(dto);
+            discipline.FacultyId = int.Parse(dto.Faculty);
+            discipline.DegreeLevelId = int.Parse(dto.DegreeLevel ?? "0");
+            discipline.AddSemestr = sbyte.Parse(dto.AddSemestr ?? "0");
 
-                var details = _mapper.Map<AddDetail>(dto.Details);
-                details.IdAddDetails = discipline.IdAddDisciplines;
-                _context.AddDetails.Add(details);
-                await _context.SaveChangesAsync();
+            _context.AddDisciplines.Add(discipline);
+            await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
+            var result = _mapper.Map<FullDisciplineDto>(discipline);
+            result.CountOfPeople = 0; // New discipline has no students yet
 
-                var createdDiscipline = await _context.AddDisciplines
-                    .Include(d => d.DegreeLevel)
-                    .FirstOrDefaultAsync(d => d.IdAddDisciplines == discipline.IdAddDisciplines);
-
-                var createdDetails = await _context.AddDetails
-                    .Include(d => d.Department)
-                    .FirstOrDefaultAsync(d => d.IdAddDetails == discipline.IdAddDisciplines);
-
-                var result = _mapper.Map<FullDisciplineWithDetailsDto>((createdDiscipline, createdDetails));
-                return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.IdAddDisciplines }, result);
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            return CreatedAtAction(nameof(GetAddDiscipline), new { id = discipline.IdAddDisciplines }, result);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAddDiscipline(int id, UpdateAddDisciplineWithDetailsDto dto)
+        public async Task<IActionResult> UpdateAddDiscipline(int id, CreateAddDisciplineDto dto)
         {
-            if (id != dto.IdAddDisciplines)
-                return BadRequest();
+            var discipline = await _context.AddDisciplines.FindAsync(id);
+            if (discipline == null)
+            {
+                return NotFound("Discipline not found");
+            }
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            _mapper.Map(dto, discipline);
+            discipline.FacultyId = int.Parse(dto.Faculty);
+            discipline.DegreeLevelId = int.Parse(dto.DegreeLevel ?? "0");
+            discipline.AddSemestr = sbyte.Parse(dto.AddSemestr ?? "0");
+
             try
             {
-                var discipline = await _context.AddDisciplines.FindAsync(id);
-                if (discipline == null)
-                    return NotFound("Discipline not found");
-
-                var details = await _context.AddDetails.FindAsync(id);
-                if (details == null)
-                    return NotFound("Discipline details not found");
-
-                _mapper.Map(dto, discipline);
-                _mapper.Map(dto.Details, details);
-
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return NoContent();
             }
-            catch (Exception)
+            catch (DbUpdateConcurrencyException)
             {
-                await transaction.RollbackAsync();
+                if (!AddDisciplineExists(id))
+                {
+                    return NotFound();
+                }
                 throw;
             }
+
+            return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddDiscipline(int id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            var discipline = await _context.AddDisciplines.FindAsync(id);
+            if (discipline == null)
             {
-                var discipline = await _context.AddDisciplines.FindAsync(id);
-                if (discipline == null)
-                    return NotFound("Discipline not found");
-
-                var details = await _context.AddDetails.FindAsync(id);
-                if (details != null)
-                {
-                    _context.AddDetails.Remove(details);
-                }
-
-                _context.AddDisciplines.Remove(discipline);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return NoContent();
+                return NotFound("Discipline not found");
             }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+
+            _context.AddDisciplines.Remove(discipline);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         private bool AddDisciplineExists(int id)

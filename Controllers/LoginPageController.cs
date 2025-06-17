@@ -82,8 +82,7 @@ namespace OlimpBack.Controllers
                     UserId = admin.UserId,
                     RoleId = user.RoleId,
                     Name = admin.NameAdmin,
-                    NameFaculty = admin.Faculty?.NameFaculty,
-                    Permissions = permissions
+                    NameFaculty = admin.Faculty?.NameFaculty
                 };
             }
             else
@@ -100,7 +99,6 @@ namespace OlimpBack.Controllers
                 }
 
                 response = _mapper.Map<LoginResponseDto>(student);
-                response.Permissions = permissions;
             }
 
             // Set secure HTTP-only cookies
