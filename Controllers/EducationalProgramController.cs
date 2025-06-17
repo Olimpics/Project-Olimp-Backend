@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.DTO;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using OlimpBack.Utils;
+using System;
 
 namespace OlimpBack.Controllers
 {
@@ -16,45 +20,57 @@ namespace OlimpBack.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<EducationalProgramController> _logger;
 
-        public EducationalProgramController(AppDbContext context, IMapper mapper)
+        public EducationalProgramController(
+            AppDbContext context,
+            IMapper mapper,
+            ILogger<EducationalProgramController> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EducationalProgramDto>>> GetEducationalPrograms()
-        {
-            var programs = await _context.EducationalPrograms
-                .ToListAsync();
-
-            return Ok(_mapper.Map<IEnumerable<EducationalProgramDto>>(programs));
-        }
-
-        [HttpGet("FilterEducationalProgram")]
-        public async Task<ActionResult<object>> FilterEducationalProgram(
+        public async Task<ActionResult<object>> GetEducationalPrograms(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
-            [FromQuery] int? degreeId = null,
-            [FromQuery] string? search = null)
+            [FromQuery] string? search = null,
+            [FromQuery] string? degreeLevelIds = null,
+            [FromQuery] int sortOrder = 0)
         {
-            var query = _context.EducationalPrograms.AsQueryable();
+            var query = _context.EducationalPrograms
+                .Include(ep => ep.Degree)
+                .Include(ep => ep.Students)
+                .Include(ep => ep.BindMainDisciplines)
+                .AsQueryable();
 
-            // Apply degreeId filter
-            if (degreeId.HasValue)
-            {
-                query = query.Where(ep => ep.DegreeId == degreeId.Value);
-            }
-
-            // Apply search filter for both idEducationalProgram and nameEducationalProgram
+            // Apply search filter
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var lowerSearch = search.Trim().ToLower();
                 query = query.Where(ep =>
                     EF.Functions.Like(ep.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
-                    EF.Functions.Like(ep.IdEducationalProgram.ToString().ToLower(), $"%{lowerSearch}%"));
+                    EF.Functions.Like(ep.SpecialityCode.ToLower(), $"%{lowerSearch}%"));
             }
+
+            // Apply degree level filter
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var degreeLevelIdList = degreeLevelIds.Split(',').Select(int.Parse).ToList();
+                query = query.Where(ep => degreeLevelIdList.Contains(ep.DegreeId));
+            }
+
+            // Apply sorting
+            query = sortOrder switch
+            {
+                1 => query.OrderBy(ep => ep.NameEducationalProgram),
+                2 => query.OrderByDescending(ep => ep.NameEducationalProgram),
+                3 => query.OrderBy(ep => ep.SpecialityCode),
+                4 => query.OrderByDescending(ep => ep.SpecialityCode),
+                _ => query.OrderBy(ep => ep.IdEducationalProgram)
+            };
 
             var totalCount = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -64,18 +80,15 @@ namespace OlimpBack.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            var result = programs.Select(ep => new EducationalProgramDto
+            var result = programs.Select(ep => _mapper.Map<EducationalProgramDto>(ep)).ToList();
+
+            // Add count of students for each program
+            foreach (var program in result)
             {
-                IdEducationalProgram = ep.IdEducationalProgram,
-                NameEducationalProgram = ep.NameEducationalProgram,
-                DegreeId = ep.DegreeId,
-                Speciality = ep.Speciality,
-                Accreditation = ep.Accreditation,
-                AccreditationType = ep.AccreditationType,
-                StudentsAmount = ep.StudentsAmount,
-                StudentsCount = 0, // Will be calculated separately if needed
-                DisciplinesCount = 0 // Will be calculated separately if needed
-            }).ToList();
+                program.StudentsCount = programs
+                    .First(p => p.IdEducationalProgram == program.IdEducationalProgram)
+                    .Students.Count;
+            }
 
             return Ok(new
             {
@@ -91,34 +104,50 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<EducationalProgramDto>> GetEducationalProgram(int id)
         {
             var program = await _context.EducationalPrograms
-                .Include(d => d.Degree)
-                .FirstOrDefaultAsync(p => p.IdEducationalProgram == id);
+                .Include(ep => ep.Degree)
+                .Include(ep => ep.Students)
+                .Include(ep => ep.BindMainDisciplines)
+                .FirstOrDefaultAsync(ep => ep.IdEducationalProgram == id);
 
             if (program == null)
-                return NotFound();
+            {
+                return NotFound("Educational program not found");
+            }
 
-            return Ok(_mapper.Map<EducationalProgramDto>(program));
+            var result = _mapper.Map<EducationalProgramDto>(program);
+            result.StudentsCount = program.Students.Count;
+
+            return Ok(result);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<EducationalProgramDto>> CreateEducationalProgram(CreateEducationalProgramDto dto)
         {
-            var entity = _mapper.Map<EducationalProgram>(dto);
-            _context.EducationalPrograms.Add(entity);
+            var program = _mapper.Map<EducationalProgram>(dto);
+            program.DegreeId = int.Parse(dto.Degree);
+
+            _context.EducationalPrograms.Add(program);
             await _context.SaveChangesAsync();
 
-            var resultDto = _mapper.Map<EducationalProgramDto>(entity);
-            return CreatedAtAction(nameof(GetEducationalProgram), new { id = entity.IdEducationalProgram }, resultDto);
+            var result = _mapper.Map<EducationalProgramDto>(program);
+            result.StudentsCount = 0; // New program has no students yet
+
+            return CreatedAtAction(nameof(GetEducationalProgram), new { id = program.IdEducationalProgram }, result);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEducationalProgram(int id, UpdateEducationalProgramDto dto)
+        public async Task<IActionResult> UpdateEducationalProgram(int id, CreateEducationalProgramDto dto)
         {
-            if (id != dto.IdEducationalProgram)
-                return BadRequest();
+            var program = await _context.EducationalPrograms.FindAsync(id);
+            if (program == null)
+            {
+                return NotFound("Educational program not found");
+            }
 
-            var entity = _mapper.Map<EducationalProgram>(dto);
-            _context.Entry(entity).State = EntityState.Modified;
+            _mapper.Map(dto, program);
+            program.DegreeId = int.Parse(dto.Degree);
 
             try
             {
@@ -127,20 +156,24 @@ namespace OlimpBack.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!EducationalProgramExists(id))
+                {
                     return NotFound();
-                else
-                    throw;
+                }
+                throw;
             }
 
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEducationalProgram(int id)
         {
             var program = await _context.EducationalPrograms.FindAsync(id);
             if (program == null)
-                return NotFound();
+            {
+                return NotFound("Educational program not found");
+            }
 
             _context.EducationalPrograms.Remove(program);
             await _context.SaveChangesAsync();
@@ -153,5 +186,4 @@ namespace OlimpBack.Controllers
             return _context.EducationalPrograms.Any(e => e.IdEducationalProgram == id);
         }
     }
-
 }

@@ -13,7 +13,21 @@ public partial class Group
 
     public int? AdminId { get; set; }
 
+    public int? DegreeId { get; set; }
+
+    public int? Course { get; set; }
+
+    public int? FacultyId { get; set; }
+
+    public int? DepartmentId { get; set; }
+
     public virtual AdminsPersonal? Admin { get; set; }
+
+    public virtual EducationalDegree? Degree { get; set; }
+
+    public virtual Department? Department { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

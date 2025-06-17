@@ -13,5 +13,7 @@ public partial class EducationalDegree
 
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 
+    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

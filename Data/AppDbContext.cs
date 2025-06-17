@@ -501,12 +501,30 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.AdminId, "Group_Admin_idx");
 
+            entity.HasIndex(e => e.DepartmentId, "Group_Department");
+
+            entity.HasIndex(e => e.DegreeId, "Group_Department_idx");
+
+            entity.HasIndex(e => e.FacultyId, "Group_Faculties");
+
             entity.Property(e => e.IdGroup).HasColumnName("idGroup");
             entity.Property(e => e.GroupCode).HasMaxLength(45);
 
             entity.HasOne(d => d.Admin).WithMany(p => p.Groups)
                 .HasForeignKey(d => d.AdminId)
                 .HasConstraintName("Group_Admin");
+
+            entity.HasOne(d => d.Degree).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.DegreeId)
+                .HasConstraintName("Group_Degree");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.DepartmentId)
+                .HasConstraintName("Group_Department");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.FacultyId)
+                .HasConstraintName("Group_Faculties");
         });
 
         modelBuilder.Entity<MainGrade>(entity =>
