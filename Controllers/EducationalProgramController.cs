@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.DTO;
+using System.Linq;
 
 namespace OlimpBack.Controllers
 {
@@ -29,6 +30,61 @@ namespace OlimpBack.Controllers
                 .ToListAsync();
 
             return Ok(_mapper.Map<IEnumerable<EducationalProgramDto>>(programs));
+        }
+
+        [HttpGet("FilterEducationalProgram")]
+        public async Task<ActionResult<object>> FilterEducationalProgram(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] int? degreeId = null,
+            [FromQuery] string? search = null)
+        {
+            var query = _context.EducationalPrograms.AsQueryable();
+
+            // Apply degreeId filter
+            if (degreeId.HasValue)
+            {
+                query = query.Where(ep => ep.DegreeId == degreeId.Value);
+            }
+
+            // Apply search filter for both idEducationalProgram and nameEducationalProgram
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(ep =>
+                    EF.Functions.Like(ep.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(ep.IdEducationalProgram.ToString().ToLower(), $"%{lowerSearch}%"));
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var programs = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = programs.Select(ep => new EducationalProgramDto
+            {
+                IdEducationalProgram = ep.IdEducationalProgram,
+                NameEducationalProgram = ep.NameEducationalProgram,
+                DegreeId = ep.DegreeId,
+                Speciality = ep.Speciality,
+                Accreditation = ep.Accreditation,
+                AccreditationType = ep.AccreditationType,
+                StudentsAmount = ep.StudentsAmount,
+                StudentsCount = 0, // Will be calculated separately if needed
+                DisciplinesCount = 0 // Will be calculated separately if needed
+            }).ToList();
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = result
+            });
         }
 
         [HttpGet("{id}")]

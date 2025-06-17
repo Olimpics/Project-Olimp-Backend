@@ -424,8 +424,6 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("EducationalProgram");
 
-            entity.HasIndex(e => e.DepartmentId, "EducationalProgram_Department_idx");
-
             entity.HasIndex(e => e.DegreeId, "EducationalProgram_EducationalDegree_idx");
 
             entity.Property(e => e.IdEducationalProgram).HasColumnName("idEducationalProgram");
@@ -455,10 +453,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.DegreeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("EducationalProgram_EducationalDegree");
-
-            entity.HasOne(d => d.Department).WithMany(p => p.EducationalPrograms)
-                .HasForeignKey(d => d.DepartmentId)
-                .HasConstraintName("EducationalProgram_Department");
         });
 
         modelBuilder.Entity<Event>(entity =>

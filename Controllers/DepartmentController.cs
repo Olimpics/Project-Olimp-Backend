@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.DTO;
+using System;
+using System.Linq;
 
 namespace OlimpBack.Controllers
 {
@@ -23,13 +25,60 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetDepartments()
+        public async Task<ActionResult<object>> GetDepartments(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] int? facultyId = null,
+            [FromQuery] string? search = null)
         {
-            var departments = await _context.Departments
+            var query = _context.Departments
                 .Include(d => d.Faculty)
+                .AsQueryable();
+
+            // Apply facultyId filter
+            if (facultyId.HasValue)
+            {
+                query = query.Where(d => d.FacultyId == facultyId.Value);
+            }
+
+            // Apply search filter for both idDepartment and nameDepartment
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                
+                // Check if search is a number (for ID search)
+                if (int.TryParse(search.Trim(), out int searchId))
+                {
+                    // If search is a number, search by exact ID match
+                    query = query.Where(d => d.IdDepartment == searchId);
+                }
+                else
+                {
+                    // If search is not a number, search by name and abbreviation
+                    query = query.Where(d =>
+                        EF.Functions.Like(d.NameDepartment.ToLower(), $"%{lowerSearch}%") ||
+                        EF.Functions.Like(d.Abbreviation.ToLower(), $"%{lowerSearch}%"));
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var departments = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(_mapper.Map<IEnumerable<DepartmentDto>>(departments));
+            var result = departments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = result
+            });
         }
 
         [HttpGet("{id}")]

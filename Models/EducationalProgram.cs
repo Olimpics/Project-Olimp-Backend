@@ -33,15 +33,11 @@ public partial class EducationalProgram
 
     public uint StudentsAmount { get; set; }
 
-    public int? DepartmentId { get; set; }
-
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 
     public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
 
     public virtual EducationalDegree Degree { get; set; } = null!;
-
-    public virtual Department? Department { get; set; }
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

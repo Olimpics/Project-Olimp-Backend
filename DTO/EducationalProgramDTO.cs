@@ -11,6 +11,7 @@
         public int? CountAddSemestr7 { get; set; }
         public int? CountAddSemestr8 { get; set; }
         public string Degree { get; set; } = null!;
+        public int DegreeId { get; set; }
         public string Speciality { get; set; } = null!;
         public sbyte Accreditation { get; set; }
         public string AccreditationType { get; set; } = null!;
