@@ -36,6 +36,29 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
+    [HttpGet("permissions/{roleId}")]
+    public async Task<ActionResult<Dictionary<string, List<string>>>> GetPermissionsByRoleId(int roleId)
+    {
+        var permissions = await _context.BindRolePermissions
+            .Include(b => b.Permission)
+            .Where(b => b.RoleId == roleId)
+            .Select(b => new PermissionDto
+            {
+                TypePermission = b.Permission.TypePermission,
+                TableName = b.Permission.TableName
+            })
+            .ToListAsync();
+
+        var groupedPermissions = permissions
+            .GroupBy(p => p.TypePermission)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(p => p.TableName).ToList()
+            );
+
+        return Ok(groupedPermissions);
+    }
+
     [HttpPost("authorization")]
     public async Task<ActionResult<LoginResponseWithTokenDto>> Authorization(LoginDto model)
     {
@@ -67,17 +90,6 @@ public class AuthController : ControllerBase
             return BadRequest("Incorrect password");
         }
 
-        // Get user's permissions
-        var permissions = await _context.BindRolePermissions
-            .Include(b => b.Permission)
-            .Where(b => b.RoleId == user.RoleId)
-            .Select(b => new PermissionDto
-            {
-                TypePermission = b.Permission.TypePermission,
-                TableName = b.Permission.TableName
-            })
-            .ToListAsync();
-
         LoginResponseWithTokenDto response;
 
         if (user.Role.IdRole > 1)
@@ -98,8 +110,7 @@ public class AuthController : ControllerBase
                 UserId = admin.UserId,
                 RoleId = user.RoleId,
                 Name = admin.NameAdmin,
-                NameFaculty = admin.Faculty?.NameFaculty,
-                Permissions = permissions
+                NameFaculty = admin.Faculty?.NameFaculty
             };
         }
         else
@@ -116,7 +127,6 @@ public class AuthController : ControllerBase
             }
 
             response = _mapper.Map<LoginResponseWithTokenDto>(student);
-            response.Permissions = permissions;
         }
 
         // Generate token
@@ -147,9 +157,6 @@ public class AuthController : ControllerBase
             NameFaculty = response.NameFaculty
         };
         Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
-
-        // Set permissions cookie
-        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
 
         // Set token cookie
         Response.Cookies.Append("AuthToken", token, cookieOptions);
@@ -184,17 +191,6 @@ public class AuthController : ControllerBase
             return NotFound("User not found");
         }
 
-        // Get user's permissions
-        var permissions = await _context.BindRolePermissions
-            .Include(b => b.Permission)
-            .Where(b => b.RoleId == user.RoleId)
-            .Select(b => new PermissionDto
-            {
-                TypePermission = b.Permission.TypePermission,
-                TableName = b.Permission.TableName
-            })
-            .ToListAsync();
-
         LoginResponseDto response;
 
         if (user.Role.IdRole > 1)
@@ -215,8 +211,7 @@ public class AuthController : ControllerBase
                 UserId = admin.UserId,
                 RoleId = user.RoleId,
                 Name = admin.NameAdmin,
-                NameFaculty = admin.Faculty?.NameFaculty,
-                Permissions = permissions
+                NameFaculty = admin.Faculty?.NameFaculty
             };
         }
         else
@@ -233,7 +228,6 @@ public class AuthController : ControllerBase
             }
 
             response = _mapper.Map<LoginResponseDto>(student);
-            response.Permissions = permissions;
         }
 
         // Set secure HTTP-only cookies
@@ -257,9 +251,6 @@ public class AuthController : ControllerBase
             NameFaculty = response.NameFaculty
         };
         Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
-
-        // Set permissions cookie
-        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
 
         _logger.LogInformation($"Returning user data for {user.Email}");
         return Ok(response);
