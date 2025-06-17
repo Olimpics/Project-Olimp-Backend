@@ -50,11 +50,15 @@ namespace OlimpBack.Controllers
         [HttpGet("groups")]
         public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups(
             [FromQuery] string? facultyIds,
-            [FromQuery] string? educationalProgramIds,
-            [FromQuery] string? courses)
+            [FromQuery] string? departmentIds,
+            [FromQuery] string? courses,
+            [FromQuery] string? degreeLevelIds)
         {
             var query = _context.Groups
                 .Include(g => g.Students)
+                .Include(g => g.Faculty)
+                .Include(g => g.Department)
+                .Include(g => g.Degree)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(facultyIds))
@@ -68,22 +72,22 @@ namespace OlimpBack.Controllers
 
                 if (facultyIdList.Any())
                 {
-                    query = query.Where(g => g.Students.Any(s => facultyIdList.Contains(s.FacultyId)));
+                    query = query.Where(g => g.FacultyId.HasValue && facultyIdList.Contains(g.FacultyId.Value));
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(educationalProgramIds))
+            if (!string.IsNullOrWhiteSpace(departmentIds))
             {
-                var programIdList = educationalProgramIds
+                var departmentIdList = departmentIds
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
                     .Where(id => id.HasValue)
                     .Select(id => id.Value)
                     .ToList();
 
-                if (programIdList.Any())
+                if (departmentIdList.Any())
                 {
-                    query = query.Where(g => g.Students.Any(s => programIdList.Contains(s.EducationalProgramId)));
+                    query = query.Where(g => g.DepartmentId.HasValue && departmentIdList.Contains(g.DepartmentId.Value));
                 }
             }
 
@@ -98,7 +102,22 @@ namespace OlimpBack.Controllers
 
                 if (courseList.Any())
                 {
-                    query = query.Where(g => g.Students.Any(s => courseList.Contains(s.Course)));
+                    query = query.Where(g => g.Course.HasValue && courseList.Contains(g.Course.Value));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var degreeLevelIdList = degreeLevelIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (degreeLevelIdList.Any())
+                {
+                    query = query.Where(g => g.DegreeId.HasValue && degreeLevelIdList.Contains(g.DegreeId.Value));
                 }
             }
 

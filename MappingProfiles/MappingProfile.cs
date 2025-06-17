@@ -162,6 +162,19 @@ namespace OlimpBack.MappingProfiles
             CreateMap<CreateGroupDto, Group>();
             CreateMap<UpdateGroupDto, Group>();
 
+            // GroupFilterDto mapping
+            CreateMap<Group, GroupFilterDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdGroup))
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.GroupCode))
+                .ForMember(dest => dest.StudentsCount, opt => opt.MapFrom(src => src.Students.Count))
+                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
+                .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
+                .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment))
+                .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course))
+                .ForMember(dest => dest.DegreeId, opt => opt.MapFrom(src => src.DegreeId))
+                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.Degree.NameEducationalDegreec));
+
             //DisciplineTab
             CreateMap<(Student student, List<AddDiscipline> disciplines, int currentCourse, bool isEvenSemester), DisciplineTabResponseDto>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.student.IdStudent))

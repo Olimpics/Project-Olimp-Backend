@@ -21,6 +21,13 @@ namespace OlimpBack.DTO
         public int Id { get; set; }
         public string Code { get; set; }
         public int? StudentsCount { get; set; }
+        public int? FacultyId { get; set; }
+        public string? FacultyName { get; set; }
+        public int? DepartmentId { get; set; }
+        public string? DepartmentName { get; set; }
+        public int? Course { get; set; }
+        public int? DegreeId { get; set; }
+        public string? DegreeName { get; set; }
     }
 
     public class NotificationTemplateFilterDto
