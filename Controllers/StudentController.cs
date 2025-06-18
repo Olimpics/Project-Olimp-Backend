@@ -82,15 +82,39 @@ namespace OlimpBack.Controllers
             // Apply speciality filter
             if (!string.IsNullOrWhiteSpace(speciality))
             {
-                var programIds = speciality
+                var specialityValues = speciality
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.TryParse(id.Trim(), out var result) ? result : (int?)null)
-                    .Where(id => id.HasValue)
-                    .Select(id => id.Value)
+                    .Select(f => f.Trim().ToLower())
                     .ToList();
 
-                query = query.Where(s => programIds.Contains(s.EducationalProgramId));
+                if (specialityValues.Any())
+                {
+                    // Строим выражение типа: s => s.EducationalProgram.Speciality.StartsWith(val1) || ...
+                    var parameter = Expression.Parameter(typeof(Student), "s");
+                    var property = Expression.Property(
+                        Expression.Property(parameter, "EducationalProgram"),
+                        nameof(EducationalProgram.Speciality)
+                    );
+
+                    var toLowerCall = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes)!);
+
+                    Expression? combinedExpression = null;
+                    foreach (var val in specialityValues)
+                    {
+                        var startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!;
+                        var startsWithCall = Expression.Call(toLowerCall, startsWithMethod, Expression.Constant(val));
+
+                        combinedExpression = combinedExpression == null
+                            ? startsWithCall
+                            : Expression.OrElse(combinedExpression, startsWithCall);
+                    }
+
+                    var lambda = Expression.Lambda<Func<Student, bool>>(combinedExpression!, parameter);
+                    query = query.Where(lambda);
+                }
             }
+
+
 
             // Apply group filter
             if (!string.IsNullOrWhiteSpace(group))

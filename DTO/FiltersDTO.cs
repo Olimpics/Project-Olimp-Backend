@@ -13,7 +13,7 @@ namespace OlimpBack.DTO
     public class SpecialityFilterDto
     {
         public int Id { get; set; }
-        public string NameEP { get; set; }
+        public string Name { get; set; }
     }
 
     public class GroupFilterDto
