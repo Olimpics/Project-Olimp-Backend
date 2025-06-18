@@ -30,27 +30,44 @@ namespace OlimpBack.Controllers
         [HttpGet("specialities")]
         public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetSpecialities([FromQuery] string? search = null)
         {
-            var query = _context.EducationalPrograms
+            var data = await _context.EducationalPrograms
+                .Select(ep => new
+                {
+                    ep.IdEducationalProgram,
+                    ep.NameEducationalProgram,
+                    ep.Speciality
+                })
+                .ToListAsync();
+
+            var grouped = data
                 .GroupBy(ep => ep.NameEducationalProgram)
-                .Select(g => new SpecialityFilterDto
+                .Select(g => new
                 {
                     Id = g.First().IdEducationalProgram,
-                    Name = g.Key
+                    NameEP = g.Key,
+                    NameSpeciality = g.First().Speciality 
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.Trim().ToLower();
-                query = query.Where(s =>
-                    EF.Functions.Like(s.Name.ToLower(), $"%{searchLower}%"));
+                grouped = grouped.Where(s =>
+                    s.NameEP.ToLower().Contains(searchLower) ||
+                    s.NameSpeciality.ToLower().Contains(searchLower));
             }
 
-            var specialities = await query
-                .OrderBy(s => s.Name)
-                .ToListAsync();
+            var result = grouped
+                .Select(s => new SpecialityFilterDto
+                {
+                    Id = s.Id,
+                    NameEP = s.NameEP
+                })
+                .OrderBy(s => s.NameEP)
+                .ToList();
 
-            return Ok(specialities);
+            return Ok(result);
         }
+
 
         [HttpGet("groups")]
         public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups([FromQuery] string? search = null)
@@ -84,18 +101,18 @@ namespace OlimpBack.Controllers
                 .Select(ad => new SpecialityFilterDto
                 {
                     Id = ad.IdAddDisciplines,
-                    Name = ad.NameAddDisciplines
+                    NameEP = ad.NameAddDisciplines
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.Trim().ToLower();
                 query = query.Where(ad => 
-                    EF.Functions.Like(ad.Name.ToLower(), $"%{searchLower}%"));
+                    EF.Functions.Like(ad.NameEP.ToLower(), $"%{searchLower}%"));
             }
 
             var disciplines = await query
-                .OrderBy(ad => ad.Name)
+                .OrderBy(ad => ad.NameEP)
                 .ToListAsync();
 
             return Ok(disciplines);
