@@ -6,6 +6,7 @@
         public string NameEducationalProgram { get; set; } = null!;
         public string Degree { get; set; } = null!;
         public int DegreeId { get; set; }
+        public string SpecialityCode { get; set; } = null!;
         public string Speciality { get; set; } = null!;
         public uint StudentsAmount { get; set; }
         public int StudentsCount { get; set; }
