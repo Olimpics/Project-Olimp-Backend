@@ -31,7 +31,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetSpecialities([FromQuery] string? search = null)
         {
             var query = _context.EducationalPrograms
-                .GroupBy(ep => ep.Speciality)
+                .GroupBy(ep => ep.NameEducationalProgram)
                 .Select(g => new SpecialityFilterDto
                 {
                     Id = g.First().IdEducationalProgram,
@@ -41,7 +41,7 @@ namespace OlimpBack.Controllers
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.Trim().ToLower();
-                query = query.Where(s => 
+                query = query.Where(s =>
                     EF.Functions.Like(s.Name.ToLower(), $"%{searchLower}%"));
             }
 
