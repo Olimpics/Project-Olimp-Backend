@@ -35,13 +35,15 @@ namespace OlimpBack.Controllers
                 .Select(g => new SpecialityFilterDto
                 {
                     Id = g.First().IdEducationalProgram,
+                    Code = g.First().SpecialityCode,
                     Name = g.Key
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.Trim().ToLower();
-                query = query.Where(s => 
+                query = query.Where(s =>
+                    EF.Functions.Like(s.Code.ToLower(), $"%{searchLower}%") ||
                     EF.Functions.Like(s.Name.ToLower(), $"%{searchLower}%"));
             }
 
@@ -84,6 +86,7 @@ namespace OlimpBack.Controllers
                 .Select(ad => new SpecialityFilterDto
                 {
                     Id = ad.IdAddDisciplines,
+                    Code = ad.CodeAddDisciplines,
                     Name = ad.NameAddDisciplines
                 });
 
@@ -91,6 +94,7 @@ namespace OlimpBack.Controllers
             {
                 var searchLower = search.Trim().ToLower();
                 query = query.Where(ad => 
+                    EF.Functions.Like(ad.Code.ToLower(), $"%{searchLower}%") || 
                     EF.Functions.Like(ad.Name.ToLower(), $"%{searchLower}%"));
             }
 
