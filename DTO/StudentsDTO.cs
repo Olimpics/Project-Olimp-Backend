@@ -21,6 +21,7 @@
         public int IdStudent { get; set; }
         public string NameStudent { get; set; }
         public string FacultyAbbreviation { get; set; }
+        public string SpecialityCode { get; set; }
         public string Speciality { get; set; }
         public string DegreeName { get; set; }
         public string GroupName { get; set; }

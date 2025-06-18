@@ -93,7 +93,7 @@ namespace OlimpBack.Controllers
                     var parameter = Expression.Parameter(typeof(Student), "s");
                     var property = Expression.Property(
                         Expression.Property(parameter, "EducationalProgram"),
-                        nameof(EducationalProgram.Speciality)
+                        nameof(EducationalProgram.SpecialityCode)
                     );
 
                     var toLowerCall = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes)!);
