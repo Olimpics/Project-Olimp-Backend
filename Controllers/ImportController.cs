@@ -38,28 +38,28 @@ namespace OlimpBack.Controllers
             _env = env;
         }
         [HttpPost]
-        public async Task<IActionResult> ImportFile([FromForm] IFormFile file, [FromForm] string entityType, [FromForm] string tableName, [FromForm] bool isCreate)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportFile([FromForm] FileUploadDto dto)
         {
+            var file = dto.File;
+            var tableName = dto.TableName;
+            var isCreate = dto.IsCreate;
+
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "File not selected or empty" });
 
             if (file.Length > MaxFileSize)
                 return BadRequest(new { message = "File exceeds maximum size (10 MB)" });
 
-            if (string.IsNullOrWhiteSpace(entityType))
-                return BadRequest(new { message = "Entity type not specified" });
-
             try
             {
+                // Сохраняем файл
                 var uploadsPath = Path.Combine(_env.ContentRootPath, "Uploads");
                 if (!Directory.Exists(uploadsPath))
                     Directory.CreateDirectory(uploadsPath);
 
-                // Очистка имени и добавление Guid
-                var ext = Path.GetExtension(file.FileName);
-                var safeName = Path.GetFileNameWithoutExtension(file.FileName);
-                safeName = Regex.Replace(safeName, @"[^a-zA-Z0-9_\-]", "_");
-
+                var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+                var safeName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9_\-]", "_");
                 var fileName = $"{safeName}_{Guid.NewGuid():N}{ext}";
                 var fullPath = Path.Combine(uploadsPath, fileName);
 
@@ -68,46 +68,60 @@ namespace OlimpBack.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                // Отправка запроса в микросервис
-                var client = _httpClientFactory.CreateClient();
+                // Определяем тип файла
+                string fileType;
+                if ((ext == ".xlsx" || ext == ".xls") && file.ContentType.Contains("spreadsheet"))
+                    fileType = "xlsx";
+                else if (ext == ".pdf" && file.ContentType == "application/pdf")
+                    fileType = "pdf";
+                else if (ext == ".docx" && file.ContentType.Contains("word"))
+                    fileType = "docx";
+                else
+                    fileType = "unknown";
+
+                // Выбираем URL по названию таблицы
+                string endpoint = tableName switch
+                {
+                    "Виборчі дисціпліни" => "http://localhost:5001/api/parse/disciplines",
+                    "Студенти" => "http://localhost:5001/api/parse/students",
+                    "Спеціальності" => "http://localhost:5001/api/parse/specialities",
+                    "Групи" => "http://localhost:5001/api/parse/groups",
+                    _ => null
+                };
+
+                if (endpoint == null)
+                    return BadRequest(new { message = $"Unknown table: {tableName}" });
+
+                // Формируем JSON-запрос
                 var request = new
                 {
-                    entityType = entityType,
-                    fileName = fileName
+                    fileName,
+                    filePath = fullPath, // можно заменить на относительный путь при необходимости
+                    fileType,
+                    isCreate
                 };
 
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await client.PostAsync("http://localhost:5001/api/parse", content);
+                // Отправляем в микросервис
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.PostAsync(endpoint, content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode(502, new { message = "Error when referencing the server", details = responseContent });
+                    return StatusCode(502, new { message = "Error when referencing the parser", details = responseContent });
                 }
 
-                var parsed = JsonSerializer.Deserialize<ParseResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                if (parsed == null)
-                    return BadRequest(new { message = "Response from service not recognized" });
-
-                if (parsed.Errors?.Any() == true)
-                    return BadRequest(new { message = "Parsing error", errors = parsed.Errors });
-
-                if (parsed.Rows.Count > 20)
-                    return Ok(new { message = "Parsing is successful. Data more than 20 lines" });
-
-                return Ok(new { message = "Parsing successful", data = parsed.Rows });
+                return Ok(new { message = "Parsing request sent successfully", result = responseContent });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
         }
+
 
     }
 }

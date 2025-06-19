@@ -40,15 +40,18 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<FacultyDto>> CreateFaculty(FacultyDto facultyDto)
+        public async Task<ActionResult<FacultyDto>> CreateFaculty(FacultyCreateDto facultyDto)
         {
             var faculty = _mapper.Map<Faculty>(facultyDto);
+
             _context.Faculties.Add(faculty);
             await _context.SaveChangesAsync();
 
             var resultDto = _mapper.Map<FacultyDto>(faculty);
+
             return CreatedAtAction(nameof(GetFaculty), new { id = faculty.IdFaculty }, resultDto);
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateFaculty(int id, FacultyDto facultyDto)
@@ -83,6 +86,9 @@ namespace OlimpBack.Controllers
         {
             return _context.Faculties.Any(e => e.IdFaculty == id);
         }
+
+      
+
     }
 
 }
