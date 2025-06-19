@@ -262,6 +262,7 @@ namespace OlimpBack.Controllers
                 .Include(d => d.DegreeLevel)
                 .Include(d => d.AddDetail)
                     .ThenInclude(d => d.Department)
+                .Include(d => d.Faculty)
                 .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
 
             if (discipline == null)

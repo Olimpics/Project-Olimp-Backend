@@ -67,9 +67,10 @@ namespace OlimpBack.Controllers
             {
                 1 => query.OrderBy(ep => ep.NameEducationalProgram),
                 2 => query.OrderByDescending(ep => ep.NameEducationalProgram),
-                3 => query.OrderBy(ep => ep.SpecialityCode),
-                4 => query.OrderByDescending(ep => ep.SpecialityCode),
-                _ => query.OrderBy(ep => ep.IdEducationalProgram)
+                3 => query.OrderByDescending(ep => ep.SpecialityCode),
+                4 => query.OrderBy(ep => ep.StudentsAmount),
+                5 => query.OrderByDescending(ep => ep.StudentsAmount),
+                _ => query.OrderBy(ep => ep.SpecialityCode)
             };
 
             var totalCount = await query.CountAsync();

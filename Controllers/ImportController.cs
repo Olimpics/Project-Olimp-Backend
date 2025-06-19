@@ -9,6 +9,7 @@ using OlimpBack.DTO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 
 namespace OlimpBack.Controllers
@@ -37,7 +38,7 @@ namespace OlimpBack.Controllers
             _env = env;
         }
         [HttpPost]
-        public async Task<IActionResult> ImportFile([FromForm] IFormFile file, [FromForm] string entityType)
+        public async Task<IActionResult> ImportFile([FromForm] IFormFile file, [FromForm] string entityType, [FromForm] string tableName, [FromForm] bool isCreate)
         {
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "File not selected or empty" });

@@ -30,7 +30,8 @@ namespace OlimpBack.Controllers
            [FromQuery] string? departmentIds,
            [FromQuery] string? courses,
            [FromQuery] string? degreeLevelIds,
-           [FromQuery] string? search = null)
+           [FromQuery] string? search = null,
+           [FromQuery] int sortOrder = 0)
         {
             var query = _context.Groups
                 .Include(g => g.Students)
@@ -107,6 +108,15 @@ namespace OlimpBack.Controllers
             }
 
             var groups = await query.ToListAsync();
+            groups = sortOrder switch
+            {
+                1 => groups.OrderByDescending(d => d.GroupCode).ToList(),
+                2 => groups.OrderBy(d => d.Faculty.Abbreviation).ToList(),
+                3 => groups.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
+                4 => groups.OrderBy(d => d.Course).ToList(),
+                5 => groups.OrderByDescending(d => d.Course).ToList(),
+                _ => groups.OrderBy(d => d.GroupCode).ToList()
+            };
             return Ok(_mapper.Map<IEnumerable<GroupFilterDto>>(groups));
         }
        

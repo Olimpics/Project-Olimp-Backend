@@ -8,6 +8,7 @@ using AutoMapper;
 using OlimpBack.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace OlimpBack.Controllers
 {
@@ -32,7 +33,8 @@ namespace OlimpBack.Controllers
             [FromQuery] int pageSize = 50,
             [FromQuery] string? search = null,
             [FromQuery] string? addDisciplinesIds = null,
-            [FromQuery] string? educationalProgramIds = null)
+            [FromQuery] string? educationalProgramIds = null,
+            [FromQuery] int sortOrder = 0)
         {
             var query = _context.BindLoansMains
                 .Include(b => b.AddDisciplines)
@@ -90,6 +92,13 @@ namespace OlimpBack.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
+            bindings = sortOrder switch
+            {
+                1 => bindings.OrderByDescending(d => d.AddDisciplines.CodeAddDisciplines).ToList(),
+                2 => bindings.OrderBy(d => d.EducationalProgram.SpecialityCode).ToList(),
+                3 => bindings.OrderByDescending(d => d.EducationalProgram.SpecialityCode).ToList(),
+                _ => bindings.OrderBy(d => d.AddDisciplines.CodeAddDisciplines).ToList()
+            };
             var result = _mapper.Map<IEnumerable<BindLoansMainDto>>(bindings);
 
             return Ok(new
