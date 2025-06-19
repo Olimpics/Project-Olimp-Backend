@@ -7,7 +7,6 @@ namespace OlimpBack.DTO
         public int IdDepartment { get; set; }
         public string NameDepartment { get; set; } = null!;
         public string Abbreviation { get; set; } = null!;
-        public string FacultyName { get; set; }
     }
 
     public class SpecialityFilterDto
