@@ -26,10 +26,11 @@ namespace OlimpBack.Controllers
 
         [HttpGet]
         public async Task<ActionResult<object>> GetDepartments(
-      [FromQuery] int page = 1,
-      [FromQuery] int pageSize = 50,
-      [FromQuery] string? facultyIds = null, // теперь строка с id, например "1,3,5"
-      [FromQuery] string? search = null)
+          [FromQuery] int page = 1,
+          [FromQuery] int pageSize = 50,
+          [FromQuery] string? facultyIds = null,
+          [FromQuery] string? search = null,
+          [FromQuery] int sortOrder = 0)
         {
             var query = _context.Departments
                 .Include(d => d.Faculty)
@@ -75,6 +76,14 @@ namespace OlimpBack.Controllers
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            departments = sortOrder switch
+            {
+                1 => departments.OrderByDescending(d => d.Abbreviation).ToList(),
+                2 => departments.OrderBy(d => d.Faculty.Abbreviation).ToList(),
+                3 => departments.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
+                _ => departments.OrderBy(d => d.Abbreviation).ToList()
+            };
 
             var result = departments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
 

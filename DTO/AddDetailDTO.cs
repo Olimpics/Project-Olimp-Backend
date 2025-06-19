@@ -20,7 +20,7 @@ namespace OlimpBack.DTO
 
     public class CreateAddDetailDto
     {
-        public int DepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
         public string? Teacher { get; set; }
         public string? Recomend { get; set; }
         public string? Prerequisites { get; set; }

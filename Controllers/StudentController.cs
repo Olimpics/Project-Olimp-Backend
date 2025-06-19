@@ -89,7 +89,7 @@ namespace OlimpBack.Controllers
 
                 if (specialityValues.Any())
                 {
-                    // Строим выражение типа: s => s.EducationalProgram.Speciality.StartsWith(val1) || ...
+                    
                     var parameter = Expression.Parameter(typeof(Student), "s");
                     var property = Expression.Property(
                         Expression.Property(parameter, "EducationalProgram"),
@@ -161,6 +161,8 @@ namespace OlimpBack.Controllers
                 1 => students.OrderByDescending(d => d.NameStudent).ToList(),
                 2 => students.OrderBy(d => d.Faculty.Abbreviation).ToList(),
                 3 => students.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
+                4 => students.OrderBy(d => d.Group.GroupCode).ToList(),
+                5 => students.OrderByDescending(d => d.Group.GroupCode).ToList(),
                 _ => students.OrderBy(d => d.NameStudent).ToList()
             };
             // Get total count for pagination

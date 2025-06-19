@@ -306,7 +306,6 @@ namespace OlimpBack.Controllers
                 throw;
             }
         }
-
         [HttpPut("UpdateDisciplineWithDetails/{id}")]
         public async Task<IActionResult> UpdateDisciplineWithDetails(int id, UpdateAddDisciplineWithDetailsDto dto)
         {
@@ -323,8 +322,24 @@ namespace OlimpBack.Controllers
                 if (discipline == null)
                     return NotFound("Discipline not found");
 
+                if (dto.Details.DepartmentId.HasValue)
+                {
+                    var departmentExists = await _context.Departments
+                        .AnyAsync(d => d.IdDepartment == dto.Details.DepartmentId.Value);
+
+                    if (!departmentExists)
+                        return BadRequest($"Department with ID {dto.Details.DepartmentId.Value} does not exist");
+                }
+
                 if (discipline.AddDetail == null)
-                    return NotFound("Discipline details not found");
+                {
+
+                    discipline.AddDetail = new AddDetail
+                    {
+                        IdAddDetails = discipline.IdAddDisciplines
+                    };
+                    _context.AddDetails.Add(discipline.AddDetail);
+                }
 
                 _mapper.Map(dto, discipline, opts => opts.Items["DbContext"] = _context);
                 _mapper.Map(dto.Details, discipline.AddDetail);
@@ -340,6 +355,7 @@ namespace OlimpBack.Controllers
                 throw;
             }
         }
+
 
         [HttpDelete("DeleteDisciplineWithDetails/{id}")]
         public async Task<IActionResult> DeleteDisciplineWithDetails(int id)

@@ -75,23 +75,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<AddDiscipline, FullForAdminDisciplineDto>()
               .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegreec));
             CreateMap<CreateAddDisciplineDto, AddDiscipline>()
-                .ForMember(dest => dest.DegreeLevelId, opt => opt.Ignore())
-                .AfterMap(async (src, dest, context) =>
-                {
-                    if (!string.IsNullOrEmpty(src.DegreeLevel))
-                    {
-                        var dbContext = context.Items["DbContext"] as AppDbContext;
-                        if (dbContext != null)
-                        {
-                            var degreeLevel = await dbContext.EducationalDegrees
-                                .FirstOrDefaultAsync(d => d.NameEducationalDegreec == src.DegreeLevel);
-                            if (degreeLevel != null)
-                            {
-                                dest.DegreeLevelId = degreeLevel.IdEducationalDegree;
-                            }
-                        }
-                    }
-                });
+                .ForMember(dest => dest.DegreeLevelId, opt => opt.Ignore());
             CreateMap<AddDiscipline, SimpleDisciplineDto>();
 
             CreateMap<CreateAddDisciplineWithDetailsDto, AddDiscipline>()
@@ -111,7 +95,7 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<CreateBindAddDisciplineDto, BindAddDiscipline>()
                 .ForMember(dest => dest.InProcess,
-                           opt => opt.MapFrom(src => (sbyte)1)); // New bindings are always active
+                           opt => opt.MapFrom(src => (sbyte)1));
 
             CreateMap<UpdateBindAddDisciplineDto, BindAddDiscipline>()
                 .ForMember(dest => dest.InProcess,
@@ -189,7 +173,6 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.IdAddDisciplines, opt => opt.MapFrom(src => src.discipline.IdAddDisciplines))
                 .ForMember(dest => dest.NameAddDisciplines, opt => opt.MapFrom(src => src.discipline.NameAddDisciplines))
                 .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.discipline.CodeAddDisciplines))
-                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.discipline.FacultyId))
                 .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.discipline.Faculty.Abbreviation))
                 .ForMember(dest => dest.MinCountPeople, opt => opt.MapFrom(src => src.discipline.MinCountPeople))
                 .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
@@ -226,7 +209,8 @@ namespace OlimpBack.MappingProfiles
             //AddDetail
             CreateMap<AddDetail, AddDetailDto>()
                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
-            CreateMap<CreateAddDetailDto, AddDetail>();
+            CreateMap<CreateAddDetailDto, AddDetail>()
+                .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
             CreateMap<UpdateAddDetailDto, AddDetail>();
 
             //Notification

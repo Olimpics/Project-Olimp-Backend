@@ -7,7 +7,7 @@ namespace OlimpBack.DTO
         public int IdAddDisciplines { get; set; }
         public string NameAddDisciplines { get; set; } = null!;
         public string CodeAddDisciplines { get; set; } = null!;
-        public string Faculty { get; set; } = null!;
+        public int FacultyId { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
@@ -21,13 +21,13 @@ namespace OlimpBack.DTO
     {
         public string NameAddDisciplines { get; set; } = null!;
         public string CodeAddDisciplines { get; set; } = null!;
-        public string Faculty { get; set; } = null!;
+        public int FacultyId { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
         public int? MaxCourse { get; set; }
         public string? AddSemestr { get; set; }
-        public string? DegreeLevel { get; set; }
+        public int? DegreeLevelId { get; set; }
     }
 
     public class CreateAddDisciplineWithDetailsDto : CreateAddDisciplineDto

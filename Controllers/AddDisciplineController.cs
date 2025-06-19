@@ -155,8 +155,8 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<FullDisciplineDto>> CreateAddDiscipline(CreateAddDisciplineDto dto)
         {
             var discipline = _mapper.Map<AddDiscipline>(dto);
-            discipline.FacultyId = int.Parse(dto.Faculty);
-            discipline.DegreeLevelId = int.Parse(dto.DegreeLevel ?? "0");
+            discipline.FacultyId = dto.FacultyId;
+            discipline.DegreeLevelId = dto.DegreeLevelId;
             discipline.AddSemestr = sbyte.Parse(dto.AddSemestr ?? "0");
 
             _context.AddDisciplines.Add(discipline);
@@ -179,8 +179,8 @@ namespace OlimpBack.Controllers
             }
 
             _mapper.Map(dto, discipline);
-            discipline.FacultyId = int.Parse(dto.Faculty);
-            discipline.DegreeLevelId = int.Parse(dto.DegreeLevel ?? "0");
+            discipline.FacultyId = dto.FacultyId;
+            discipline.DegreeLevelId = dto.DegreeLevelId;
             discipline.AddSemestr = sbyte.Parse(dto.AddSemestr ?? "0");
 
             try
