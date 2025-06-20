@@ -44,7 +44,7 @@ namespace OlimpBack.Controllers
             var file = dto.File;
             var tableName = dto.TableName;
             var isCreate = dto.IsCreate;
-            var limit = dto.Limit;
+            int? limit = dto.Limit;
 
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "File not selected or empty" });
@@ -54,22 +54,24 @@ namespace OlimpBack.Controllers
 
             try
             {
-                // Путь до FastAPI input_files
-                var inputFilesPath = Path.Combine("/opt/Project-Olimp-Parser/fastapi-project/input_files");
+                // Абсолютный путь до папки input_files FastAPI-сервиса
+                var inputFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/input_files";
                 if (!Directory.Exists(inputFilesPath))
                     Directory.CreateDirectory(inputFilesPath);
 
+                // Генерация безопасного имени файла
                 var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
-                var safeName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9_\-]", "_");
+                var safeName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9_-]", "_");
                 var fileName = $"{safeName}_{Guid.NewGuid():N}{ext}";
                 var fullPath = Path.Combine(inputFilesPath, fileName);
 
+                // Сохраняем файл на диск
                 await using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                // Определяем endpoint
+                // Выбор базового URL FastAPI по названию таблицы
                 string endpointBase = tableName switch
                 {
                     "Виборчі дисціпліни" => "http://localhost:5001/api/parse/disciplines",
@@ -79,31 +81,37 @@ namespace OlimpBack.Controllers
                     _ => null
                 };
 
-                if (string.IsNullOrEmpty(endpointBase))
+                if (string.IsNullOrWhiteSpace(endpointBase))
                     return BadRequest(new { message = $"Unknown table: {tableName}" });
 
-                // Добавляем имя файла и limit как параметры
+                // Формирование полного URL с именем файла и limit
                 var url = $"{endpointBase}/{Uri.EscapeDataString(fileName)}";
                 if (limit.HasValue)
-                {
                     url += $"?limit={limit.Value}";
-                }
 
+                // Отправка запроса без тела (null, если метод FastAPI ожидает только параметры в URL)
                 var client = _httpClientFactory.CreateClient();
                 var response = await client.PostAsync(url, null);
+
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode(502, new { message = "Error when referencing the parser", details = responseContent });
+                    return StatusCode(502, new { message = "Error calling parser", details = responseContent, url });
                 }
 
-                return Ok(new { message = "Parsing request sent successfully", result = responseContent });
+                return Ok(new
+                {
+                    message = "Parsing request sent successfully",
+                    file = fileName,
+                    result = responseContent
+                });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
+
         }
 
 
