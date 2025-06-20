@@ -84,20 +84,23 @@ namespace OlimpBack.Controllers
                 if (string.IsNullOrWhiteSpace(endpointBase))
                     return BadRequest(new { message = $"Unknown table: {tableName}" });
 
-                // Формирование полного URL с именем файла и limit
-                var url = $"{endpointBase}/{Uri.EscapeDataString(fileName)}";
-                if (limit.HasValue)
-                    url += $"?limit={limit.Value}";
-
-                // Отправка запроса без тела (null, если метод FastAPI ожидает только параметры в URL)
                 var client = _httpClientFactory.CreateClient();
-                var response = await client.PostAsync(url, null);
+                var requestBody = new
+                {
+                    fileName,
+                    limit
+                };
+
+                var json = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync(endpointBase, content);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode(502, new { message = "Error calling parser", details = responseContent, url, response });
+                    return StatusCode(502, new { message = "Error calling parser", details = responseContent});
                 }
 
                 return Ok(new
