@@ -53,14 +53,15 @@ namespace OlimpBack.Controllers
 
             try
             {
-                var uploadsPath = Path.Combine(_env.ContentRootPath, "Uploads");
-                if (!Directory.Exists(uploadsPath))
-                    Directory.CreateDirectory(uploadsPath);
+                // Путь до FastAPI input_files — строго абсолютный
+                var inputFilesPath = Path.Combine("/opt/Project-Olimp-Parser/fastapi-project/input_files");
+                if (!Directory.Exists(inputFilesPath))
+                    Directory.CreateDirectory(inputFilesPath);
 
                 var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
                 var safeName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9_\-]", "_");
                 var fileName = $"{safeName}_{Guid.NewGuid():N}{ext}";
-                var fullPath = Path.Combine(uploadsPath, fileName);
+                var fullPath = Path.Combine(inputFilesPath, fileName);
 
                 await using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
@@ -86,7 +87,7 @@ namespace OlimpBack.Controllers
                     _ => ""
                 };
 
-                if (endpoint == null)
+                if (string.IsNullOrEmpty(endpoint))
                     return BadRequest(new { message = $"Unknown table: {tableName}" });
 
                 var request = new
@@ -116,6 +117,7 @@ namespace OlimpBack.Controllers
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
         }
+
 
 
     }
