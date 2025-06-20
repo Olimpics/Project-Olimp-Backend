@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace OlimpBack.DTO
 {
@@ -14,4 +15,10 @@ namespace OlimpBack.DTO
         public bool IsCreate { get; set; }
     }
 
+    public class ExportRequestDto
+    {
+        [Required]
+        public string TableName { get; set; } = null!;
+        public JsonElement? Request { get; set; } // Optional JSON request for filtering or options
+    }
 }
