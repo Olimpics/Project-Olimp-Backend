@@ -95,7 +95,7 @@ namespace OlimpBack.Controllers
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode(502, new { message = "Error when referencing the parser", details = url });
+                    return StatusCode(502, new { message = "Error when referencing the parser", details = responseContent });
                 }
 
                 return Ok(new { message = "Parsing request sent successfully", result = responseContent });
