@@ -81,7 +81,7 @@ namespace OlimpBack.Controllers
                 string endpoint = tableName switch
                 {
                     "Виборчі дисціпліни" => "http://localhost:5001/api/parse/disciplines",
-                    "Студенти" => "http://localhost:5001/api/parse/students",
+                    "Студенти" => "http://185.237.207.78:9000/api/parse-students",
                     "Спеціальності" => "http://localhost:5001/api/parse/specialities",
                     "Групи" => "http://localhost:5001/api/parse/groups",
                     _ => ""
