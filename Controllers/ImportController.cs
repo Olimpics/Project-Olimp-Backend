@@ -98,10 +98,10 @@ namespace OlimpBack.Controllers
 
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return StatusCode(502, new { message = "Error calling parser", details = responseContent});
-                }
+                //if (!response.IsSuccessStatusCode)
+                //{
+                //    return StatusCode(502, new { message = "Error calling parser", details = responseContent});
+                //}
 
                 return Ok(new
                 {
