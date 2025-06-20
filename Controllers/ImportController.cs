@@ -97,7 +97,7 @@ namespace OlimpBack.Controllers
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode(502, new { message = "Error calling parser", details = responseContent, url });
+                    return StatusCode(502, new { message = "Error calling parser", details = responseContent, url, response });
                 }
 
                 return Ok(new
