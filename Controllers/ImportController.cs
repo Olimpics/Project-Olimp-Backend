@@ -96,7 +96,7 @@ namespace OlimpBack.Controllers
 
                 var response = await client.PostAsync(endpointBase, content);
 
-                var responseContent = await response.Content.();
+                var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
