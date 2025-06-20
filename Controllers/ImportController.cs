@@ -54,7 +54,7 @@ namespace OlimpBack.Controllers
 
             try
             {
-                // Путь до FastAPI input_files — строго абсолютный
+                // Путь до FastAPI input_files
                 var inputFilesPath = Path.Combine("/opt/Project-Olimp-Parser/fastapi-project/input_files");
                 if (!Directory.Exists(inputFilesPath))
                     Directory.CreateDirectory(inputFilesPath);
@@ -69,45 +69,29 @@ namespace OlimpBack.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                string fileType;
-                if ((ext == ".xlsx" || ext == ".xls") && file.ContentType.Contains("spreadsheet"))
-                    fileType = "xlsx";
-                else if (ext == ".pdf" && file.ContentType == "application/pdf")
-                    fileType = "pdf";
-                else if (ext == ".docx" && file.ContentType.Contains("word"))
-                    fileType = "docx";
-                else
-                    fileType = "unknown";
-
-                string endpoint = tableName switch
+                // Определяем endpoint
+                string endpointBase = tableName switch
                 {
                     "Виборчі дисціпліни" => "http://localhost:5001/api/parse/disciplines",
                     "Студенти" => "http://185.237.207.78:9000/api/parse-students",
                     "Спеціальності" => "http://localhost:5001/api/parse/specialities",
                     "Групи" => "http://localhost:5001/api/parse/groups",
-                    _ => ""
+                    _ => null
                 };
 
-                if (string.IsNullOrEmpty(endpoint))
+                if (string.IsNullOrEmpty(endpointBase))
                     return BadRequest(new { message = $"Unknown table: {tableName}" });
 
-                var request = new
+                // Добавляем имя файла и limit как параметры
+                var url = $"{endpointBase}/{Uri.EscapeDataString(fileName)}";
+                if (limit.HasValue)
                 {
-                    fileName,
-                    limit
-                };
-
-                var json = JsonSerializer.Serialize(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    url += $"?limit={limit.Value}";
+                }
 
                 var client = _httpClientFactory.CreateClient();
-                var response = await client.PostAsync(endpoint, content);
+                var response = await client.PostAsync(url, null);
                 var responseContent = await response.Content.ReadAsStringAsync();
-
-                //if (!response.IsSuccessStatusCode)
-                //{
-                //    return StatusCode(502, new { message = "Error when referencing the parser", details = responseContent });
-                //}
 
                 return Ok(new { message = "Parsing request sent successfully", result = responseContent });
             }
@@ -116,6 +100,7 @@ namespace OlimpBack.Controllers
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
         }
+
 
 
 
