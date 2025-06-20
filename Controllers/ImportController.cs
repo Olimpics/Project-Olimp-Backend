@@ -105,10 +105,10 @@ namespace OlimpBack.Controllers
                 var response = await client.PostAsync(endpoint, content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return StatusCode(502, new { message = "Error when referencing the parser", details = responseContent });
-                }
+                //if (!response.IsSuccessStatusCode)
+                //{
+                //    return StatusCode(502, new { message = "Error when referencing the parser", details = responseContent });
+                //}
 
                 return Ok(new { message = "Parsing request sent successfully", result = responseContent });
             }
