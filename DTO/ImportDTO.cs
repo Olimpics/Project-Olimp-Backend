@@ -13,6 +13,9 @@ namespace OlimpBack.DTO
 
         [Required]
         public bool IsCreate { get; set; }
+
+        [Required]
+        public int? Limit { get; set; }
     }
 
     public class ExportRequestDto

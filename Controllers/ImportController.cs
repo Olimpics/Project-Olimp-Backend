@@ -44,6 +44,7 @@ namespace OlimpBack.Controllers
             var file = dto.File;
             var tableName = dto.TableName;
             var isCreate = dto.IsCreate;
+            var limit = dto.Limit;
 
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "File not selected or empty" });
@@ -93,9 +94,7 @@ namespace OlimpBack.Controllers
                 var request = new
                 {
                     fileName,
-                    filePath = fullPath,
-                    fileType,
-                    isCreate
+                    limit
                 };
 
                 var json = JsonSerializer.Serialize(request);
