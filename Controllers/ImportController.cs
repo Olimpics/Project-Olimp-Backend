@@ -96,18 +96,20 @@ namespace OlimpBack.Controllers
 
                 var response = await client.PostAsync(endpointBase, content);
 
-                var responseContent = await response.Content.ReadAsStringAsync();
+                var responseContent = await response.Content.();
 
-                //if (!response.IsSuccessStatusCode)
-                //{
-                //    return StatusCode(502, new { message = "Error calling parser", details = responseContent});
-                //}
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode(502, new { message = "Error calling parser", details = responseContent});
+                }
+
+                var parsedJson = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
                 return Ok(new
                 {
                     message = "Parsing request sent successfully",
                     file = fileName,
-                    result = responseContent
+                    result = parsedJson
                 });
             }
             catch (Exception ex)
