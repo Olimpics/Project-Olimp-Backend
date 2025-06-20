@@ -7,7 +7,9 @@ namespace OlimpBack.DTO
         public int IdBindLoan { get; set; }
         public int AddDisciplinesId { get; set; }
         public int EducationalProgramId { get; set; }
+        public string CodeAddDisciplines { get; set; }
         public string AddDisciplineName { get; set; }
+        public string SpecialityCode { get; set; }
         public string EducationalProgramName { get; set; }
        
     }

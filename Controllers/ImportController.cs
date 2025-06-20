@@ -53,7 +53,6 @@ namespace OlimpBack.Controllers
 
             try
             {
-                // Сохраняем файл
                 var uploadsPath = Path.Combine(_env.ContentRootPath, "Uploads");
                 if (!Directory.Exists(uploadsPath))
                     Directory.CreateDirectory(uploadsPath);
@@ -68,7 +67,6 @@ namespace OlimpBack.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                // Определяем тип файла
                 string fileType;
                 if ((ext == ".xlsx" || ext == ".xls") && file.ContentType.Contains("spreadsheet"))
                     fileType = "xlsx";
@@ -79,24 +77,22 @@ namespace OlimpBack.Controllers
                 else
                     fileType = "unknown";
 
-                // Выбираем URL по названию таблицы
                 string endpoint = tableName switch
                 {
                     "Виборчі дисціпліни" => "http://localhost:5001/api/parse/disciplines",
                     "Студенти" => "http://localhost:5001/api/parse/students",
                     "Спеціальності" => "http://localhost:5001/api/parse/specialities",
                     "Групи" => "http://localhost:5001/api/parse/groups",
-                    _ => null
+                    _ => ""
                 };
 
                 if (endpoint == null)
                     return BadRequest(new { message = $"Unknown table: {tableName}" });
 
-                // Формируем JSON-запрос
                 var request = new
                 {
                     fileName,
-                    filePath = fullPath, // можно заменить на относительный путь при необходимости
+                    filePath = fullPath,
                     fileType,
                     isCreate
                 };
@@ -104,7 +100,6 @@ namespace OlimpBack.Controllers
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                // Отправляем в микросервис
                 var client = _httpClientFactory.CreateClient();
                 var response = await client.PostAsync(endpoint, content);
                 var responseContent = await response.Content.ReadAsStringAsync();

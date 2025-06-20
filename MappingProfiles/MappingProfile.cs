@@ -204,6 +204,8 @@ namespace OlimpBack.MappingProfiles
             //BindLoansMain
             CreateMap<BindLoansMain, BindLoansMainDto>()
                 .ForMember(dest => dest.AddDisciplineName, opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines))
+                .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.AddDisciplines.CodeAddDisciplines))
+                .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.EducationalProgram.SpecialityCode))
                 .ForMember(dest => dest.EducationalProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram));
             CreateMap<CreateBindLoansMainDto, BindLoansMain>();
             CreateMap<UpdateBindLoansMainDto, BindLoansMain>();
