@@ -23,6 +23,8 @@ public partial class Department
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
+    public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
+
     public virtual Faculty Faculty { get; set; } = null!;
 
     public virtual ICollection<Group> Groups { get; set; } = new List<Group>();

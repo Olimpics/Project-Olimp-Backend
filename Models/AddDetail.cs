@@ -11,7 +11,7 @@ public partial class AddDetail
 
     public int? DepartmentId { get; set; }
 
-    public string? Teacher { get; set; }
+    public string? Teachers { get; set; }
 
     public string? Language { get; set; }
 

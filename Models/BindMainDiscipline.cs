@@ -19,6 +19,8 @@ public partial class BindMainDiscipline
 
     public int EducationalProgramId { get; set; }
 
+    public string? Teachers { get; set; }
+
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
 
     public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();

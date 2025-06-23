@@ -183,7 +183,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.AddSemestr, opt => opt.MapFrom(src => src.discipline.AddSemestr))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegreec))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.details.Department.NameDepartment))
-                .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teacher))
+                .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teachers))
                 .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recomend))
                 .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.details.Language))
@@ -245,6 +245,11 @@ namespace OlimpBack.MappingProfiles
             CreateMap<User, AuthResponseDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdUsers))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.NameRole));
+
+            //DisciplineChoicePeriod
+            CreateMap<DisciplineChoicePeriod, DisciplineChoicePeriodDto>().ReverseMap();
+            CreateMap<CreateDisciplineChoicePeriodDto, DisciplineChoicePeriod>();
+            CreateMap<UpdateDisciplineChoicePeriodDto, DisciplineChoicePeriod>();
         }
 
     }

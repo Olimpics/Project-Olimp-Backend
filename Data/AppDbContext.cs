@@ -41,6 +41,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Department> Departments { get; set; }
 
+    public virtual DbSet<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; }
+
     public virtual DbSet<EducationStatus> EducationStatuses { get; set; }
 
     public virtual DbSet<EducationalDegree> EducationalDegrees { get; set; }
@@ -57,9 +59,15 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Member> Members { get; set; }
 
+    public virtual DbSet<Normative> Normatives { get; set; }
+
     public virtual DbSet<Notification> Notifications { get; set; }
 
     public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+
+    public virtual DbSet<PeriodLevel> PeriodLevels { get; set; }
+
+    public virtual DbSet<PeriodType> PeriodTypes { get; set; }
 
     public virtual DbSet<Permission> Permissions { get; set; }
 
@@ -74,6 +82,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<StudyForm> StudyForms { get; set; }
 
     public virtual DbSet<SubDivisionsSg> SubDivisionsSgs { get; set; }
+
+    public virtual DbSet<TypeOfDiscipline> TypeOfDisciplines { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -115,7 +125,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Prerequisites).HasMaxLength(800);
             entity.Property(e => e.Recomend).HasMaxLength(800);
             entity.Property(e => e.ResultEducation).HasMaxLength(800);
-            entity.Property(e => e.Teacher).HasMaxLength(800);
+            entity.Property(e => e.Teachers).HasColumnType("json");
             entity.Property(e => e.TypeOfControll).HasMaxLength(100);
             entity.Property(e => e.TypesOfTraining).HasMaxLength(200);
             entity.Property(e => e.UsingIrl)
@@ -142,6 +152,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.DegreeLevelId, "AddDisciplines_EducationalDegree_idx");
 
+            entity.HasIndex(e => e.TypeId, "AddDisciplines_Type_idx");
+
             entity.HasIndex(e => e.IdAddDisciplines, "idAddDisciplines_UNIQUE").IsUnique();
 
             entity.Property(e => e.IdAddDisciplines).HasColumnName("idAddDisciplines");
@@ -164,6 +176,10 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("AddDisciplines_ Faculties");
+
+            entity.HasOne(d => d.Type).WithMany(p => p.AddDisciplines)
+                .HasForeignKey(d => d.TypeId)
+                .HasConstraintName("AddDisciplines_Type");
         });
 
         modelBuilder.Entity<AdminLog>(entity =>
@@ -331,6 +347,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameBindMainDisciplines)
                 .HasMaxLength(45)
                 .HasColumnName("nameBindMainDisciplines");
+            entity.Property(e => e.Teachers).HasColumnType("json");
 
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.BindMainDisciplines)
                 .HasForeignKey(d => d.EducationalProgramId)
@@ -386,6 +403,43 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Department_Faculties");
+        });
+
+        modelBuilder.Entity<DisciplineChoicePeriod>(entity =>
+        {
+            entity.HasKey(e => e.IdDisciplineChoicePeriod).HasName("PRIMARY");
+
+            entity.ToTable("DisciplineChoicePeriod");
+
+            entity.HasIndex(e => e.LevelType, "DisciplineChoicePeriod_Level_idx");
+
+            entity.HasIndex(e => e.PeriodType, "DisciplineChoicePeriod_Type_idx");
+
+            entity.HasIndex(e => e.DepartmentId, "fk_dcp_department");
+
+            entity.HasIndex(e => e.FacultyId, "fk_dcp_faculty");
+
+            entity.Property(e => e.IdDisciplineChoicePeriod).HasColumnName("idDisciplineChoicePeriod");
+            entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.StartDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.DisciplineChoicePeriods)
+                .HasForeignKey(d => d.DepartmentId)
+                .HasConstraintName("fk_dcp_department");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.DisciplineChoicePeriods)
+                .HasForeignKey(d => d.FacultyId)
+                .HasConstraintName("fk_dcp_faculty");
+
+            entity.HasOne(d => d.LevelTypeNavigation).WithMany(p => p.DisciplineChoicePeriods)
+                .HasForeignKey(d => d.LevelType)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("DisciplineChoicePeriod_Level");
+
+            entity.HasOne(d => d.PeriodTypeNavigation).WithMany(p => p.DisciplineChoicePeriods)
+                .HasForeignKey(d => d.PeriodType)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("DisciplineChoicePeriod_Type");
         });
 
         modelBuilder.Entity<EducationStatus>(entity =>
@@ -580,6 +634,16 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("Members_SubDivisionsSG");
         });
 
+        modelBuilder.Entity<Normative>(entity =>
+        {
+            entity.HasKey(e => e.IdNormative).HasName("PRIMARY");
+
+            entity.ToTable("Normative");
+
+            entity.Property(e => e.IdNormative).HasColumnName("idNormative");
+            entity.Property(e => e.DegreeLevel).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.HasKey(e => e.IdNotification).HasName("PRIMARY");
@@ -615,6 +679,26 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Message).HasMaxLength(1000);
             entity.Property(e => e.NotificationType).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<PeriodLevel>(entity =>
+        {
+            entity.HasKey(e => e.IdPeriodLevel).HasName("PRIMARY");
+
+            entity.ToTable("PeriodLevel");
+
+            entity.Property(e => e.IdPeriodLevel).HasColumnName("idPeriodLevel");
+            entity.Property(e => e.LevelName).HasMaxLength(45);
+        });
+
+        modelBuilder.Entity<PeriodType>(entity =>
+        {
+            entity.HasKey(e => e.IdPeriodType).HasName("PRIMARY");
+
+            entity.ToTable("PeriodType");
+
+            entity.Property(e => e.IdPeriodType).HasColumnName("idPeriodType");
+            entity.Property(e => e.TypeName).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Permission>(entity =>
@@ -761,6 +845,16 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.IdSubDivision).HasColumnName("idSubDivision");
             entity.Property(e => e.NameDivision).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TypeOfDiscipline>(entity =>
+        {
+            entity.HasKey(e => e.IdTypeOfDiscipline).HasName("PRIMARY");
+
+            entity.ToTable("TypeOfDiscipline");
+
+            entity.Property(e => e.IdTypeOfDiscipline).HasColumnName("idTypeOfDiscipline");
+            entity.Property(e => e.TypeName).HasMaxLength(45);
         });
 
         modelBuilder.Entity<User>(entity =>

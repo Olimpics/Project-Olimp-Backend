@@ -61,13 +61,13 @@ namespace OlimpBack.Controllers
 
                 var safeTableName = Regex.Replace(tableName, @"[^a-zA-Z0-9_\-]", "_");
                 var fileName = $"{safeTableName}_{Guid.NewGuid():N}.txt";
-                var filePath = Path.Combine(_env.ContentRootPath, "Exports");
+                var filePath = "/opt/Project-Olimp-Parser/fastapi-project/export_files";
                 if (!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
                 var fullPath = Path.Combine(filePath, fileName);
                 await System.IO.File.WriteAllTextAsync(fullPath, formattedJson, Encoding.UTF8);
                 var fileUrl = $"{endpoint}/{fileName}";
-                return Ok(new { message = "Export successful", fileUrl });
+                return Ok(new { message = "Export successful", fileName });
             }
             catch (JsonException)
             {
@@ -85,7 +85,7 @@ namespace OlimpBack.Controllers
             if (string.IsNullOrEmpty(fileName))
                 return BadRequest(new { message = "File name is required" });
 
-            var filePath = Path.Combine(_env.ContentRootPath, "Exports", fileName);
+            var filePath = "/opt/Project-Olimp-Parser/fastapi-project/export_transform_files";
 
             if (!System.IO.File.Exists(filePath))
                 return NotFound(new { message = "File not found" });

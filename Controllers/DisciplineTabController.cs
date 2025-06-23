@@ -159,16 +159,49 @@ namespace OlimpBack.Controllers
             return Ok(response);
         }
 
-       
+
 
         [HttpGet("GetDisciplinesBySemester")]
         public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
-    [FromQuery] int studentId,
-    [FromQuery] bool isEvenSemester)
+      [FromQuery] int studentId,
+      [FromQuery] bool isEvenSemester)
         {
             var context = await DisciplineAvailabilityService.BuildAvailabilityContext(studentId, _context);
             if (context == null)
                 return NotFound("Student not found");
+
+            var now = DateTime.UtcNow;
+
+            var deadline = await _context.DisciplineChoicePeriods
+                .Where(p => p.LevelType == 3
+                            && p.DepartmentId == context.Student.DepartmentId
+                            && p.StartDate <= now
+                            && p.EndDate >= now)
+                .FirstOrDefaultAsync();
+
+            if (deadline == null)
+            {
+                deadline = await _context.DisciplineChoicePeriods
+                    .Where(p => p.LevelType == 2 
+                                && p.FacultyId == context.Student.FacultyId
+                                && p.StartDate <= now
+                                && p.EndDate >= now)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (deadline == null)
+            {
+                deadline = await _context.DisciplineChoicePeriods
+                    .Where(p => p.LevelType == 1
+                                && p.StartDate <= now
+                                && p.EndDate >= now)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (deadline == null)
+            {
+                return BadRequest("The period for choosing a discipline is being confirmed or has not yet appeared");
+            }
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
@@ -193,6 +226,7 @@ namespace OlimpBack.Controllers
                 Disciplines = availableDisciplines
             });
         }
+
 
         [HttpPost("AddDisciplineBind")]
         public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
