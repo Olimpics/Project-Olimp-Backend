@@ -777,7 +777,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.UserId, "Students_Users_idx");
 
-            entity.HasIndex(e => e.IdStudent, "idStudents_UNIQUE").IsUnique();
+            entity.HasIndex(e => e.IdStudent, "idStudent_UNIQUE").IsUnique();
 
             entity.Property(e => e.IdStudent).HasColumnName("idStudent");
             entity.Property(e => e.Achievement).HasColumnType("json");

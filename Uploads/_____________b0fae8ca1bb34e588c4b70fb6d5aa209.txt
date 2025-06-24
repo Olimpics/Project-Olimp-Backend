@@ -1,8 +1,0 @@
-cd /opt/Project-Olimp-Backend
-git fetch --all
-git reset --hard origin/main
-dotnet publish -c Release -o /opt/olimp-api
-sudo systemctl restart olimp-api.service
-
-
-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

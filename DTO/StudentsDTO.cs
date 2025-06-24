@@ -31,6 +31,7 @@
     // DTO/CreateStudentDto.cs
     public class CreateStudentDto
     {
+        public int IdStudent { get; set; }
         public int UserId { get; set; }
         public string NameStudent { get; set; }
         public int StatusId { get; set; }
@@ -42,6 +43,9 @@
         public int StudyFormId { get; set; }
         public SByte IsShort { get; set; }
         public int EducationalProgramId { get; set; }
+        public int GroupId { get; set; }
+        public int DepartmentId { get; set; }
+        
     }
 
     // DTO/UpdateStudentDto.cs

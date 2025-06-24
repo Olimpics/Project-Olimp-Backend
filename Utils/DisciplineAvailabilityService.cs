@@ -75,7 +75,6 @@ namespace OlimpBack.Utils
             return true;
         }
 
-
     }
 
 }

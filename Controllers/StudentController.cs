@@ -216,14 +216,26 @@ namespace OlimpBack.Controllers
 
         // POST: api/Student
         [HttpPost]
-        public async Task<ActionResult<StudentDto>> CreateStudent(CreateStudentDto createDto)
+        public async Task<ActionResult<StudentDto>> CreateStudent([FromBody] List<CreateStudentDto> dtos)
         {
-            var student = _mapper.Map<Student>(createDto);
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
+            var results = new List<StudentDto>();
+            var student = new Student();
+            foreach (var dto in dtos)
+            {
+                if (string.IsNullOrWhiteSpace(dto.NameStudent))
+                    continue;
+                student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.NameStudent == dto.NameStudent && s.IdStudent == dto.IdStudent);
+                    int userId = dto.UserId;
+                    if (userId == 0)
+                        userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
+                    dto.UserId = userId;
+                    student = _mapper.Map<Student>(dto);
+                    _context.Students.Add(student);
+            }
 
-            var dto = _mapper.Map<StudentDto>(student);
-            return CreatedAtAction(nameof(GetStudent), new { id = student.IdStudent }, dto);
+            await _context.SaveChangesAsync();
+            return Ok(results);
         }
 
         // PUT: api/Student/5

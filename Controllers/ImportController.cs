@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.DTO;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Text;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 
 namespace OlimpBack.Controllers
@@ -100,7 +95,7 @@ namespace OlimpBack.Controllers
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode(502, new { message = "Error calling parser", details = responseContent});
+                    return StatusCode(502, new { message = "Error calling parser", details = responseContent });
                 }
 
                 var parsedJson = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
@@ -118,9 +113,6 @@ namespace OlimpBack.Controllers
             }
 
         }
-
-
-
 
     }
 }
