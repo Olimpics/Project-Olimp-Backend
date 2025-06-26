@@ -157,7 +157,9 @@ namespace OlimpBack.Controllers
             var discipline = _mapper.Map<AddDiscipline>(dto);
             discipline.FacultyId = dto.FacultyId;
             discipline.DegreeLevelId = dto.DegreeLevelId;
-            discipline.AddSemestr = sbyte.Parse(dto.AddSemestr ?? "0");
+            if (dto.AddSemestr.HasValue && dto.AddSemestr >= sbyte.MinValue && dto.AddSemestr <= sbyte.MaxValue)
+                discipline.AddSemestr = (sbyte)dto.AddSemestr.Value;
+
 
             _context.AddDisciplines.Add(discipline);
             await _context.SaveChangesAsync();
@@ -181,7 +183,9 @@ namespace OlimpBack.Controllers
             _mapper.Map(dto, discipline);
             discipline.FacultyId = dto.FacultyId;
             discipline.DegreeLevelId = dto.DegreeLevelId;
-            discipline.AddSemestr = sbyte.Parse(dto.AddSemestr ?? "0");
+            if (dto.AddSemestr.HasValue && dto.AddSemestr >= sbyte.MinValue && dto.AddSemestr <= sbyte.MaxValue)
+                discipline.AddSemestr = (sbyte)dto.AddSemestr.Value;
+
 
             try
             {

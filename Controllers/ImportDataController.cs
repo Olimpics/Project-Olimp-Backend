@@ -96,7 +96,8 @@ namespace OlimpBack.Controllers
                     if (dto.MaxCountPeople.HasValue) discipline.MaxCountPeople = dto.MaxCountPeople;
                     if (dto.MinCourse.HasValue) discipline.MinCourse = dto.MinCourse;
                     if (dto.MaxCourse.HasValue) discipline.MaxCourse = dto.MaxCourse;
-                    if (!string.IsNullOrWhiteSpace(dto.AddSemestr)) discipline.AddSemestr = sbyte.TryParse(dto.AddSemestr, out var sem) ? sem : discipline.AddSemestr;
+                    if (dto.AddSemestr.HasValue && dto.AddSemestr >= sbyte.MinValue && dto.AddSemestr <= sbyte.MaxValue)
+                        discipline.AddSemestr = (sbyte)dto.AddSemestr.Value;
                     if (dto.DegreeLevelId.HasValue) discipline.DegreeLevelId = dto.DegreeLevelId;
                     // Details
                     if (discipline.AddDetail == null)

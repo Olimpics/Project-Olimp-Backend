@@ -12,7 +12,7 @@ namespace OlimpBack.DTO
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
         public int? MaxCourse { get; set; }
-        public string? AddSemestr { get; set; }
+        public int? AddSemestr { get; set; }
         public string DegreeLevelId { get; set; }
         public string DegreeLevelName { get; set; }
     }
@@ -26,7 +26,7 @@ namespace OlimpBack.DTO
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
         public int? MaxCourse { get; set; }
-        public string? AddSemestr { get; set; }
+        public int? AddSemestr { get; set; }
         public int? DegreeLevelId { get; set; }
     }
 
