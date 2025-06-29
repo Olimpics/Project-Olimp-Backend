@@ -5,7 +5,9 @@ using Microsoft.OpenApi.Models;
 using OlimpBack.Data;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
+using System.Configuration;
 using System.Text;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,13 +53,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ).EnableSensitiveDataLogging();
-});
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -136,6 +131,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
 
@@ -144,6 +140,18 @@ builder.Services.AddAuthorization();
 builder.Services.AddHostedService<FileCleanupService>();
 
 var app = builder.Build();
+
+var tunnelProcess = new Process
+{
+    StartInfo = new ProcessStartInfo
+    {
+        FileName = "start-tunnel.bat",
+        WorkingDirectory = AppContext.BaseDirectory,
+        CreateNoWindow = true,
+        UseShellExecute = true
+    }
+};
+tunnelProcess.Start();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
