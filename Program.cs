@@ -141,17 +141,14 @@ builder.Services.AddHostedService<FileCleanupService>();
 
 var app = builder.Build();
 
-var tunnelProcess = new Process
+Process.Start(new ProcessStartInfo
 {
-    StartInfo = new ProcessStartInfo
-    {
-        FileName = "start-tunnel.bat",
-        WorkingDirectory = AppContext.BaseDirectory,
-        CreateNoWindow = true,
-        UseShellExecute = true
-    }
-};
-tunnelProcess.Start();
+    FileName = Path.Combine(AppContext.BaseDirectory, "start_tunnel.exe"),
+    UseShellExecute = true,
+    WindowStyle = ProcessWindowStyle.Hidden
+});
+
+
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
