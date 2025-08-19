@@ -32,7 +32,7 @@ namespace OlimpBack.Controllers
                 "Студенти" => "http://localhost:5001/api/export/students",
                 "Спеціальності" => "http://localhost:5001/api/export/specialities",
                 "Групи" => "http://localhost:5001/api/export/groups",
-                _ => ""
+                _ => null
             };
 
             if (string.IsNullOrEmpty(endpoint))
@@ -41,43 +41,34 @@ namespace OlimpBack.Controllers
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync(stringRequest);
+                var response = await client.GetAsync(endpoint);
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    return StatusCode(502, new { message = "Error calling provided URL", details = error });
+                    return StatusCode(502, new { message = "Error calling export API", details = error });
                 }
-                var jsonString = await response.Content.ReadAsStringAsync();
-                
-                using var doc = JsonDocument.Parse(jsonString);
-                var formattedJson = JsonSerializer.Serialize(
-                    doc.RootElement,
-                    new JsonSerializerOptions
-                    {
-                        WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                    }
-                );
 
-                var safeTableName = Regex.Replace(tableName, @"[^a-zA-Z0-9_\-]", "_");
-                var fileName = $"{safeTableName}_{Guid.NewGuid():N}.txt";
-                var filePath = "/opt/Project-Olimp-Parser/fastapi-project/export_files";
-                if (!Directory.Exists(filePath))
-                    Directory.CreateDirectory(filePath);
-                var fullPath = Path.Combine(filePath, fileName);
-                await System.IO.File.WriteAllTextAsync(fullPath, formattedJson, Encoding.UTF8);
-                var fileUrl = $"{endpoint}/{fileName}";
-                return Ok(new { message = "Export successful", fileName });
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var parsed = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+
+                if (parsed != null && parsed.TryGetValue("fileName", out var fileName))
+                {
+                    return Ok(new { message = "Export successful", fileName });
+                }
+
+                return BadRequest(new { message = "Missing fileName in response from parser" });
             }
             catch (JsonException)
             {
-                return BadRequest(new { message = "Response from the provided URL is not valid JSON." });
+                return BadRequest(new { message = "Response from parser is not valid JSON." });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
         }
+
 
         [HttpGet("download")]
         public async Task<IActionResult> DownloadFile([FromQuery] string fileName)

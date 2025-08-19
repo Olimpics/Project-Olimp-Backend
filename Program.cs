@@ -5,9 +5,8 @@ using Microsoft.OpenApi.Models;
 using OlimpBack.Data;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
-using System.Configuration;
-using System.Text;
 using System.Diagnostics;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +17,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Olimp API", Version = "v1" });
-    
+
     // Add JWT Authentication to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -104,7 +103,7 @@ builder.Services.AddAuthentication(options =>
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
             logger.LogError($"Authentication failed: {context.Exception}");
-            
+
             if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
             {
                 context.Response.Headers.Add("Token-Expired", "true");
@@ -149,11 +148,11 @@ Process.Start(new ProcessStartInfo
 });
 
 
-
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Olimp API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+    c.RoutePrefix = "";
 });
 
 app.UseHttpsRedirection();

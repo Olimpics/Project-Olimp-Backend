@@ -32,6 +32,7 @@ namespace OlimpBack.Controllers
             _httpClientFactory = httpClientFactory;
             _env = env;
         }
+
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ImportFile([FromForm] FileUploadDto dto)
@@ -49,24 +50,20 @@ namespace OlimpBack.Controllers
 
             try
             {
-                // Абсолютный путь до папки input_files FastAPI-сервиса
                 var inputFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/input_files";
                 if (!Directory.Exists(inputFilesPath))
                     Directory.CreateDirectory(inputFilesPath);
 
-                // Генерация безопасного имени файла
                 var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
                 var safeName = Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^a-zA-Z0-9_-]", "_");
                 var fileName = $"{safeName}_{Guid.NewGuid():N}{ext}";
                 var fullPath = Path.Combine(inputFilesPath, fileName);
 
-                // Сохраняем файл на диск
                 await using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                // Выбор базового URL FastAPI по названию таблицы
                 string endpointBase = tableName switch
                 {
                     "Виборчі дисціпліни" => "http://localhost:5001/api/parse/disciplines",
@@ -80,17 +77,11 @@ namespace OlimpBack.Controllers
                     return BadRequest(new { message = $"Unknown table: {tableName}" });
 
                 var client = _httpClientFactory.CreateClient();
-                var requestBody = new
-                {
-                    fileName,
-                    limit
-                };
-
+                var requestBody = new { fileName, limit };
                 var json = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync(endpointBase, content);
-
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -98,21 +89,54 @@ namespace OlimpBack.Controllers
                     return StatusCode(502, new { message = "Error calling parser", details = responseContent });
                 }
 
-                var parsedJson = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
-
                 return Ok(new
                 {
                     message = "Parsing request sent successfully",
-                    file = fileName,
-                    result = parsedJson
+                    file = fileName
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
             }
-
         }
 
+        [HttpGet("preview")]
+        public IActionResult PreviewFile([FromQuery] string fileName, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+                var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+                if (!System.IO.File.Exists(fullPath))
+                    return NotFound(new { message = "Parsed file not found" });
+
+                var jsonContent = System.IO.File.ReadAllText(fullPath);
+
+                var data = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonContent);
+
+                if (data == null)
+                    return BadRequest(new { message = "Failed to parse JSON content." });
+
+                var totalItems = data.Count;
+                var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                var items = data.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                return Ok(new
+                {
+                    currentPage = page,
+                    pageSize,
+                    totalItems,
+                    totalPages,
+                    items
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error reading file", error = ex.Message });
+            }
+        }
     }
+
 }

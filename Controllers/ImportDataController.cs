@@ -4,11 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using OlimpBack.Utils;
+using System.Text.Json;
 
 namespace OlimpBack.Controllers
 {
@@ -27,50 +24,86 @@ namespace OlimpBack.Controllers
 
         // STUDENT
         [HttpPost("student/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateStudent([FromBody] List<CreateStudentDto> dtos)
+        [HttpPost("student/update-or-create-from-file")]
+        public async Task<IActionResult> UpdateOrCreateStudentFromFile([FromQuery] string fileName)
         {
-            var results = new List<StudentDto>();
-            foreach (var dto in dtos)
+            try
             {
-                if (string.IsNullOrWhiteSpace(dto.NameStudent))
-                    continue;
-                var student = await _context.Students
-                    .FirstOrDefaultAsync(s => s.IdStudent == dto.IdStudent);
-                if (student == null)
+                var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+                var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+                if (!System.IO.File.Exists(fullPath))
+                    return NotFound(new { message = "Parsed file not found" });
+
+                var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
+
+                var dtos = JsonSerializer.Deserialize<List<CreateStudentDto>>(jsonContent);
+
+                if (dtos == null || dtos.Count == 0)
+                    return BadRequest(new { message = "No data found in file" });
+
+                var results = new List<StudentDto>();
+                foreach (var dto in dtos)
                 {
-                    // Create user for student if not exists
-                    int userId = dto.UserId;
-                    if (userId == 0)
-                        userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
-                    dto.UserId = userId;
-                    student = _mapper.Map<Student>(dto);
-                    _context.Students.Add(student);
+                    if (string.IsNullOrWhiteSpace(dto.NameStudent))
+                        continue;
+                    var student = await _context.Students
+                        .FirstOrDefaultAsync(s => s.IdStudent == dto.IdStudent);
+                    if (student == null)
+                    {
+                        // Create user for student if not exists
+                        int userId = dto.UserId;
+                        if (userId == 0)
+                            userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
+                        dto.UserId = userId;
+                        student = _mapper.Map<Student>(dto);
+                        _context.Students.Add(student);
+                    }
+                    else
+                    {
+                        // Only update non-null fields
+                        if (dto.NameStudent != null) student.NameStudent = dto.NameStudent;
+                        if (dto.StatusId != 0) student.StatusId = dto.StatusId;
+                        if (dto.EducationStart != default) student.EducationStart = dto.EducationStart;
+                        if (dto.EducationEnd != default) student.EducationEnd = dto.EducationEnd;
+                        if (dto.Course != 0) student.Course = dto.Course;
+                        if (dto.FacultyId != 0) student.FacultyId = dto.FacultyId;
+                        if (dto.EducationalDegreeId != 0) student.EducationalDegreeId = dto.EducationalDegreeId;
+                        if (dto.StudyFormId != 0) student.StudyFormId = dto.StudyFormId;
+                        if (dto.IsShort != 0) student.IsShort = dto.IsShort;
+                        if (dto.EducationalProgramId != 0) student.EducationalProgramId = dto.EducationalProgramId;
+                        if (dto.UserId != 0) student.UserId = dto.UserId;
+                    }
+                    await _context.SaveChangesAsync();
+                    results.Add(_mapper.Map<StudentDto>(student));
                 }
-                else
-                {
-                    // Only update non-null fields
-                    if (dto.NameStudent != null) student.NameStudent = dto.NameStudent; 
-                    if (dto.StatusId != 0) student.StatusId = dto.StatusId;
-                    if (dto.EducationStart != default) student.EducationStart = dto.EducationStart;
-                    if (dto.EducationEnd != default) student.EducationEnd = dto.EducationEnd;
-                    if (dto.Course != 0) student.Course = dto.Course;
-                    if (dto.FacultyId != 0) student.FacultyId = dto.FacultyId;
-                    if (dto.EducationalDegreeId != 0) student.EducationalDegreeId = dto.EducationalDegreeId;
-                    if (dto.StudyFormId != 0) student.StudyFormId = dto.StudyFormId;
-                    if (dto.IsShort != 0) student.IsShort = dto.IsShort;
-                    if (dto.EducationalProgramId != 0) student.EducationalProgramId = dto.EducationalProgramId;
-                    if (dto.UserId != 0) student.UserId = dto.UserId;
-                }
-                await _context.SaveChangesAsync();
-                results.Add(_mapper.Map<StudentDto>(student));
+                return Ok(results);
             }
-            return Ok(results);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal Server Error", error = ex.Message });
+            }
         }
 
         // ADD DISCIPLINE WITH DETAILS
         [HttpPost("add-discipline-with-details/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateAddDisciplineWithDetails([FromBody] List<CreateAddDisciplineWithDetailsDto> dtos)
+        public async Task<IActionResult> UpdateOrCreateAddDisciplineWithDetails([FromQuery] string fileName)
         {
+            var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+            var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound(new { message = "Parsed file not found" });
+
+            var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            var dtos = JsonSerializer.Deserialize<List<CreateAddDisciplineWithDetailsDto>>(jsonContent);
+
+            if (dtos == null || dtos.Count == 0)
+                return BadRequest(new { message = "No data found in file" });
+
+            var results = new List<CreateAddDisciplineWithDetailsDto>();
+
             foreach (var dto in dtos)
             {
                 if (string.IsNullOrWhiteSpace(dto.NameAddDisciplines) || string.IsNullOrWhiteSpace(dto.CodeAddDisciplines))
@@ -130,9 +163,23 @@ namespace OlimpBack.Controllers
 
         // EDUCATIONAL PROGRAM
         [HttpPost("educational-program/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateEducationalProgram([FromBody] List<CreateEducationalProgramDto> dtos)
+        public async Task<IActionResult> UpdateOrCreateEducationalProgram([FromQuery] string fileName)
         {
+            var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+            var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound(new { message = "Parsed file not found" });
+
+            var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            var dtos = JsonSerializer.Deserialize<List<CreateEducationalProgramDto>>(jsonContent);
+
+            if (dtos == null || dtos.Count == 0)
+                return BadRequest(new { message = "No data found in file" });
+
             var results = new List<EducationalProgramDto>();
+
             foreach (var dto in dtos)
             {
                 if (string.IsNullOrWhiteSpace(dto.NameEducationalProgram))
@@ -167,9 +214,23 @@ namespace OlimpBack.Controllers
 
         // GROUP
         [HttpPost("group/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateGroup([FromBody] List<CreateGroupDto> dtos)
+        public async Task<IActionResult> UpdateOrCreateGroup([FromQuery] string fileName)
         {
+            var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+            var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound(new { message = "Parsed file not found" });
+
+            var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            var dtos = JsonSerializer.Deserialize<List<CreateGroupDto>>(jsonContent);
+
+            if (dtos == null || dtos.Count == 0)
+                return BadRequest(new { message = "No data found in file" });
+
             var results = new List<GroupDto>();
+
             foreach (var dto in dtos)
             {
                 if (string.IsNullOrWhiteSpace(dto.GroupCode))
@@ -194,9 +255,23 @@ namespace OlimpBack.Controllers
 
         // FACULTY
         [HttpPost("faculty/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateFaculty([FromBody] List<FacultyCreateDto> dtos)
+        public async Task<IActionResult> UpdateOrCreateFaculty([FromQuery] string fileName)
         {
+            var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+            var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound(new { message = "Parsed file not found" });
+
+            var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            var dtos = JsonSerializer.Deserialize<List<FacultyCreateDto>>(jsonContent);
+
+            if (dtos == null || dtos.Count == 0)
+                return BadRequest(new { message = "No data found in file" });
+
             var results = new List<FacultyDto>();
+
             foreach (var dto in dtos)
             {
                 if (string.IsNullOrWhiteSpace(dto.NameFaculty))
@@ -221,8 +296,21 @@ namespace OlimpBack.Controllers
 
         // DEPARTMENT
         [HttpPost("department/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateDepartment([FromBody] List<CreateDepartmentDto> dtos)
+        public async Task<IActionResult> UpdateOrCreateDepartment([FromQuery] string fileName)
         {
+            var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
+            var fullPath = Path.Combine(parsedFilesPath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound(new { message = "Parsed file not found" });
+
+            var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
+
+            var dtos = JsonSerializer.Deserialize<List<CreateDepartmentDto>>(jsonContent);
+
+            if (dtos == null || dtos.Count == 0)
+                return BadRequest(new { message = "No data found in file" });
+
             var results = new List<DepartmentDto>();
             foreach (var dto in dtos)
             {
@@ -247,4 +335,4 @@ namespace OlimpBack.Controllers
             return Ok(results);
         }
     }
-} 
+}
