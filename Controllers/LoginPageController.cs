@@ -1,14 +1,16 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
+using OlimpBack.Utils;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
 
 namespace OlimpBack.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class LoginPageController : ControllerBase
@@ -19,8 +21,8 @@ namespace OlimpBack.Controllers
         private readonly ILogger<LoginPageController> _logger;
 
         public LoginPageController(
-            AppDbContext context, 
-            IMapper mapper, 
+            AppDbContext context,
+            IMapper mapper,
             IConfiguration configuration,
             ILogger<LoginPageController> logger)
         {
@@ -30,9 +32,75 @@ namespace OlimpBack.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<LoginResponseDto>> Login([FromQuery] string Email, [FromQuery] string Password)
+        // DTOs
+        public class RegisterDto
         {
+            public string Email { get; set; }
+            public string Password { get; set; } // Если вариант: можно разрешить null и генерировать
+            public int RoleId { get; set; }
+        }
+
+        public class ChangePasswordDto
+        {
+            public string Email { get; set; }
+            public string OldPassword { get; set; } // можно nullable если админ делает принудит. сброс
+            public string NewPassword { get; set; }
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return BadRequest("Email is required.");
+
+            var exists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
+            if (exists) return BadRequest("User with this email already exists.");
+
+            string password = dto.Password;
+            bool generatePassword = false;
+            // Если в вашем варианте требуется генератор паролей, управлять этим можно через конфіг
+            if (string.IsNullOrEmpty(password))
+            {
+                // если policy: генерируем и помечаем как first login
+                password = PasswordHelper.GeneratePassword(12);
+                generatePassword = true;
+            }
+
+            var (isValid, error) = PasswordHelper.ValidatePasswordPolicy(password);
+            if (!isValid) return BadRequest(error);
+
+            PasswordHelper.CreatePasswordHash(password, out var hash, out var salt);
+
+            var user = new User
+            {
+                Email = dto.Email,
+                PasswordHash = hash,
+                PasswordSalt = salt,
+                RoleId = dto.RoleId,
+                IsFirstLogin = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"New user registered: {dto.Email}");
+
+            if (generatePassword)
+            {
+                // ВИВІД: безпечніше — відправити через email. Тут лише приклад повернення на dev стадії.
+                return Ok(new { Message = "User created. Password was generated. Please store it securely.", GeneratedPassword = password });
+            }
+
+            return Ok(new { Message = "User created." });
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        {
+            var Email = request.Email;
+            var Password = request.Password;
+
             _logger.LogInformation($"Login attempt for email: {Email}");
 
             var user = await _context.Users
@@ -45,22 +113,27 @@ namespace OlimpBack.Controllers
                 return NotFound("This user doesn't exist");
             }
 
-            if (user.Password != Password)
+            if (!PasswordHelper.VerifyPassword(Password, user.PasswordHash, user.PasswordSalt))
             {
                 _logger.LogWarning($"Login failed: Invalid password for user {Email}");
                 return BadRequest("Incorrect password");
             }
 
-            // Get user's permissions
+            if (user.IsFirstLogin)
+            {
+                // помітити, що користувач має змінити пароль
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = "Password change required on first login.", RequireChange = true });
+            }
+
             var permissions = await _context.BindRolePermissions
-                .Include(b => b.Permission)
-                .Where(b => b.RoleId == user.RoleId)
-                .Select(b => new PermissionDto
-                {
-                    TypePermission = b.Permission.TypePermission,
-                    TableName = b.Permission.TableName
-                })
-                .ToListAsync();
+                           .Include(b => b.Permission)
+                           .Where(b => b.RoleId == user.RoleId)
+                           .Select(b => new PermissionDto
+                           {
+                               TypePermission = b.Permission.TypePermission,
+                               TableName = b.Permission.TableName
+                           })
+                           .ToListAsync();
 
             LoginResponseDto response;
 
@@ -129,5 +202,42 @@ namespace OlimpBack.Controllers
             _logger.LogInformation($"Login successful for user {Email}. Cookies set.");
             return Ok(response);
         }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.NewPassword))
+                return BadRequest("Email and new password are required.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null) return NotFound("User not found.");
+
+            // Если пользователь не в принудительном сбросе — проверяем старий пароль
+            if (!user.IsFirstLogin)
+            {
+                if (string.IsNullOrEmpty(dto.OldPassword))
+                    return BadRequest("Old password is required.");
+
+                if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.PasswordHash, user.PasswordSalt))
+                    return BadRequest("Old password incorrect.");
+            }
+            // Проверяем политику новой пароли
+            var (isValid, error) = PasswordHelper.ValidatePasswordPolicy(dto.NewPassword);
+            if (!isValid) return BadRequest(error);
+
+            PasswordHelper.CreatePasswordHash(dto.NewPassword, out var newHash, out var newSalt);
+            user.PasswordHash = newHash;
+            user.PasswordSalt = newSalt;
+            user.IsFirstLogin = false;
+            user.PasswordChangedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"Password changed for user {dto.Email}");
+
+            return Ok(new { Message = "Password changed successfully." });
+        }
     }
-} 
+
+
+}

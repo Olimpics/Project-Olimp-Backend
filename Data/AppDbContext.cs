@@ -1105,9 +1105,18 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdUsers)
                 .HasColumnType("int(11)")
                 .HasColumnName("idUsers");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("datetime");
             entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.IsFirstLogin)
+                .IsRequired()
+                .HasDefaultValueSql("'1'");
             entity.Property(e => e.LastLoginAt).HasColumnType("datetime");
             entity.Property(e => e.Password).HasMaxLength(200);
+            entity.Property(e => e.PasswordChangedAt).HasColumnType("datetime");
+            entity.Property(e => e.PasswordHash).HasMaxLength(255);
+            entity.Property(e => e.PasswordSalt).HasMaxLength(255);
             entity.Property(e => e.RoleId).HasColumnType("int(11)");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)

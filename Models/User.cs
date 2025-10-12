@@ -11,7 +11,17 @@ public partial class User
 
     public string? Password { get; set; }
 
+    public byte[]? PasswordHash { get; set; }
+
+    public byte[]? PasswordSalt { get; set; }
+
     public int RoleId { get; set; }
+
+    public bool IsFirstLogin { get; set; }
+
+    public DateTime? PasswordChangedAt { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 
     public DateTime LastLoginAt { get; set; }
 
