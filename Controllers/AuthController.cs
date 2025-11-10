@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<LoginResponseWithTokenDto>> Authorization(LoginDto model)
     {
         _logger.LogInformation($"Login attempt for email: {model.Email}");
-        
+
         var user = await _context.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email == model.Email);
@@ -74,14 +74,27 @@ public class AuthController : ControllerBase
             return NotFound("This user doesn't exist");
         }
 
-        bool isPasswordValid;
-        try
+        bool isPasswordValid = false;
+
+        // 1) Если у пользователя есть PBKDF2 хеш/соль -> проверяем через PasswordHelper
+        if (user.PasswordHash != null && user.PasswordHash.Length > 0 && user.PasswordSalt != null && user.PasswordSalt.Length > 0)
         {
-            isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
+            try
+            {
+                isPasswordValid = PasswordHelper.VerifyPassword(model.Password, user.PasswordHash, user.PasswordSalt);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error while verifying PBKDF2 password for user {model.Email}");
+                isPasswordValid = false;
+            }
         }
-        catch (BCrypt.Net.SaltParseException)
+        else
         {
-            isPasswordValid = model.Password == user.Password;
+
+            // Нет и хеша, и старого пароля — не можем проверить
+            _logger.LogWarning($"Login failed: No password data for user {model.Email}");
+            return BadRequest("User has no password set. Please reset password.");
         }
 
         if (!isPasswordValid)
@@ -90,7 +103,15 @@ public class AuthController : ControllerBase
             return BadRequest("Incorrect password");
         }
 
-        // Get user's permissions
+        // Если пароль верный, но требуется принудительная смена при первом входе — сообщаем клиенту
+        if (user.IsFirstLogin)
+        {
+            _logger.LogInformation($"User {model.Email} must change password on first login.");
+            // Возвращаем 403 и флаг, чтобы фронт понял — показать экран смены пароля
+            return StatusCode(StatusCodes.Status403Forbidden, new { Message = "Password change required on first login.", RequirePasswordChange = true });
+        }
+
+        // Получаем права пользователя
         var permissions = await _context.BindRolePermissions
             .Include(b => b.Permission)
             .Where(b => b.RoleId == user.RoleId)
@@ -114,8 +135,8 @@ public class AuthController : ControllerBase
                 _logger.LogWarning($"Admin profile not found for user {model.Email}");
                 return NotFound("Admin profile not found");
             }
-            response = _mapper.Map<LoginResponseWithTokenDto>(admin);
 
+            response = _mapper.Map<LoginResponseWithTokenDto>(admin);
         }
         else
         {
@@ -132,6 +153,18 @@ public class AuthController : ControllerBase
             }
 
             response = _mapper.Map<LoginResponseWithTokenDto>(student);
+        }
+
+        // Обновляем LastLoginAt
+        try
+        {
+            user.LastLoginAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to update LastLoginAt for user {model.Email}");
+            // Не прерываем вход — логируем и продолжаем
         }
 
         // Generate token
@@ -177,12 +210,13 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+
     [Authorize]
     [HttpGet("AuthChecker")]
     public async Task<ActionResult<LoginResponseDto>> GetCurrentUser()
     {
         _logger.LogInformation("GetCurrentUser endpoint called");
-        
+
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
         {
@@ -273,4 +307,4 @@ public class AuthController : ControllerBase
         _logger.LogInformation($"Returning user data for {user.Email}");
         return Ok(response);
     }
-} 
+}

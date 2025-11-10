@@ -58,10 +58,8 @@ namespace OlimpBack.Controllers
 
             string password = dto.Password;
             bool generatePassword = false;
-            // Если в вашем варианте требуется генератор паролей, управлять этим можно через конфіг
             if (string.IsNullOrEmpty(password))
             {
-                // если policy: генерируем и помечаем как first login
                 password = PasswordHelper.GeneratePassword(12);
                 generatePassword = true;
             }
@@ -88,7 +86,6 @@ namespace OlimpBack.Controllers
 
             if (generatePassword)
             {
-                // ВИВІД: безпечніше — відправити через email. Тут лише приклад повернення на dev стадії.
                 return Ok(new { Message = "User created. Password was generated. Please store it securely.", GeneratedPassword = password });
             }
 

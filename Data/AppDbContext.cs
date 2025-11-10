@@ -1113,7 +1113,6 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValueSql("'1'");
             entity.Property(e => e.LastLoginAt).HasColumnType("datetime");
-            entity.Property(e => e.Password).HasMaxLength(200);
             entity.Property(e => e.PasswordChangedAt).HasColumnType("datetime");
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.PasswordSalt).HasMaxLength(255);

@@ -9,19 +9,23 @@ namespace OlimpBack.Utils
         {
             
             var email = $"{studentName.Replace(" ", ".").ToLower()}@student.local";
-            var password = "student123";
+            var password = "default_password";
             int roleId = 1;
 
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (existingUser != null)
                 return existingUser.IdUsers;
 
+            PasswordHelper.CreatePasswordHash(password, out var hash, out var salt);
+
             var user = new Models.User
             {
                 Email = email,
-                Password = password,
+                PasswordHash = hash,
+                PasswordSalt = salt,
                 RoleId = roleId,
-                LastLoginAt = DateTime.UtcNow
+                IsFirstLogin = true,
+                CreatedAt = DateTime.UtcNow
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();

@@ -6,11 +6,7 @@ using OlimpBack.Data;
 using OlimpBack.DTO;
 using OlimpBack.Models;
 using OlimpBack.Utils;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
-using Microsoft.Data.SqlClient;
 
 namespace OlimpBack.Controllers
 {
@@ -89,7 +85,7 @@ namespace OlimpBack.Controllers
 
                 if (specialityValues.Any())
                 {
-                    
+
                     var parameter = Expression.Parameter(typeof(Student), "s");
                     var property = Expression.Property(
                         Expression.Property(parameter, "EducationalProgram"),
@@ -226,12 +222,12 @@ namespace OlimpBack.Controllers
                     continue;
                 student = await _context.Students
                     .FirstOrDefaultAsync(s => s.NameStudent == dto.NameStudent && s.IdStudent == dto.IdStudent);
-                    int userId = dto.UserId;
-                    if (userId == 0)
-                        userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
-                    dto.UserId = userId;
-                    student = _mapper.Map<Student>(dto);
-                    _context.Students.Add(student);
+                int userId = dto.UserId;
+                if (userId == 0)
+                    userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
+                dto.UserId = userId;
+                student = _mapper.Map<Student>(dto);
+                _context.Students.Add(student);
             }
 
             await _context.SaveChangesAsync();
