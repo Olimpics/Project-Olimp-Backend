@@ -26,7 +26,6 @@ namespace OlimpBack.Utils
             return CryptographicOperations.FixedTimeEquals(computed, storedHash);
         }
 
-        // Генератор паролів (опційно, керується конфігом)
         public static string GeneratePassword(int length = 12)
         {
             const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -46,16 +45,11 @@ namespace OlimpBack.Utils
             return new string(chars);
         }
 
-        // Перевірка політики пароля згідно з вашими вимогами:
-        // - допустима довжина групи = 2 літери
-        // - обмеження на кількість таких груп = 1
-        // - відбраковувати групи > 2 (тобто "aaa" неприпустимо)
         public static (bool IsValid, string Error) ValidatePasswordPolicy(string password)
         {
             if (string.IsNullOrEmpty(password))
                 return (false, "Password cannot be empty.");
 
-            // Можна додати базові обмеження: мін довжина
             if (password.Length < 8)
                 return (false, "Password must be at least 8 characters long.");
 
@@ -80,7 +74,6 @@ namespace OlimpBack.Utils
                 i = j;
             }
 
-            // Тут можна додати інші правила (символи, цифри, тощо) залежно від варіанту
             return (true, string.Empty);
         }
     }

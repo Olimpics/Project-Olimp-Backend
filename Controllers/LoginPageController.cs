@@ -36,14 +36,14 @@ namespace OlimpBack.Controllers
         public class RegisterDto
         {
             public string Email { get; set; }
-            public string Password { get; set; } // Если вариант: можно разрешить null и генерировать
+            public string Password { get; set; } 
             public int RoleId { get; set; }
         }
 
         public class ChangePasswordDto
         {
             public string Email { get; set; }
-            public string OldPassword { get; set; } // можно nullable если админ делает принудит. сброс
+            public string OldPassword { get; set; }
             public string NewPassword { get; set; }
         }
 
@@ -118,7 +118,6 @@ namespace OlimpBack.Controllers
 
             if (user.IsFirstLogin)
             {
-                // помітити, що користувач має змінити пароль
                 return StatusCode(StatusCodes.Status403Forbidden, new { Message = "Password change required on first login.", RequireChange = true });
             }
 
@@ -171,7 +170,6 @@ namespace OlimpBack.Controllers
                 response = _mapper.Map<LoginResponseDto>(student);
             }
 
-            // Set secure HTTP-only cookies
             var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
             var cookieOptions = new CookieOptions
             {
@@ -182,7 +180,6 @@ namespace OlimpBack.Controllers
                 Path = "/"
             };
 
-            // Set user info cookie
             var userInfo = new
             {
                 Id = response.Id,
@@ -209,7 +206,6 @@ namespace OlimpBack.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null) return NotFound("User not found.");
 
-            // Если пользователь не в принудительном сбросе — проверяем старий пароль
             if (!user.IsFirstLogin)
             {
                 if (string.IsNullOrEmpty(dto.OldPassword))
@@ -218,7 +214,6 @@ namespace OlimpBack.Controllers
                 if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.PasswordHash, user.PasswordSalt))
                     return BadRequest("Old password incorrect.");
             }
-            // Проверяем политику новой пароли
             var (isValid, error) = PasswordHelper.ValidatePasswordPolicy(dto.NewPassword);
             if (!isValid) return BadRequest(error);
 
