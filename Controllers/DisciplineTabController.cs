@@ -198,10 +198,10 @@ namespace OlimpBack.Controllers
                     .FirstOrDefaultAsync();
             }
 
-            if (deadline == null)
-            {
-                return BadRequest("The period for choosing a discipline is being confirmed or has not yet appeared");
-            }
+            //if (deadline == null)
+            //{
+            //    return BadRequest("The period for choosing a discipline is being confirmed or has not yet appeared");
+            //}
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))
