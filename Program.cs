@@ -141,6 +141,14 @@ builder.Services.AddHostedService<FileCleanupService>();
 
 var app = builder.Build();
 
+var env = builder.Environment.EnvironmentName;
+Console.WriteLine(env);
+
+Console.WriteLine(
+    builder.Configuration.GetConnectionString("DefaultConnection")
+);
+
+
 Process.Start(new ProcessStartInfo
 {
     FileName = Path.Combine(AppContext.BaseDirectory, "start_tunnel.exe"),
