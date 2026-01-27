@@ -45,6 +45,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+var cs = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine("CONNECTION STRING = " + cs);
+
 // Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
