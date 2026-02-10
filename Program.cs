@@ -46,7 +46,6 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var cs = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine("CONNECTION STRING = " + cs);
 
 // Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -146,10 +145,6 @@ var app = builder.Build();
 
 var env = builder.Environment.EnvironmentName;
 Console.WriteLine(env);
-
-Console.WriteLine(
-    builder.Configuration.GetConnectionString("DefaultConnection")
-);
 
 
 Process.Start(new ProcessStartInfo

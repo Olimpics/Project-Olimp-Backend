@@ -47,157 +47,256 @@ namespace OlimpBack.Controllers
             public string NewPassword { get; set; }
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-        {
-            if (string.IsNullOrWhiteSpace(dto.Email))
-                return BadRequest("Email is required.");
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        //{
+        //    if (string.IsNullOrWhiteSpace(dto.Email))
+        //        return BadRequest("Email is required.");
 
-            var exists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
-            if (exists) return BadRequest("User with this email already exists.");
+        //    var exists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
+        //    if (exists) return BadRequest("User with this email already exists.");
 
-            string password = dto.Password;
-            bool generatePassword = false;
-            if (string.IsNullOrEmpty(password))
-            {
-                password = PasswordHelper.GeneratePassword(12);
-                generatePassword = true;
-            }
+        //    string password = dto.Password;
+        //    bool generatePassword = false;
+        //    if (string.IsNullOrEmpty(password))
+        //    {
+        //        password = PasswordHelper.GeneratePassword(12);
+        //        generatePassword = true;
+        //    }
 
-            var (isValid, error) = PasswordHelper.ValidatePasswordPolicy(password);
-            if (!isValid) return BadRequest(error);
+        //    var (isValid, error) = PasswordHelper.ValidatePasswordPolicy(password);
+        //    if (!isValid) return BadRequest(error);
 
-            PasswordHelper.CreatePasswordHash(password, out var hash, out var salt);
+        //    PasswordHelper.CreatePasswordHash(password, out var hash, out var salt);
 
-            var user = new User
-            {
-                Email = dto.Email,
-                PasswordHash = hash,
-                PasswordSalt = salt,
-                RoleId = dto.RoleId,
-                IsFirstLogin = true,
-                CreatedAt = DateTime.UtcNow
-            };
+        //    var user = new User
+        //    {
+        //        Email = dto.Email,
+        //        PasswordHash = hash,
+        //        PasswordSalt = salt,
+        //        RoleId = dto.RoleId,
+        //        IsFirstLogin = true,
+        //        CreatedAt = DateTime.UtcNow
+        //    };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+        //    _context.Users.Add(user);
+        //    await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"New user registered: {dto.Email}");
+        //    _logger.LogInformation($"New user registered: {dto.Email}");
 
-            if (generatePassword)
-            {
-                return Ok(new { Message = "User created. Password was generated. Please store it securely.", GeneratedPassword = password });
-            }
+        //    if (generatePassword)
+        //    {
+        //        return Ok(new { Message = "User created. Password was generated. Please store it securely.", GeneratedPassword = password });
+        //    }
 
-            return Ok(new { Message = "User created." });
-        }
-
+        //    return Ok(new { Message = "User created." });
+        //}
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var Email = request.Email;
-            var Password = request.Password;
-
-            _logger.LogInformation($"Login attempt for email: {Email}");
-
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Email == Email);
-
-            if (user == null)
+            if (_configuration.GetValue<bool>("UseStubLogin"))
             {
-                _logger.LogWarning($"Login failed: User not found for email {Email}");
-                return NotFound("This user doesn't exist");
-            }
+                _logger.LogWarning("STUB LOGIN MODE ENABLED");
 
-            if (!PasswordHelper.VerifyPassword(Password, user.PasswordHash, user.PasswordSalt))
-            {
-                _logger.LogWarning($"Login failed: Invalid password for user {Email}");
-                return BadRequest("Incorrect password");
-            }
-
-            if (user.IsFirstLogin)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, new { Message = "Password change required on first login.", RequireChange = true });
-            }
-
-            var permissions = await _context.BindRolePermissions
-                           .Include(b => b.Permission)
-                           .Where(b => b.RoleId == user.RoleId)
-                           .Select(b => new PermissionDto
-                           {
-                               TypePermission = b.Permission.TypePermission,
-                               TableName = b.Permission.TableName
-                           })
-                           .ToListAsync();
-
-            LoginResponseDto response;
-
-            if (user.Role.NameRole == "Administrator")
-            {
-                var admin = await _context.AdminsPersonals
-                    .Include(a => a.Faculty)
-                    .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
-
-                if (admin == null)
+                var Email = request.Email;
+                var Password = request.Password;
+                
+                var response = new LoginResponseDto
                 {
-                    _logger.LogWarning($"Admin profile not found for user {Email}");
-                    return NotFound("Admin profile not found");
+                    Id = 44072,
+                    UserId = 3483,
+                    RoleId = 1,
+                    Name = "Test student",
+                    NameFaculty = "Faculty of Computer Science"
+                };
+
+                var permissions = new List<PermissionDto>
+        {
+            new PermissionDto
+            {
+                TypePermission = "READ",
+                TableName = "Students"
+            },
+            new PermissionDto
+            {
+                TypePermission = "WRITE",
+                TableName = "AddDisciplines"
+            },
+            new PermissionDto
+            {
+                TypePermission = "ADMIN",
+                TableName = "*"
+            }
+        };
+
+                if (Email == "admin")
+                {
+                    response.Id = 4;
+                    response.UserId = 6;
+                    response.RoleId = 2;
+                    response.Name = "Test Admin";
+                    response.NameFaculty = "Faculty of Computer Science";
+
+                    permissions = new List<PermissionDto>
+                    {
+                        new PermissionDto
+                        {
+                            TypePermission = "READ",
+                            TableName = "Students"
+                        },
+                        new PermissionDto
+                        {
+                            TypePermission = "WRITE",
+                            TableName = "AddDisciplines"
+                        },
+                        new PermissionDto
+                        {
+                            TypePermission = "ADMIN",
+                            TableName = "*"
+                        }
+                    };
                 }
 
-                response = new LoginResponseDto
+                var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
+
+                var cookieOptions = new CookieOptions
                 {
-                    Id = admin.IdAdmins,
-                    UserId = admin.UserId,
-                    RoleId = user.RoleId,
-                    Name = admin.NameAdmin,
-                    NameFaculty = admin.Faculty?.NameFaculty
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
+                    Path = "/"
                 };
+
+                var userInfo = new
+                {
+                    response.Id,
+                    response.UserId,
+                    response.RoleId,
+                    response.Name,
+                    response.NameFaculty
+                };
+
+                Response.Cookies.Append(
+                    "UserInfo",
+                    JsonSerializer.Serialize(userInfo),
+                    cookieOptions
+                );
+
+                Response.Cookies.Append(
+                    "UserPermissions",
+                    JsonSerializer.Serialize(permissions),
+                    cookieOptions
+                );
+
+                return Ok(response);
             }
             else
             {
-                var student = await _context.Students
-                    .Include(s => s.Faculty)
-                    .Include(s => s.EducationalProgram)
-                    .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
+                var Email = request.Email;
+                var Password = request.Password;
 
-                if (student == null)
+                _logger.LogInformation($"Login attempt for email: {Email}");
+
+                var user = await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Email == Email);
+
+                if (user == null)
                 {
-                    _logger.LogWarning($"Student profile not found for user {Email}");
-                    return NotFound("This student doesn't exist");
+                    _logger.LogWarning($"Login failed: User not found for email {Email}");
+                    return NotFound("This user doesn't exist");
                 }
 
-                response = _mapper.Map<LoginResponseDto>(student);
+                if (!PasswordHelper.VerifyPassword(Password, user.PasswordHash, user.PasswordSalt))
+                {
+                    _logger.LogWarning($"Login failed: Invalid password for user {Email}");
+                    return BadRequest("Incorrect password");
+                }
+
+                if (user.IsFirstLogin)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, new { Message = "Password change required on first login.", RequireChange = true });
+                }
+
+                var permissions = await _context.BindRolePermissions
+                               .Include(b => b.Permission)
+                               .Where(b => b.RoleId == user.RoleId)
+                               .Select(b => new PermissionDto
+                               {
+                                   TypePermission = b.Permission.TypePermission,
+                                   TableName = b.Permission.TableName
+                               })
+                               .ToListAsync();
+
+                LoginResponseDto response;
+
+                if (user.Role.NameRole == "Administrator")
+                {
+                    var admin = await _context.AdminsPersonals
+                        .Include(a => a.Faculty)
+                        .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
+
+                    if (admin == null)
+                    {
+                        _logger.LogWarning($"Admin profile not found for user {Email}");
+                        return NotFound("Admin profile not found");
+                    }
+
+                    response = new LoginResponseDto
+                    {
+                        Id = admin.IdAdmins,
+                        UserId = admin.UserId,
+                        RoleId = user.RoleId,
+                        Name = admin.NameAdmin,
+                        NameFaculty = admin.Faculty?.NameFaculty
+                    };
+                }
+                else
+                {
+                    var student = await _context.Students
+                        .Include(s => s.Faculty)
+                        .Include(s => s.EducationalProgram)
+                        .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
+
+                    if (student == null)
+                    {
+                        _logger.LogWarning($"Student profile not found for user {Email}");
+                        return NotFound("This student doesn't exist");
+                    }
+
+                    response = _mapper.Map<LoginResponseDto>(student);
+                }
+
+                var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
+                    Path = "/"
+                };
+
+                var userInfo = new
+                {
+                    response.Id,
+                    response.UserId,
+                    response.RoleId,
+                    response.Name,
+                    response.NameFaculty
+                };
+                Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
+
+                // Set permissions cookie
+                Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
+
+                _logger.LogInformation($"Login successful for user {Email}. Cookies set.");
+                return Ok(response);
             }
-
-            var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
-                Path = "/"
-            };
-
-            var userInfo = new
-            {
-                Id = response.Id,
-                UserId = response.UserId,
-                RoleId = response.RoleId,
-                Name = response.Name,
-                NameFaculty = response.NameFaculty
-            };
-            Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
-
-            // Set permissions cookie
-            Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
-
-            _logger.LogInformation($"Login successful for user {Email}. Cookies set.");
-            return Ok(response);
         }
 
-        [HttpPost("change-password")]
+            [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.NewPassword))
