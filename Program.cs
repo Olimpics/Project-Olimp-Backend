@@ -49,11 +49,20 @@ var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
+{
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    )
-);
+        new MariaDbServerVersion(new Version(10, 6, 12)),
+        mySqlOptions =>
+        {
+            mySqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null
+            );
+        }
+    );
+});
 
 
 // AutoMapper
@@ -173,3 +182,18 @@ app.MapControllers();
 
 app.Run();
 
+bool dbAvailable = true;
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.CanConnectAsync();
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Database unavailable, enabling StubLogin");
+    dbAvailable = false;
+}
+
+builder.Configuration["UseStubLogin"] = (!dbAvailable).ToString();
