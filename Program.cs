@@ -9,6 +9,12 @@ using System.Configuration;
 using System.Text;
 using System.Diagnostics;
 
+
+Environment.SetEnvironmentVariable(
+    "ASPNETCORE_ENVIRONMENT",
+    "Development"
+);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
@@ -163,25 +169,6 @@ Process.Start(new ProcessStartInfo
     WindowStyle = ProcessWindowStyle.Hidden
 });
 
-
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Olimp API v1");
-});
-
-app.UseHttpsRedirection();
-
-app.UseCors("AllowFrontend");
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
-
 bool dbAvailable = true;
 
 try
@@ -196,4 +183,25 @@ catch (Exception ex)
     dbAvailable = false;
 }
 
-builder.Configuration["UseStubLogin"] = (!dbAvailable).ToString();
+builder.Configuration["Auth:UseStubLogin"] = (!dbAvailable).ToString();
+
+
+app.Logger.LogWarning($"Environment: {app.Environment.EnvironmentName}");
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Olimp API v1");
+});
+
+app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRouting();
+app.MapControllers();
+
+app.Run();
+
