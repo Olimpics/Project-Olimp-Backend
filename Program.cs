@@ -162,12 +162,12 @@ var env = builder.Environment.EnvironmentName;
 Console.WriteLine(env);
 
 
-Process.Start(new ProcessStartInfo
-{
-    FileName = Path.Combine(AppContext.BaseDirectory, "start_tunnel.exe"),
-    UseShellExecute = true,
-    WindowStyle = ProcessWindowStyle.Hidden
-});
+//Process.Start(new ProcessStartInfo
+//{
+//    FileName = Path.Combine(AppContext.BaseDirectory, "start_tunnel.exe"),
+//    UseShellExecute = true,
+//    WindowStyle = ProcessWindowStyle.Hidden
+//});
 
 bool dbAvailable = true;
 
