@@ -169,22 +169,25 @@ Console.WriteLine(env);
 //    WindowStyle = ProcessWindowStyle.Hidden
 //});
 
-bool dbAvailable = true;
+bool dbAvailable = false;
 
-try
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.CanConnectAsync();
-}
-catch (Exception ex)
-{
-    app.Logger.LogError(ex, "Database unavailable, enabling StubLogin");
-    dbAvailable = false;
-}
+//try
+//{
+//    using var scope = app.Services.CreateScope();
+//    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    await db.Database.CanConnectAsync();
+//}
+//catch (Exception ex)
+//{
+//    app.Logger.LogError(ex, "Database unavailable, enabling StubLogin");
+//    dbAvailable = false;
+//}
 
 builder.Configuration["Auth:UseStubLogin"] = (!dbAvailable).ToString();
 
+app.Urls.Clear();
+app.Urls.Add("http://localhost:5154");
+app.Urls.Add("https://localhost:7011");
 
 app.Logger.LogWarning($"Environment: {app.Environment.EnvironmentName}");
 
