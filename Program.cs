@@ -4,10 +4,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OlimpBack.Data;
 using OlimpBack.MappingProfiles;
+using OlimpBack.Services;
 using OlimpBack.Utils;
 using System.Configuration;
-using System.Text;
 using System.Diagnostics;
+using System.Text;
 
 
 Environment.SetEnvironmentVariable(
@@ -155,6 +156,8 @@ builder.Services.AddScoped<JwtService>();
 // Authorization
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<FileCleanupService>();
+builder.Services.AddHostedService<DatabaseAvailabilityService>();
+
 
 var app = builder.Build();
 
@@ -169,21 +172,7 @@ Console.WriteLine(env);
 //    WindowStyle = ProcessWindowStyle.Hidden
 //});
 
-bool dbAvailable = false;
 
-//try
-//{
-//    using var scope = app.Services.CreateScope();
-//    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-//    await db.Database.CanConnectAsync();
-//}
-//catch (Exception ex)
-//{
-//    app.Logger.LogError(ex, "Database unavailable, enabling StubLogin");
-//    dbAvailable = false;
-//}
-
-builder.Configuration["Auth:UseStubLogin"] = (!dbAvailable).ToString();
 
 app.Urls.Clear();
 app.Urls.Add("http://localhost:5154");

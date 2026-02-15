@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
         // ============================================================
         // 🔹 STUB LOGIN (без БД)
         // ============================================================
-        if (_configuration.GetValue<bool>("Auth:UseStubLogin"))
+        if (_configuration.GetValue<bool>("UseStubLogin"))
         {
             _logger.LogWarning("STUB AUTHORIZATION MODE ENABLED");
 
