@@ -15,7 +15,7 @@ public partial class User
 
     public int RoleId { get; set; }
 
-    public bool IsFirstLogin { get; set; }
+    public bool? IsFirstLogin { get; set; }
 
     public DateTime? PasswordChangedAt { get; set; }
 

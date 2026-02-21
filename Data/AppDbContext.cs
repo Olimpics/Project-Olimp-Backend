@@ -65,10 +65,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
-    public virtual DbSet<PeriodLevel> PeriodLevels { get; set; }
-
-    public virtual DbSet<PeriodType> PeriodTypes { get; set; }
-
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<RegulationOnAddPoint> RegulationOnAddPoints { get; set; }
@@ -503,10 +499,6 @@ public partial class AppDbContext : DbContext
                 .ToTable("DisciplineChoicePeriod")
                 .UseCollation("utf8mb4_unicode_ci");
 
-            entity.HasIndex(e => e.LevelType, "DisciplineChoicePeriod_Level_idx");
-
-            entity.HasIndex(e => e.PeriodType, "DisciplineChoicePeriod_Type_idx");
-
             entity.HasIndex(e => e.DepartmentId, "fk_dcp_department");
 
             entity.HasIndex(e => e.FacultyId, "fk_dcp_faculty");
@@ -517,8 +509,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.DepartmentId).HasColumnType("int(11)");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
-            entity.Property(e => e.LevelType).HasColumnType("int(11)");
-            entity.Property(e => e.PeriodType).HasColumnType("int(11)");
+            entity.Property(e => e.IsClose).HasColumnType("tinyint(4)");
+            entity.Property(e => e.PeriodCourse).HasColumnType("tinyint(4)");
+            entity.Property(e => e.PeriodType).HasColumnType("tinyint(4)");
             entity.Property(e => e.StartDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Department).WithMany(p => p.DisciplineChoicePeriods)
@@ -528,16 +521,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Faculty).WithMany(p => p.DisciplineChoicePeriods)
                 .HasForeignKey(d => d.FacultyId)
                 .HasConstraintName("fk_dcp_faculty");
-
-            entity.HasOne(d => d.LevelTypeNavigation).WithMany(p => p.DisciplineChoicePeriods)
-                .HasForeignKey(d => d.LevelType)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("DisciplineChoicePeriod_Level");
-
-            entity.HasOne(d => d.PeriodTypeNavigation).WithMany(p => p.DisciplineChoicePeriods)
-                .HasForeignKey(d => d.PeriodType)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("DisciplineChoicePeriod_Type");
         });
 
         modelBuilder.Entity<EducationStatus>(entity =>
@@ -857,34 +840,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Message).HasMaxLength(1000);
             entity.Property(e => e.NotificationType).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(255);
-        });
-
-        modelBuilder.Entity<PeriodLevel>(entity =>
-        {
-            entity.HasKey(e => e.IdPeriodLevel).HasName("PRIMARY");
-
-            entity
-                .ToTable("PeriodLevel")
-                .UseCollation("utf8mb4_unicode_ci");
-
-            entity.Property(e => e.IdPeriodLevel)
-                .HasColumnType("int(11)")
-                .HasColumnName("idPeriodLevel");
-            entity.Property(e => e.LevelName).HasMaxLength(45);
-        });
-
-        modelBuilder.Entity<PeriodType>(entity =>
-        {
-            entity.HasKey(e => e.IdPeriodType).HasName("PRIMARY");
-
-            entity
-                .ToTable("PeriodType")
-                .UseCollation("utf8mb4_unicode_ci");
-
-            entity.Property(e => e.IdPeriodType)
-                .HasColumnType("int(11)")
-                .HasColumnName("idPeriodType");
-            entity.Property(e => e.TypeName).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Permission>(entity =>

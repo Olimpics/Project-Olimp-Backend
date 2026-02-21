@@ -243,9 +243,21 @@ namespace OlimpBack.MappingProfiles
             CreateMap<UpdateBindRolePermissionDto, BindRolePermission>();
 
             //DisciplineChoicePeriod
-            CreateMap<DisciplineChoicePeriod, DisciplineChoicePeriodDto>().ReverseMap();
+            CreateMap<DisciplineChoicePeriod, DisciplineChoicePeriodDto>()
+    .ForMember(
+        dest => dest.Id,
+        opt => opt.MapFrom(src => src.IdDisciplineChoicePeriod)
+    )
+    .ReverseMap()
+    .ForMember(
+        dest => dest.IdDisciplineChoicePeriod,
+        opt => opt.MapFrom(src => src.Id)
+    );
             CreateMap<CreateDisciplineChoicePeriodDto, DisciplineChoicePeriod>();
             CreateMap<UpdateDisciplineChoicePeriodDto, DisciplineChoicePeriod>();
+            CreateMap<UpdateDisciplineChoicePeriodAfterStartDto, DisciplineChoicePeriod>();
+            CreateMap<UpdateDisciplineChoicePeriodOpenOrCloseDto, DisciplineChoicePeriod>();
+
         }
 
     }

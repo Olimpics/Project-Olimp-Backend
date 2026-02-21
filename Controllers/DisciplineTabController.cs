@@ -173,35 +173,16 @@ namespace OlimpBack.Controllers
             var now = DateTime.UtcNow;
 
             var deadline = await _context.DisciplineChoicePeriods
-                .Where(p => p.LevelType == 3
-                            && p.DepartmentId == context.Student.DepartmentId
+                .Where(p => p.FacultyId == context.Student.FacultyId
+                            //&& p.DepartmentId == context.Student.DepartmentId
                             && p.StartDate <= now
                             && p.EndDate >= now)
                 .FirstOrDefaultAsync();
 
             if (deadline == null)
             {
-                deadline = await _context.DisciplineChoicePeriods
-                    .Where(p => p.LevelType == 2 
-                                && p.FacultyId == context.Student.FacultyId
-                                && p.StartDate <= now
-                                && p.EndDate >= now)
-                    .FirstOrDefaultAsync();
+                return BadRequest("The period for choosing a discipline is being confirmed or has not yet appeared");
             }
-
-            if (deadline == null)
-            {
-                deadline = await _context.DisciplineChoicePeriods
-                    .Where(p => p.LevelType == 1
-                                && p.StartDate <= now
-                                && p.EndDate >= now)
-                    .FirstOrDefaultAsync();
-            }
-
-            //if (deadline == null)
-            //{
-            //    return BadRequest("The period for choosing a discipline is being confirmed or has not yet appeared");
-            //}
 
             var disciplines = await _context.AddDisciplines
                 .Where(d => d.AddSemestr == (isEvenSemester ? (sbyte)0 : (sbyte)1))

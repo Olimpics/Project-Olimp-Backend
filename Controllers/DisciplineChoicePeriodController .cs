@@ -40,7 +40,28 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+        [HttpPut("UpdateAfterStart")]
+        public async Task<ActionResult> UpdateAfterStart(int id, [FromBody] UpdateDisciplineChoicePeriodAfterStartDto dto)
+        {
+            if (id != dto.Id) return BadRequest("ID mismatch");
+            var period = await _context.DisciplineChoicePeriods.FindAsync(id);
+            if (period == null) return NotFound();
 
+            _mapper.Map(dto, period);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        [HttpPut("OpenOrClose")]
+        public async Task<ActionResult> OpenOrClose(int id, [FromBody] UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
+        {
+            if (id != dto.Id) return BadRequest("ID mismatch");
+            var period = await _context.DisciplineChoicePeriods.FindAsync(id);
+            if (period == null) return NotFound();
+
+            _mapper.Map(dto, period);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -57,7 +78,8 @@ namespace OlimpBack.Controllers
             [FromQuery] int? facultyId,
             [FromQuery] int? departmentId,
             [FromQuery] int? periodType,
-            [FromQuery] int? levelType)
+            [FromQuery] int? IsClose,
+            [FromQuery] int? PeriodCourse)
         {
             var query = _context.DisciplineChoicePeriods.AsQueryable();
 
@@ -70,8 +92,11 @@ namespace OlimpBack.Controllers
             if (periodType.HasValue)
                 query = query.Where(p => p.PeriodType == periodType);
 
-            if (levelType.HasValue)
-                query = query.Where(p => p.LevelType == levelType);
+            if (IsClose.HasValue)
+                query = query.Where(p => p.IsClose == IsClose);
+
+            if (PeriodCourse.HasValue)
+                query = query.Where(p => p.PeriodCourse == PeriodCourse);
 
             var periods = await query
                 .OrderByDescending(p => p.StartDate)

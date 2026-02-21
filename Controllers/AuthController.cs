@@ -329,7 +329,7 @@ public class AuthController : ControllerBase
         if (!isPasswordValid)
             return BadRequest("Incorrect password");
 
-        if (user.IsFirstLogin)
+        if ((bool)user.IsFirstLogin)
             return StatusCode(StatusCodes.Status403Forbidden,
                 new { Message = "Password change required", RequirePasswordChange = true });
 
@@ -509,7 +509,7 @@ public class AuthController : ControllerBase
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (user == null) return NotFound("User not found.");
 
-        if (!user.IsFirstLogin)
+        if ((bool)!user.IsFirstLogin)
         {
             if (string.IsNullOrEmpty(dto.OldPassword))
                 return BadRequest("Old password is required.");
