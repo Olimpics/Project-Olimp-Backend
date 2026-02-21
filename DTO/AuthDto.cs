@@ -30,6 +30,7 @@ public class LoginResponseDto
     public int? UserId { get; set; }
     public int RoleId { get; set; }
     public string? Name { get; set; }
+    public int FacultyId { get; set; }
     public string? NameFaculty { get; set; }
     public string? Speciality { get; set; }
     public int? Course { get; set; }

@@ -26,6 +26,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
+                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.EducationalProgram.Speciality))
                 .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course))
