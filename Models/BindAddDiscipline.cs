@@ -19,6 +19,8 @@ public partial class BindAddDiscipline
 
     public int? Grade { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
     public virtual AddDiscipline AddDisciplines { get; set; } = null!;
 
     public virtual Student Student { get; set; } = null!;

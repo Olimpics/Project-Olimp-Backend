@@ -7,7 +7,9 @@ public partial class Normative
 {
     public int IdNormative { get; set; }
 
-    public string DegreeLevel { get; set; } = null!;
-
     public int Count { get; set; }
+
+    public sbyte IsFaculty { get; set; }
+
+    public int? DegreeLevelId { get; set; }
 }

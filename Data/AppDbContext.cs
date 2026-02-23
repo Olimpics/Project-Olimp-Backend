@@ -285,6 +285,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("int(11)")
                 .HasColumnName("idBindAddDisciplines");
             entity.Property(e => e.AddDisciplinesId).HasColumnType("int(11)");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("datetime");
             entity.Property(e => e.Grade).HasColumnType("int(11)");
             entity.Property(e => e.InProcess)
                 .HasColumnType("tinyint(4)")
@@ -792,7 +795,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("int(11)")
                 .HasColumnName("idNormative");
             entity.Property(e => e.Count).HasColumnType("int(11)");
-            entity.Property(e => e.DegreeLevel).HasMaxLength(100);
+            entity.Property(e => e.DegreeLevelId).HasColumnType("int(11)");
+            entity.Property(e => e.IsFaculty).HasColumnType("tinyint(2)");
         });
 
         modelBuilder.Entity<Notification>(entity =>
