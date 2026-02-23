@@ -7,9 +7,14 @@ public partial class DisciplineChoicePeriod
 {
     public int IdDisciplineChoicePeriod { get; set; }
 
+    /// <summary>
+    /// Для всіх = 0, Перевибір = 1
+    /// </summary>
     public sbyte PeriodType { get; set; }
 
     public sbyte PeriodCourse { get; set; }
+
+    public int DegreeLevelId { get; set; }
 
     public sbyte IsClose { get; set; }
 
@@ -20,6 +25,8 @@ public partial class DisciplineChoicePeriod
     public DateTime StartDate { get; set; }
 
     public DateTime EndDate { get; set; }
+
+    public virtual EducationalDegree DegreeLevel { get; set; } = null!;
 
     public virtual Department? Department { get; set; }
 

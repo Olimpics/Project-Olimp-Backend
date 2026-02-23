@@ -310,6 +310,182 @@ namespace OlimpBack.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Returns disciplines with name, teachers, department, credits, min/max/current count, and status
+        /// (Accepted = 100%+ of normative, Smartly Acquired = 80%+, Not Acquired = under 80%).
+        /// Current count = binds created since the last opened period for the discipline's faculty.
+        /// </summary>
+        [HttpGet("GetDisciplinesWithStatus")]
+        public async Task<ActionResult<object>> GetDisciplinesWithStatus(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 15,
+            [FromQuery] string? faculties = null,
+            [FromQuery] sbyte? isFaculty = null,
+            [FromQuery] int? statusFilter = null,
+            [FromQuery] int sortOrder = 0)
+        {
+            var query = _context.AddDisciplines
+                .Include(d => d.Faculty)
+                .Include(d => d.DegreeLevel)
+                .Include(d => d.AddDetail)
+                    .ThenInclude(a => a!.Department)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(faculties))
+            {
+                var facultyIds = faculties
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(f => int.TryParse(f.Trim(), out var id) ? id : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .ToList();
+                if (facultyIds.Any())
+                    query = query.Where(d => facultyIds.Contains(d.FacultyId));
+            }
+
+            if (isFaculty.HasValue)
+                query = query.Where(d => d.IsFaculty == isFaculty.Value);
+
+            var disciplines = await query.ToListAsync();
+
+            var facultyIdsInList = disciplines.Select(d => d.FacultyId).Distinct().ToList();
+            var lastPeriodByFaculty = await _context.DisciplineChoicePeriods
+                .Where(p => p.FacultyId != null && facultyIdsInList.Contains(p.FacultyId.Value))
+                .GroupBy(p => p.FacultyId!.Value)
+                .Select(g => new { FacultyId = g.Key, StartDate = g.Max(p => p.StartDate) })
+                .ToDictionaryAsync(x => x.FacultyId, x => x.StartDate);
+
+            var normativeByLevelAndFaculty = await _context.Normatives
+                .Where(n => n.DegreeLevelId != null)
+                .Select(n => new { n.DegreeLevelId, n.IsFaculty, n.Count })
+                .ToListAsync();
+            var normativeLookup = normativeByLevelAndFaculty
+                .GroupBy(n => (n.DegreeLevelId!.Value, n.IsFaculty))
+                .ToDictionary(g => g.Key, g => g.First().Count);
+
+            var disciplineIds = disciplines.Select(d => d.IdAddDisciplines).ToList();
+            var facultyByDiscipline = disciplines.ToDictionary(d => d.IdAddDisciplines, d => d.FacultyId);
+            var allBindsInScope = await _context.BindAddDisciplines
+                .Where(b => disciplineIds.Contains(b.AddDisciplinesId))
+                .Select(b => new { b.AddDisciplinesId, b.CreatedAt })
+                .ToListAsync();
+
+            var countByDiscipline = disciplineIds.ToDictionary(id => id, _ => 0);
+            foreach (var b in allBindsInScope)
+            {
+                if (facultyByDiscipline.TryGetValue(b.AddDisciplinesId, out var facultyId)
+                    && lastPeriodByFaculty.TryGetValue(facultyId, out var periodStart)
+                    && b.CreatedAt >= periodStart)
+                {
+                    countByDiscipline[b.AddDisciplinesId]++;
+                }
+            }
+
+            var fullList = new List<AdminDisciplineListItemDto>();
+            foreach (var d in disciplines)
+            {
+                var currentCount = countByDiscipline.TryGetValue(d.IdAddDisciplines, out var c) ? c : 0;
+                var normativeCount = d.DegreeLevelId.HasValue
+                    && normativeLookup.TryGetValue((d.DegreeLevelId.Value, d.IsFaculty), out var norm)
+                    ? norm
+                    : (int?)null;
+
+                string statusStr;
+                if (normativeCount == null || normativeCount == 0)
+                {
+                    statusStr = currentCount >= (d.MinCountPeople ?? 0) ? "Accepted" : "Not Acquired";
+                }
+                else
+                {
+                    var ratio = (double)currentCount / normativeCount;
+                    statusStr = ratio >= 1.0 ? "Accepted" : ratio >= 0.8 ? "Smartly Acquired" : "Not Acquired";
+                }
+
+                fullList.Add(new AdminDisciplineListItemDto
+                {
+                    IdAddDisciplines = d.IdAddDisciplines,
+                    NameAddDisciplines = d.NameAddDisciplines,
+                    Teachers = d.AddDetail?.Teachers,
+                    DepartmentName = d.AddDetail?.Department?.NameDepartment,
+                    Credits = 5,
+                    Normative = normativeCount,
+                    MaxCountPeople = d.MaxCountPeople,
+                    CurrentCount = currentCount,
+                    Status = statusStr,
+                    IsForceChange = d.IsForseChange,
+                    DegreeLevelId = d.DegreeLevelId,
+                    IsFaculty = d.IsFaculty,
+                    FacultyId = d.FacultyId,
+                    FacultyAbbreviation = d.Faculty?.Abbreviation
+                });
+            }
+
+            if (statusFilter.HasValue && statusFilter.Value >= 1 && statusFilter.Value <= 3)
+            {
+                var statusMap = new[] {"Empty", "Not Acquired", "Smartly Acquired", "Accepted" };
+                var filterStatus = statusMap[statusFilter.Value];
+                fullList = fullList.Where(x => x.Status == filterStatus).ToList();
+            }
+
+            fullList = sortOrder switch
+            {
+                1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
+                2 => fullList.OrderBy(d => d.CurrentCount).ToList(),
+                3 => fullList.OrderByDescending(d => d.CurrentCount).ToList(),
+                _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
+            };
+
+            var totalItems = fullList.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var paginated = fullList
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new
+            {
+                totalPages,
+                totalItems,
+                currentPage = page,
+                pageSize,
+                disciplines = paginated,
+                filters = new
+                {
+                    faculties = string.IsNullOrWhiteSpace(faculties) ? null : faculties.Split(',').Select(f => f.Trim()).ToList(),
+                    isFaculty,
+                    statusFilter,
+                    sortOrder
+                }
+            });
+        }
+
+        /// <summary>
+        /// Updates discipline status (Selected, Intellectually Selected, Not Selected). Sets IsForceChange to 1 for the discipline.
+        /// </summary>
+        [HttpPut("UpdateDisciplineStatus")]
+        public async Task<ActionResult<object>> UpdateDisciplineStatus(UpdateDisciplineStatusDto dto)
+        {
+            if (dto.Status < 1 || dto.Status > 3)
+                return BadRequest(new { error = "Status must be 1 (Not Selected), 2 (Intellectually Selected), or 3 (Selected)" });
+
+            var discipline = await _context.AddDisciplines.FindAsync(dto.DisciplineId);
+            if (discipline == null)
+                return NotFound(new { error = "Discipline not found" });
+
+            discipline.IsForseChange = 1;
+            discipline.TypeId = dto.Status;
+            await _context.SaveChangesAsync();
+
+            var statusNames = new[] { "Not Selected", "Intellectually Selected", "Selected" };
+            return Ok(new
+            {
+                message = "Discipline status updated",
+                disciplineId = discipline.IdAddDisciplines,
+                status = statusNames[dto.Status],
+                isForceChange = 1
+            });
+        }
+
         // --- Standard CRUD for bind (admin) ---
 
         [HttpGet("{id}")]

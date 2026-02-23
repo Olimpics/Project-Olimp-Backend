@@ -171,6 +171,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("codeAddDisciplines");
             entity.Property(e => e.DegreeLevelId).HasColumnType("int(11)");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
+            entity.Property(e => e.IsFaculty).HasColumnType("tinyint(4)");
+            entity.Property(e => e.IsForseChange).HasColumnType("tinyint(4)");
             entity.Property(e => e.MaxCountPeople)
                 .HasColumnType("int(11)")
                 .HasColumnName("maxCountPeople");
@@ -502,6 +504,8 @@ public partial class AppDbContext : DbContext
                 .ToTable("DisciplineChoicePeriod")
                 .UseCollation("utf8mb4_unicode_ci");
 
+            entity.HasIndex(e => e.DegreeLevelId, "fk_dcp_degreeLevel_idx");
+
             entity.HasIndex(e => e.DepartmentId, "fk_dcp_department");
 
             entity.HasIndex(e => e.FacultyId, "fk_dcp_faculty");
@@ -509,13 +513,21 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdDisciplineChoicePeriod)
                 .HasColumnType("int(11)")
                 .HasColumnName("idDisciplineChoicePeriod");
+            entity.Property(e => e.DegreeLevelId).HasColumnType("int(11)");
             entity.Property(e => e.DepartmentId).HasColumnType("int(11)");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
             entity.Property(e => e.IsClose).HasColumnType("tinyint(4)");
             entity.Property(e => e.PeriodCourse).HasColumnType("tinyint(4)");
-            entity.Property(e => e.PeriodType).HasColumnType("tinyint(4)");
+            entity.Property(e => e.PeriodType)
+                .HasComment("Для всіх = 0, Перевибір = 1")
+                .HasColumnType("tinyint(4)");
             entity.Property(e => e.StartDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.DegreeLevel).WithMany(p => p.DisciplineChoicePeriods)
+                .HasForeignKey(d => d.DegreeLevelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_dcp_degreeLevel");
 
             entity.HasOne(d => d.Department).WithMany(p => p.DisciplineChoicePeriods)
                 .HasForeignKey(d => d.DepartmentId)

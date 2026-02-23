@@ -11,6 +11,8 @@ public partial class AddDiscipline
 
     public string CodeAddDisciplines { get; set; } = null!;
 
+    public sbyte IsFaculty { get; set; }
+
     public int FacultyId { get; set; }
 
     public int? MinCountPeople { get; set; }
@@ -26,6 +28,8 @@ public partial class AddDiscipline
     public int? DegreeLevelId { get; set; }
 
     public int? TypeId { get; set; }
+
+    public sbyte IsForseChange { get; set; }
 
     public virtual AddDetail? AddDetail { get; set; }
 

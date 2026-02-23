@@ -53,4 +53,37 @@ namespace OlimpBack.DTO
         public int Semestr { get; set; }
         public int Loans { get; set; } = 5;
     }
+
+    /// <summary>
+    /// One discipline in admin list with availability and normative status.
+    /// </summary>
+    public class AdminDisciplineListItemDto
+    {
+        public int IdAddDisciplines { get; set; }
+        public string NameAddDisciplines { get; set; } = null!;
+        public string? Teachers { get; set; }
+        public string? DepartmentName { get; set; }
+        public int? Credits { get; set; }
+        /// <summary>Normative count from Normative table by DegreeLevelId and IsFaculty.</summary>
+        public int? Normative { get; set; }
+        public int? MaxCountPeople { get; set; }
+        public int CurrentCount { get; set; }
+        /// <summary>Accepted | Smartly Acquired | Not Acquired (or overridden by admin).</summary>
+        public string Status { get; set; } = null!;
+        public sbyte IsForceChange { get; set; }
+        public int? DegreeLevelId { get; set; }
+        public sbyte IsFaculty { get; set; }
+        public int FacultyId { get; set; }
+        public string? FacultyAbbreviation { get; set; }
+    }
+
+    /// <summary>
+    /// Request to set discipline status (admin override). Status: 0 = Not Selected, 1 = Intellectually Selected, 2 = Selected.
+    /// </summary>
+    public class UpdateDisciplineStatusDto
+    {
+        public int DisciplineId { get; set; }
+        /// <summary>0 = Not Selected, 1 = Intellectually Selected, 2 = Selected.</summary>
+        public int Status { get; set; }
+    }
 }

@@ -11,6 +11,8 @@ public partial class EducationalDegree
 
     public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
 
+    public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
+
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 
     public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
