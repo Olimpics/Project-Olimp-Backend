@@ -46,6 +46,7 @@ namespace OlimpBack.Controllers
             [FromQuery] string? faculties = null,
             [FromQuery] string? courses = null,
             [FromQuery] string? groups = null,
+            [FromQuery] string? degreeLevelIds = null,
             [FromQuery] int? selectionStatus = null,
             [FromQuery] int? confirmationStatus = null,
             [FromQuery] int sortOrder = 0,
@@ -55,6 +56,7 @@ namespace OlimpBack.Controllers
             var query = _context.Students
                 .Include(s => s.Faculty)
                 .Include(s => s.Group)
+                .Include(s => s.EducationalDegree)
                 .Include(s => s.EducationalProgram)
                 .Include(s => s.BindAddDisciplines)
                     .ThenInclude(b => b.AddDisciplines)
@@ -109,6 +111,19 @@ namespace OlimpBack.Controllers
                     .ToList();
                 if (groupIds.Any())
                     query = query.Where(s => groupIds.Contains(s.GroupId));
+            }
+
+            // Filter by degree level ids
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var levelIds = degreeLevelIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(d => int.TryParse(d.Trim(), out var id) ? id : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .ToList();
+                if (levelIds.Any())
+                    query = query.Where(s => levelIds.Contains(s.EducationalDegreeId));
             }
 
             // When isNew=1, restrict to students of the given faculty and get last period start for filtering binds
@@ -170,6 +185,8 @@ namespace OlimpBack.Controllers
                     Faculty = s.Faculty?.Abbreviation ?? s.Faculty?.NameFaculty ?? "",
                     Group = s.Group?.GroupCode ?? "",
                     Year = s.Course,
+                    DegreeLevelId = s.EducationalDegreeId,
+                    DegreeLevelName = s.EducationalDegree?.NameEducationalDegreec ?? "",
                     SelectedDisciplines = selected,
                     SelectionStatus = selectionOk ? 1 : 0,
                     ConfirmationStatus = confirmationOk ? 1 : 0
@@ -217,6 +234,7 @@ namespace OlimpBack.Controllers
                     faculties = string.IsNullOrWhiteSpace(faculties) ? null : faculties.Split(',').Select(f => f.Trim()).ToList(),
                     courses = string.IsNullOrWhiteSpace(courses) ? null : courses.Split(',').Select(c => c.Trim()).ToList(),
                     groups = string.IsNullOrWhiteSpace(groups) ? null : groups.Split(',').Select(g => g.Trim()).ToList(),
+                    degreeLevelIds = string.IsNullOrWhiteSpace(degreeLevelIds) ? null : degreeLevelIds.Split(',').Select(d => int.Parse(d.Trim())).ToList(),
                     selectionStatus,
                     confirmationStatus,
                     isNew,
@@ -321,6 +339,7 @@ namespace OlimpBack.Controllers
             [FromQuery] int pageSize = 15,
             [FromQuery] string? faculties = null,
             [FromQuery] sbyte? isFaculty = null,
+            [FromQuery] string? degreeLevelIds = null,
             [FromQuery] int? statusFilter = null,
             [FromQuery] int sortOrder = 0)
         {
@@ -345,6 +364,18 @@ namespace OlimpBack.Controllers
 
             if (isFaculty.HasValue)
                 query = query.Where(d => d.IsFaculty == isFaculty.Value);
+
+            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
+            {
+                var levelIds = degreeLevelIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(d => int.TryParse(d.Trim(), out var id) ? id : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .ToList();
+                if (levelIds.Any())
+                    query = query.Where(d => d.DegreeLevelId.HasValue && levelIds.Contains(d.DegreeLevelId.Value));
+            }
 
             var disciplines = await query.ToListAsync();
 
@@ -420,9 +451,9 @@ namespace OlimpBack.Controllers
                 });
             }
 
-            if (statusFilter.HasValue && statusFilter.Value >= 1 && statusFilter.Value <= 3)
+            if (statusFilter.HasValue && statusFilter.Value >= 1 && statusFilter.Value <= 4)
             {
-                var statusMap = new[] {"Empty", "Not Acquired", "Smartly Acquired", "Accepted" };
+                var statusMap = new[] {"Empty", "Not Acquired", "Smartly Acquired", "Accepted", "Collected"};
                 var filterStatus = statusMap[statusFilter.Value];
                 fullList = fullList.Where(x => x.Status == filterStatus).ToList();
             }
@@ -453,6 +484,7 @@ namespace OlimpBack.Controllers
                 {
                     faculties = string.IsNullOrWhiteSpace(faculties) ? null : faculties.Split(',').Select(f => f.Trim()).ToList(),
                     isFaculty,
+                    degreeLevelIds = string.IsNullOrWhiteSpace(degreeLevelIds) ? null : degreeLevelIds.Split(',').Select(d => int.Parse(d.Trim())).ToList(),
                     statusFilter,
                     sortOrder
                 }
@@ -465,8 +497,8 @@ namespace OlimpBack.Controllers
         [HttpPut("UpdateDisciplineStatus")]
         public async Task<ActionResult<object>> UpdateDisciplineStatus(UpdateDisciplineStatusDto dto)
         {
-            if (dto.Status < 1 || dto.Status > 3)
-                return BadRequest(new { error = "Status must be 1 (Not Selected), 2 (Intellectually Selected), or 3 (Selected)" });
+            if (dto.Status < 1 || dto.Status > 4)
+                return BadRequest(new { error = "Status must be 1 (Not Selected), 2 (Intellectually Selected), 3 (Selected) or 4 (Collected)" });
 
             var discipline = await _context.AddDisciplines.FindAsync(dto.DisciplineId);
             if (discipline == null)
@@ -476,7 +508,7 @@ namespace OlimpBack.Controllers
             discipline.TypeId = dto.Status;
             await _context.SaveChangesAsync();
 
-            var statusNames = new[] { "Not Selected", "Intellectually Selected", "Selected" };
+            var statusNames = new[] { "Empty", "Not Acquired", "Smartly Acquired", "Accepted", "Collected" };
             return Ok(new
             {
                 message = "Discipline status updated",

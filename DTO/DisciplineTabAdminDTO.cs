@@ -26,6 +26,8 @@ namespace OlimpBack.DTO
         public string Faculty { get; set; } = null!;
         public string Group { get; set; } = null!;
         public int Year { get; set; }
+        public int DegreeLevelId { get; set; }
+        public string DegreeLevelName { get; set; } = null!;
         public List<StudentSelectedDisciplineDto> SelectedDisciplines { get; set; } = new();
         /// <summary>0 = not all required for the semester selected, 1 = all selected.</summary>
         public int SelectionStatus { get; set; }
