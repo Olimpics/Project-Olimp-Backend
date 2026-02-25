@@ -80,12 +80,13 @@ namespace OlimpBack.DTO
     }
 
     /// <summary>
-    /// Request to set discipline status (admin override). Status: 0 = Not Selected, 1 = Intellectually Selected, 2 = Selected.
+    /// Request to set discipline status (admin override).
+    /// Status (DB ids): 1 = Not Selected, 2 = Intellectually Selected, 3 = Selected, 4 = Collected.
     /// </summary>
     public class UpdateDisciplineStatusDto
     {
         public int DisciplineId { get; set; }
-        /// <summary>0 = Not Selected, 1 = Intellectually Selected, 2 = Selected.</summary>
+        /// <summary>1 = Not Selected, 2 = Intellectually Selected, 3 = Selected, 4 = Collected.</summary>
         public int Status { get; set; }
     }
 }

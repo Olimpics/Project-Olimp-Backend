@@ -337,6 +337,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<object>> GetDisciplinesWithStatus(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 15,
+            [FromQuery] string? search = null,
             [FromQuery] string? faculties = null,
             [FromQuery] sbyte? isFaculty = null,
             [FromQuery] string? degreeLevelIds = null,
@@ -349,6 +350,15 @@ namespace OlimpBack.Controllers
                 .Include(d => d.AddDetail)
                     .ThenInclude(a => a!.Department)
                 .AsQueryable();
+
+            // Apply search filter (by name or code)
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(d =>
+                    EF.Functions.Like(d.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
+            }
 
             if (!string.IsNullOrWhiteSpace(faculties))
             {
@@ -482,9 +492,10 @@ namespace OlimpBack.Controllers
                 disciplines = paginated,
                 filters = new
                 {
-                    faculties = string.IsNullOrWhiteSpace(faculties) ? null : faculties.Split(',').Select(f => f.Trim()).ToList(),
+                    faculties = string.IsNullOrWhiteSpace(faculties) ? null : faculties.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).ToList(),
                     isFaculty,
-                    degreeLevelIds = string.IsNullOrWhiteSpace(degreeLevelIds) ? null : degreeLevelIds.Split(',').Select(d => int.Parse(d.Trim())).ToList(),
+                    degreeLevelIds = string.IsNullOrWhiteSpace(degreeLevelIds) ? null : degreeLevelIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(d => int.Parse(d.Trim())).ToList(),
+                    search = string.IsNullOrWhiteSpace(search) ? null : search,
                     statusFilter,
                     sortOrder
                 }
