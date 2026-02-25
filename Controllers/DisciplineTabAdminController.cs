@@ -347,6 +347,7 @@ namespace OlimpBack.Controllers
             var query = _context.AddDisciplines
                 .Include(d => d.Faculty)
                 .Include(d => d.DegreeLevel)
+                .Include(d => d.Type)
                 .Include(d => d.AddDetail)
                     .ThenInclude(a => a!.Department)
                 .AsQueryable();
@@ -431,16 +432,22 @@ namespace OlimpBack.Controllers
                     ? norm
                     : (int?)null;
 
+
                 string statusStr;
-                if (normativeCount == null || normativeCount == 0)
+
+                if(d.IsForseChange == 1)
                 {
-                    statusStr = currentCount >= (d.MinCountPeople ?? 0) ? "Accepted" : "Not Acquired";
+                    statusStr = d.Type?.TypeName ?? string.Empty;
                 }
-                else
-                {
-                    var ratio = (double)currentCount / normativeCount;
-                    statusStr = ratio >= 1.0 ? "Accepted" : ratio >= 0.8 ? "Smartly Acquired" : "Not Acquired";
-                }
+                else if (normativeCount == null || normativeCount == 0)
+                        {
+                            statusStr = currentCount >= (d.MinCountPeople ?? 0) ? "Accepted" : "Not Acquired";
+                        }
+                        else
+                        {
+                            var ratio = (double)currentCount / normativeCount;
+                            statusStr = ratio >= 1.0 ? "Accepted" : ratio >= 0.8 ? "Smartly Acquired" : "Not Acquired";
+                        }
 
                 fullList.Add(new AdminDisciplineListItemDto
                 {
