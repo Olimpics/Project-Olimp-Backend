@@ -130,7 +130,6 @@ namespace OlimpBack.Controllers
             DateTime? periodStart = null;
             if (isNew == 1 && facultyId > 0)
             {
-                query = query.Where(s => s.FacultyId == facultyId);
                 var lastPeriod = await _context.DisciplineChoicePeriods
                     .Where(p => p.FacultyId == facultyId)
                     .OrderByDescending(p => p.StartDate)

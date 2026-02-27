@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
@@ -77,6 +77,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll(
             [FromQuery] int? facultyId,
             [FromQuery] int? departmentId,
+            [FromQuery] int? degreeLevelId,
             [FromQuery] int? periodType,
             [FromQuery] int? IsClose,
             [FromQuery] int? PeriodCourse)
@@ -88,6 +89,9 @@ namespace OlimpBack.Controllers
 
             if (departmentId.HasValue)
                 query = query.Where(p => p.DepartmentId == departmentId);
+
+            if (degreeLevelId.HasValue)
+                query = query.Where(p => p.DegreeLevelId == degreeLevelId);
 
             if (periodType.HasValue)
                 query = query.Where(p => p.PeriodType == periodType);

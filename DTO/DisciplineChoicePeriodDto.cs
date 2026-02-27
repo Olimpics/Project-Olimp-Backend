@@ -1,10 +1,12 @@
-﻿namespace OlimpBack.DTO
+namespace OlimpBack.DTO
 {
     public class DisciplineChoicePeriodDto
     {
         public int Id { get; set; }
         public int PeriodType { get; set; }
         public int PeriodCourse { get; set; }
+        public int DegreeLevelId { get; set; }
+
         public int IsClose { get; set; }
         public int? FacultyId { get; set; }
         public int? DepartmentId { get; set; }
@@ -16,6 +18,7 @@
     {
         public int PeriodType { get; set; }
         public int PeriodCourse { get; set; }
+        public int DegreeLevelId { get; set; }
         public int IsClose { get; set; }
         public int? FacultyId { get; set; }
         public int? DepartmentId { get; set; }
@@ -28,6 +31,7 @@
         public int Id { get; set; }
         public int PeriodType { get; set; }
         public int PeriodCourse { get; set; }
+        public int DegreeLevelId { get; set; }
         public int IsClose { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

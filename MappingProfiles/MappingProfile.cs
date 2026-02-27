@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
 using OlimpBack.DTO;
@@ -254,8 +254,10 @@ namespace OlimpBack.MappingProfiles
         dest => dest.IdDisciplineChoicePeriod,
         opt => opt.MapFrom(src => src.Id)
     );
-            CreateMap<CreateDisciplineChoicePeriodDto, DisciplineChoicePeriod>();
-            CreateMap<UpdateDisciplineChoicePeriodDto, DisciplineChoicePeriod>();
+            CreateMap<CreateDisciplineChoicePeriodDto, DisciplineChoicePeriod>()
+                .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId));
+            CreateMap<UpdateDisciplineChoicePeriodDto, DisciplineChoicePeriod>()
+                .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId));
             CreateMap<UpdateDisciplineChoicePeriodAfterStartDto, DisciplineChoicePeriod>();
             CreateMap<UpdateDisciplineChoicePeriodOpenOrCloseDto, DisciplineChoicePeriod>();
 
