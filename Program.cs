@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -9,6 +9,7 @@ using OlimpBack.Utils;
 using System.Configuration;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
 
 Environment.SetEnvironmentVariable(
@@ -118,32 +119,76 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
+        // 1️⃣ Ошибка аутентификации (битый / просроченный токен)
         OnAuthenticationFailed = context =>
         {
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError($"Authentication failed: {context.Exception}");
-            
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+
+            logger.LogError(context.Exception, "Authentication failed");
+
+            if (context.Exception is SecurityTokenExpiredException)
             {
                 context.Response.Headers.Add("Token-Expired", "true");
-                context.Response.StatusCode = 401;
             }
-            else
-            {
-                context.Response.StatusCode = 401;
-            }
+
             return Task.CompletedTask;
         },
-        OnChallenge = context =>
+
+        // 2️⃣ Нет токена или он невалиден → 401
+        OnChallenge = async context =>
         {
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogWarning($"Authentication challenge: {context.Error}, {context.ErrorDescription}");
-            return Task.CompletedTask;
+            // ❗ ОБЯЗАТЕЛЬНО
+            context.HandleResponse();
+
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+
+            logger.LogWarning(
+                "Authentication challenge: {Error} {Description}",
+                context.Error,
+                context.ErrorDescription
+            );
+
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+
+            var response = new
+            {
+                code = "unauthorized",
+                message = "Access denied"
+            };
+
+            await context.Response.WriteAsync(
+                JsonSerializer.Serialize(response)
+            );
         },
+
+        // 3️⃣ Токен валиден, но нет прав → 403
+        OnForbidden = async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+
+            var response = new
+            {
+                code = "forbidden",
+                message = "Insufficient rights"
+            };
+
+            await context.Response.WriteAsync(
+                JsonSerializer.Serialize(response)
+            );
+        },
+
+        // 4️⃣ Успешная проверка токена
         OnTokenValidated = context =>
         {
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+
             logger.LogInformation("Token validated successfully");
+
             return Task.CompletedTask;
         }
     };
@@ -152,6 +197,10 @@ builder.Services.AddAuthentication(options =>
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
+
+// Discipline tab services
+builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();
+builder.Services.AddScoped<IDisciplineTabService, DisciplineTabService>();
 
 // Authorization
 builder.Services.AddAuthorization();
@@ -190,10 +239,11 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRouting();
+
 app.MapControllers();
 
 app.Run();
-

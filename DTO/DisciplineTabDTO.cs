@@ -103,4 +103,30 @@ namespace OlimpBack.DTO
         public bool? IsEvenSemester { get; set; }
         public List<int>? DegreeLevelIds { get; set; }
     }
+
+    /// <summary>
+    /// Query parameters for GetAllDisciplinesWithAvailability.
+    /// </summary>
+    public class GetAllDisciplinesWithAvailabilityQueryDto
+    {
+        public int StudentId { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 50;
+        public bool OnlyAvailable { get; set; } = false;
+        public string? Search { get; set; }
+        public string? Faculties { get; set; }
+        public string? Courses { get; set; }
+        public bool? IsEvenSemester { get; set; }
+        public string? DegreeLevelIds { get; set; }
+        public int SortOrder { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// Query parameters for GetDisciplinesBySemester.
+    /// </summary>
+    public class GetDisciplinesBySemesterQueryDto
+    {
+        public int StudentId { get; set; }
+        public bool IsEvenSemester { get; set; }
+    }
 }

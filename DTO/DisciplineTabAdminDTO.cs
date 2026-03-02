@@ -89,4 +89,38 @@ namespace OlimpBack.DTO
         /// <summary>1 = Not Selected, 2 = Intellectually Selected, 3 = Selected, 4 = Collected.</summary>
         public int Status { get; set; }
     }
+
+    /// <summary>
+    /// Query parameters for GetStudentsWithDisciplineChoices.
+    /// </summary>
+    public class GetStudentsWithDisciplineChoicesQueryDto
+    {
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 15;
+        public string? Search { get; set; }
+        public string? Faculties { get; set; }
+        public string? Courses { get; set; }
+        public string? Groups { get; set; }
+        public string? DegreeLevelIds { get; set; }
+        public int? SelectionStatus { get; set; }
+        public int? ConfirmationStatus { get; set; }
+        public int SortOrder { get; set; } = 0;
+        public int IsNew { get; set; } = 1;
+        public int FacultyId { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// Query parameters for GetDisciplinesWithStatus.
+    /// </summary>
+    public class GetDisciplinesWithStatusQueryDto
+    {
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 15;
+        public string? Search { get; set; }
+        public string? Faculties { get; set; }
+        public sbyte? IsFaculty { get; set; }
+        public string? DegreeLevelIds { get; set; }
+        public int? StatusFilter { get; set; }
+        public int SortOrder { get; set; } = 0;
+    }
 }

@@ -49,4 +49,16 @@ namespace OlimpBack.DTO
         public int IsClose { get; set; }
     }
 
+    /// <summary>
+    /// Query parameters for DisciplineChoicePeriod GetAll.
+    /// </summary>
+    public class GetDisciplineChoicePeriodsQueryDto
+    {
+        public int? FacultyId { get; set; }
+        public int? DepartmentId { get; set; }
+        public int? DegreeLevelId { get; set; }
+        public int? PeriodType { get; set; }
+        public int? IsClose { get; set; }
+        public int? PeriodCourse { get; set; }
+    }
 }

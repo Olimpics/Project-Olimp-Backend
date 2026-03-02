@@ -75,32 +75,27 @@ namespace OlimpBack.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll(
-            [FromQuery] int? facultyId,
-            [FromQuery] int? departmentId,
-            [FromQuery] int? degreeLevelId,
-            [FromQuery] int? periodType,
-            [FromQuery] int? IsClose,
-            [FromQuery] int? PeriodCourse)
+            [FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
         {
             var query = _context.DisciplineChoicePeriods.AsQueryable();
 
-            if (facultyId.HasValue)
-                query = query.Where(p => p.FacultyId == facultyId);
+            if (queryDto.FacultyId.HasValue)
+                query = query.Where(p => p.FacultyId == queryDto.FacultyId);
 
-            if (departmentId.HasValue)
-                query = query.Where(p => p.DepartmentId == departmentId);
+            if (queryDto.DepartmentId.HasValue)
+                query = query.Where(p => p.DepartmentId == queryDto.DepartmentId);
 
-            if (degreeLevelId.HasValue)
-                query = query.Where(p => p.DegreeLevelId == degreeLevelId);
+            if (queryDto.DegreeLevelId.HasValue)
+                query = query.Where(p => p.DegreeLevelId == queryDto.DegreeLevelId);
 
-            if (periodType.HasValue)
-                query = query.Where(p => p.PeriodType == periodType);
+            if (queryDto.PeriodType.HasValue)
+                query = query.Where(p => p.PeriodType == queryDto.PeriodType);
 
-            if (IsClose.HasValue)
-                query = query.Where(p => p.IsClose == IsClose);
+            if (queryDto.IsClose.HasValue)
+                query = query.Where(p => p.IsClose == queryDto.IsClose);
 
-            if (PeriodCourse.HasValue)
-                query = query.Where(p => p.PeriodCourse == PeriodCourse);
+            if (queryDto.PeriodCourse.HasValue)
+                query = query.Where(p => p.PeriodCourse == queryDto.PeriodCourse);
 
             var periods = await query
                 .OrderByDescending(p => p.StartDate)
