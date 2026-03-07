@@ -803,12 +803,18 @@ public partial class AppDbContext : DbContext
                 .ToTable("Normative")
                 .UseCollation("utf8mb4_unicode_ci");
 
+            entity.HasIndex(e => e.DegreeLevelId, "Normative_Degree_idx");
+
             entity.Property(e => e.IdNormative)
                 .HasColumnType("int(11)")
                 .HasColumnName("idNormative");
             entity.Property(e => e.Count).HasColumnType("int(11)");
             entity.Property(e => e.DegreeLevelId).HasColumnType("int(11)");
             entity.Property(e => e.IsFaculty).HasColumnType("tinyint(2)");
+
+            entity.HasOne(d => d.DegreeLevel).WithMany(p => p.Normatives)
+                .HasForeignKey(d => d.DegreeLevelId)
+                .HasConstraintName("Normative_Degree");
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -944,7 +950,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.DepartmentId, "Students_Department_idx");
 
-            entity.HasIndex(e => e.StatusId, "Students_EducationStatus_idx");
+            entity.HasIndex(e => e.EducationStatusId, "Students_EducationStatus_idx");
 
             entity.HasIndex(e => e.EducationalDegreeId, "Students_EducationalDegree_idx");
 
@@ -966,6 +972,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Achievement).HasColumnType("json");
             entity.Property(e => e.Course).HasColumnType("int(11)");
             entity.Property(e => e.DepartmentId).HasColumnType("int(11)");
+            entity.Property(e => e.EducationStatusId).HasColumnType("int(11)");
             entity.Property(e => e.EducationalDegreeId).HasColumnType("int(11)");
             entity.Property(e => e.EducationalProgramId).HasColumnType("int(11)");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
@@ -976,9 +983,13 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("nameStudent");
             entity.Property(e => e.Photo).HasColumnType("blob");
-            entity.Property(e => e.StatusId).HasColumnType("int(11)");
             entity.Property(e => e.StudyFormId).HasColumnType("int(11)");
             entity.Property(e => e.UserId).HasColumnType("int(11)");
+
+            entity.HasOne(d => d.EducationStatus).WithMany(p => p.Students)
+                .HasForeignKey(d => d.EducationStatusId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Students_EducationStatus");
 
             entity.HasOne(d => d.EducationalDegree).WithMany(p => p.Students)
                 .HasForeignKey(d => d.EducationalDegreeId)
@@ -999,11 +1010,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.GroupId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Students_Group");
-
-            entity.HasOne(d => d.Status).WithMany(p => p.Students)
-                .HasForeignKey(d => d.StatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Students_EducationStatus");
 
             entity.HasOne(d => d.StudyForm).WithMany(p => p.Students)
                 .HasForeignKey(d => d.StudyFormId)

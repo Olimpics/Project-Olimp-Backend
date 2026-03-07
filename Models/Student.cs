@@ -11,7 +11,7 @@ public partial class Student
 
     public string NameStudent { get; set; } = null!;
 
-    public int StatusId { get; set; }
+    public int EducationStatusId { get; set; }
 
     public DateOnly EducationStart { get; set; }
 
@@ -45,6 +45,8 @@ public partial class Student
 
     public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 
+    public virtual EducationStatus EducationStatus { get; set; } = null!;
+
     public virtual EducationalDegree EducationalDegree { get; set; } = null!;
 
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
@@ -56,8 +58,6 @@ public partial class Student
     public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
 
     public virtual ICollection<Member> Members { get; set; } = new List<Member>();
-
-    public virtual EducationStatus Status { get; set; } = null!;
 
     public virtual StudyForm StudyForm { get; set; } = null!;
 

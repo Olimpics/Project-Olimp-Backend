@@ -12,4 +12,6 @@ public partial class Normative
     public sbyte IsFaculty { get; set; }
 
     public int? DegreeLevelId { get; set; }
+
+    public virtual EducationalDegree? DegreeLevel { get; set; }
 }

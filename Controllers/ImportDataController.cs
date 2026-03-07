@@ -63,7 +63,7 @@ namespace OlimpBack.Controllers
                     {
                         // Only update non-null fields
                         if (dto.NameStudent != null) student.NameStudent = dto.NameStudent;
-                        if (dto.StatusId != 0) student.StatusId = dto.StatusId;
+                        if (dto.StatusId != 0) student.EducationStatusId = dto.StatusId;
                         if (dto.EducationStart != default) student.EducationStart = dto.EducationStart;
                         if (dto.EducationEnd != default) student.EducationEnd = dto.EducationEnd;
                         if (dto.Course != 0) student.Course = dto.Course;

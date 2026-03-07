@@ -38,7 +38,7 @@ namespace OlimpBack.Controllers
             [FromQuery] int sortOrder = 0)
         {
             var query = _context.Students
-                .Include(s => s.Status)
+                .Include(s => s.EducationStatusId)
                 .Include(s => s.Faculty)
                 .Include(s => s.EducationalProgram)
                 .Include(s => s.EducationalDegree)
