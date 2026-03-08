@@ -158,16 +158,6 @@ namespace OlimpBack.Controllers
 
             return NoContent();
         }
-
-        private async Task<DepartmentDto> GetDepartmentWithIncludes(int id)
-        {
-            var department = await _context.Departments
-                .Include(d => d.Faculty)
-                .FirstOrDefaultAsync(d => d.IdDepartment == id);
-
-            return _mapper.Map<DepartmentDto>(department);
-        }
-
         private bool DepartmentExists(int id)
         {
             return _context.Departments.Any(d => d.IdDepartment == id);

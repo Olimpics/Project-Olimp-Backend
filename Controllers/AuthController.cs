@@ -318,61 +318,6 @@ public class AuthController : ControllerBase
         return Ok(dbResponse);
     }
 
-    [Authorize]
-    [HttpGet("AuthChecker")]
-    public async Task<ActionResult<LoginResponseDto>> GetCurrentUser()
-    {
-        _logger.LogInformation("GetCurrentUser endpoint called");
-
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            _logger.LogWarning("No user ID found in token");
-            return Unauthorized("No user ID found in token");
-        }
-
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            _logger.LogWarning("Invalid user ID in token: {UserId}", userIdClaim);
-            return Unauthorized("Invalid user ID in token");
-        }
-
-        var (response, permissions, statusCode, errorPayload) =
-            await _authAppService.GetCurrentUserAsync(userId);
-
-        if (statusCode.HasValue)
-        {
-            _logger.LogWarning("GetCurrentUser failed for ID {UserId} with status {StatusCode}", userId, statusCode);
-            return StatusCode(statusCode.Value, errorPayload);
-        }
-
-        if (response is null || permissions is null)
-        {
-            _logger.LogError("Auth service returned an unexpected null result for user {UserId}", userId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Failed to get current user.");
-        }
-
-        // Set secure HTTP-only cookies
-        var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
-            Path = "/"
-        };
-
-        // Set user info cookie
-        Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(response), cookieOptions);
-
-        // Set permissions cookie
-        Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
-
-        _logger.LogInformation("Returning user data for {UserId}", userId);
-        return Ok(response);
-    }
-
 
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
