@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -197,6 +197,9 @@ builder.Services.AddAuthentication(options =>
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
+
+// Auth services
+builder.Services.AddScoped<IAuthAppService, AuthAppService>();
 
 // Discipline tab services
 builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();

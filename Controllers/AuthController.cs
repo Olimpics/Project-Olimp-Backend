@@ -1,11 +1,7 @@
-﻿using AutoMapper;
-using BCrypt.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Data;
 using OlimpBack.DTO;
-using OlimpBack.Models;
+using OlimpBack.Services;
 using OlimpBack.Utils;
 using System.Security.Claims;
 using System.Text.Json;
@@ -16,46 +12,27 @@ namespace OlimpBack.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
     private readonly JwtService _jwtService;
     private readonly IConfiguration _configuration;
-    private readonly IMapper _mapper;
+    private readonly IAuthAppService _authAppService;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
-        AppDbContext context,
         JwtService jwtService,
         IConfiguration configuration,
-        IMapper mapper,
+        IAuthAppService authAppService,
         ILogger<AuthController> logger)
     {
-        _context = context;
         _jwtService = jwtService;
         _configuration = configuration;
-        _mapper = mapper;
+        _authAppService = authAppService;
         _logger = logger;
     }
 
     [HttpGet("permissions/{roleId}")]
     public async Task<ActionResult<Dictionary<string, List<string>>>> GetPermissionsByRoleId(int roleId)
     {
-        var permissions = await _context.BindRolePermissions
-            .Include(b => b.Permission)
-            .Where(b => b.RoleId == roleId)
-            .Select(b => new PermissionDto
-            {
-                TypePermission = b.Permission.TypePermission,
-                TableName = b.Permission.TableName
-            })
-            .ToListAsync();
-
-        var groupedPermissions = permissions
-            .GroupBy(p => p.TypePermission)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(p => p.TableName).ToList()
-            );
-
+        var groupedPermissions = await _authAppService.GetPermissionsByRoleAsync(roleId);
         return Ok(groupedPermissions);
     }
 
@@ -261,7 +238,7 @@ public class AuthController : ControllerBase
 
             // ====== TOKEN ======
             var token = _jwtService.GenerateToken(
-                response.UserId.ToString(),
+                response.UserId?.ToString() ?? string.Empty,
                 model.Email,
                 response.RoleId == 2 ? "Administrator" : "Student"
             );
@@ -297,86 +274,25 @@ public class AuthController : ControllerBase
             return Ok(response);
         }
 
-        // ============================================================
-        // 🔹 REAL AUTHORIZATION (через БД) — ТВОЙ КОД
-        // ============================================================
+        var (dbResponse, permissionsDb, roleName, statusCode, errorPayload) =
+            await _authAppService.AuthorizeWithDatabaseAsync(model);
 
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == model.Email);
-
-        if (user == null)
+        if (statusCode.HasValue)
         {
-            _logger.LogWarning($"Login failed: User not found for email {model.Email}");
-            return NotFound("This user doesn't exist");
+            _logger.LogWarning("Authorization failed for {Email} with status {StatusCode}", model.Email, statusCode);
+            return StatusCode(statusCode.Value, errorPayload);
         }
 
-        bool isPasswordValid;
-
-        if (user.PasswordHash?.Length > 0 && user.PasswordSalt?.Length > 0)
+        if (dbResponse is null || permissionsDb is null || string.IsNullOrEmpty(roleName))
         {
-            isPasswordValid = PasswordHelper.VerifyPassword(
-                model.Password,
-                user.PasswordHash,
-                user.PasswordSalt
-            );
+            _logger.LogError("Authorization service returned an unexpected null result for {Email}", model.Email);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Authorization failed.");
         }
-        else
-        {
-            return BadRequest("User has no password set. Please reset password.");
-        }
-
-        if (!isPasswordValid)
-            return BadRequest("Incorrect password");
-
-        if ((bool)user.IsFirstLogin)
-            return StatusCode(StatusCodes.Status403Forbidden,
-                new { Message = "Password change required", RequirePasswordChange = true });
-
-        var permissionsDb = await _context.BindRolePermissions
-            .Include(b => b.Permission)
-            .Where(b => b.RoleId == user.RoleId)
-            .Select(b => new PermissionDto
-            {
-                TypePermission = b.Permission.TypePermission,
-                TableName = b.Permission.TableName
-            })
-            .ToListAsync();
-
-        LoginResponseWithTokenDto dbResponse;
-
-        if (user.Role.IdRole > 1)
-        {
-            var admin = await _context.AdminsPersonals
-                .Include(a => a.Faculty)
-                .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
-
-            if (admin == null)
-                return NotFound("Admin profile not found");
-
-            dbResponse = _mapper.Map<LoginResponseWithTokenDto>(admin);
-        }
-        else
-        {
-            var student = await _context.Students
-                .Include(s => s.Faculty)
-                .Include(s => s.EducationalProgram)
-                .Include(s => s.EducationalDegree)
-                .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
-
-            if (student == null)
-                return NotFound("Student not found");
-
-            dbResponse = _mapper.Map<LoginResponseWithTokenDto>(student);
-        }
-
-        user.LastLoginAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
 
         var jwt = _jwtService.GenerateToken(
-            user.IdUsers.ToString(),
-            user.Email,
-            user.Role.NameRole
+            dbResponse.UserId?.ToString() ?? string.Empty,
+            model.Email,
+            roleName
         );
 
         dbResponse.Token = jwt;
@@ -408,65 +324,32 @@ public class AuthController : ControllerBase
     {
         _logger.LogInformation("GetCurrentUser endpoint called");
 
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
         {
             _logger.LogWarning("No user ID found in token");
             return Unauthorized("No user ID found in token");
         }
 
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.IdUsers.ToString() == userId);
-
-        if (user == null)
+        if (!int.TryParse(userIdClaim, out var userId))
         {
-            _logger.LogWarning($"User not found for ID: {userId}");
-            return NotFound("User not found");
+            _logger.LogWarning("Invalid user ID in token: {UserId}", userIdClaim);
+            return Unauthorized("Invalid user ID in token");
         }
 
-        // Get user's permissions
-        var permissions = await _context.BindRolePermissions
-            .Include(b => b.Permission)
-            .Where(b => b.RoleId == user.RoleId)
-            .Select(b => new PermissionDto
-            {
-                TypePermission = b.Permission.TypePermission,
-                TableName = b.Permission.TableName
-            })
-            .ToListAsync();
+        var (response, permissions, statusCode, errorPayload) =
+            await _authAppService.GetCurrentUserAsync(userId);
 
-        LoginResponseDto response;
-
-        if (user.Role.IdRole > 1)
+        if (statusCode.HasValue)
         {
-            var admin = await _context.AdminsPersonals
-                .Include(a => a.Faculty)
-                .FirstOrDefaultAsync(a => a.UserId == user.IdUsers);
-
-            if (admin == null)
-            {
-                _logger.LogWarning($"Admin profile not found for user {user.Email}");
-                return NotFound("Admin profile not found");
-            }
-
-            response = _mapper.Map<LoginResponseDto>(admin);
+            _logger.LogWarning("GetCurrentUser failed for ID {UserId} with status {StatusCode}", userId, statusCode);
+            return StatusCode(statusCode.Value, errorPayload);
         }
-        else
+
+        if (response is null || permissions is null)
         {
-            var student = await _context.Students
-                .Include(s => s.Faculty)
-                .Include(s => s.EducationalProgram)
-                .Include(s => s.EducationalDegree)
-                .FirstOrDefaultAsync(s => s.UserId == user.IdUsers);
-
-            if (student == null)
-            {
-                _logger.LogWarning($"Student profile not found for user {user.Email}");
-                return NotFound("This student doesn't exist");
-            }
-
-            response = _mapper.Map<LoginResponseDto>(student);
+            _logger.LogError("Auth service returned an unexpected null result for user {UserId}", userId);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Failed to get current user.");
         }
 
         // Set secure HTTP-only cookies
@@ -481,21 +364,12 @@ public class AuthController : ControllerBase
         };
 
         // Set user info cookie
-        var userInfo = new
-        {
-            response.Id,
-            response.UserId,
-            response.RoleId,
-            response.Name,
-            response.NameFaculty,
-            response.DegreeLevel
-        };
-        Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(userInfo), cookieOptions);
+        Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(response), cookieOptions);
 
         // Set permissions cookie
         Response.Cookies.Append("UserPermissions", JsonSerializer.Serialize(permissions), cookieOptions);
 
-        _logger.LogInformation($"Returning user data for {user.Email}");
+        _logger.LogInformation("Returning user data for {UserId}", userId);
         return Ok(response);
     }
 
@@ -503,33 +377,16 @@ public class AuthController : ControllerBase
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
     {
-        if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.NewPassword))
-            return BadRequest("Email and new password are required.");
+        var (success, statusCode, message) = await _authAppService.ChangePasswordAsync(dto);
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
-        if (user == null) return NotFound("User not found.");
-
-        if ((bool)!user.IsFirstLogin)
+        if (!success)
         {
-            if (string.IsNullOrEmpty(dto.OldPassword))
-                return BadRequest("Old password is required.");
-
-            if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.PasswordHash, user.PasswordSalt))
-                return BadRequest("Old password incorrect.");
+            _logger.LogWarning("Password change failed for {Email}: {Message}", dto.Email, message);
+            return StatusCode(statusCode, message);
         }
-        var (isValid, error) = PasswordHelper.ValidatePasswordPolicy(dto.NewPassword);
-        if (!isValid) return BadRequest(error);
 
-        PasswordHelper.CreatePasswordHash(dto.NewPassword, out var newHash, out var newSalt);
-        user.PasswordHash = newHash;
-        user.PasswordSalt = newSalt;
-        user.IsFirstLogin = false;
-        user.PasswordChangedAt = DateTime.UtcNow;
+        _logger.LogInformation("Password changed for user {Email}", dto.Email);
 
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation($"Password changed for user {dto.Email}");
-
-        return Ok(new { Message = "Password changed successfully." });
+        return Ok(new { Message = message });
     }
 }
