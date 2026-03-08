@@ -75,29 +75,17 @@ namespace OlimpBack.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll(
-            [FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
+     [FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
         {
-            var query = _context.DisciplineChoicePeriods.AsQueryable();
-
-            if (queryDto.FacultyId.HasValue)
-                query = query.Where(p => p.FacultyId == queryDto.FacultyId);
-
-            if (queryDto.DepartmentId.HasValue)
-                query = query.Where(p => p.DepartmentId == queryDto.DepartmentId);
-
-            if (queryDto.DegreeLevelId.HasValue)
-                query = query.Where(p => p.DegreeLevelId == queryDto.DegreeLevelId);
-
-            if (queryDto.PeriodType.HasValue)
-                query = query.Where(p => p.PeriodType == queryDto.PeriodType);
-
-            if (queryDto.IsClose.HasValue)
-                query = query.Where(p => p.IsClose == queryDto.IsClose);
-
-            if (queryDto.PeriodCourse.HasValue)
-                query = query.Where(p => p.PeriodCourse == queryDto.PeriodCourse);
-
-            var periods = await query
+            var periods = await _context.DisciplineChoicePeriods
+                .Where(p =>
+                    (!queryDto.FacultyId.HasValue || p.FacultyId == queryDto.FacultyId) &&
+                    (!queryDto.DepartmentId.HasValue || p.DepartmentId == queryDto.DepartmentId) &&
+                    (!queryDto.DegreeLevelId.HasValue || p.DegreeLevelId == queryDto.DegreeLevelId) &&
+                    (!queryDto.PeriodType.HasValue || p.PeriodType == queryDto.PeriodType) &&
+                    (!queryDto.IsClose.HasValue || p.IsClose == queryDto.IsClose) &&
+                    (!queryDto.PeriodCourse.HasValue || p.PeriodCourse == queryDto.PeriodCourse)
+                )
                 .OrderByDescending(p => p.StartDate)
                 .ToListAsync();
 
