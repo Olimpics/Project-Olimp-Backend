@@ -22,15 +22,6 @@ namespace OlimpBack.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<BindMainDisciplineDto>>> GetBindMainDisciplines()
-        {
-            var entities = await _context.BindMainDisciplines
-                .Include(bmd => bmd.EducationalProgram)
-                .ToListAsync();
-
-            return Ok(_mapper.Map<IEnumerable<BindMainDisciplineDto>>(entities));
-        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<BindMainDisciplineDto>> GetBindMainDiscipline(int id)
