@@ -216,7 +216,6 @@ namespace OlimpBack.MappingProfiles
                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
             CreateMap<CreateAddDetailDto, AddDetail>()
                 .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
-            CreateMap<UpdateAddDetailDto, AddDetail>();
 
             //Notification
              CreateMap<Notification, NotificationDto>()

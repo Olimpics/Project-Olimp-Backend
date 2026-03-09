@@ -34,8 +34,4 @@ namespace OlimpBack.DTO
         public string TypeOfControll { get; set; } = null!;
     }
 
-    public class UpdateAddDetailDto : CreateAddDetailDto
-    {
-        public int IdAddDetails { get; set; }
-    }
 } 
