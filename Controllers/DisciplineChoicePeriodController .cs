@@ -65,7 +65,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll(
-                [FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
+     [FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
         {
             var periods = await _context.DisciplineChoicePeriods
                 .Where(p =>
