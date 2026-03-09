@@ -85,7 +85,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.11-mariadb"));
+        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.14-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -479,7 +479,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("int(11)")
                 .HasColumnName("idDepartment");
             entity.Property(e => e.Abbreviation).HasMaxLength(200);
-            entity.Property(e => e.AdminId).HasColumnType("int(11)");
+            entity.Property(e => e.AdminId)
+                .HasDefaultValueSql("'1'")
+                .HasColumnType("int(11)");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
             entity.Property(e => e.Metadata).HasColumnType("json");
             entity.Property(e => e.NameDepartment)
@@ -916,6 +918,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdRole)
                 .HasColumnType("int(11)")
                 .HasColumnName("idRole");
+            entity.Property(e => e.Description)
+                .HasMaxLength(300)
+                .HasColumnName("description");
+            entity.Property(e => e.IsSystem)
+                .HasDefaultValueSql("'0'")
+                .HasColumnType("tinyint(4)");
             entity.Property(e => e.NameRole)
                 .HasMaxLength(45)
                 .HasColumnName("nameRole");
