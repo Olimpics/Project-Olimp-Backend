@@ -122,6 +122,7 @@ public class DisciplineTabService : IDisciplineTabService
         };
     }
 
+
     public async Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto)
     {
         var context = await DisciplineAvailabilityService.BuildAvailabilityContext(dto.StudentId, _context);

@@ -1,8 +1,7 @@
 namespace OlimpBack.DTO
 {
-    public class AddDetailDto
+    public class AddDetailDto : AddDisciplineDto
     {
-        public int IdAddDetails { get; set; }
         public int DepartmentId { get; set; }
         public string DepartmentName { get; set; } = null!;
         public string? Teacher { get; set; }
