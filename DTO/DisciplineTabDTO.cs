@@ -54,7 +54,8 @@ namespace OlimpBack.DTO
     {
         public int StudentId { get; set; }
         public int DisciplineId { get; set; }
-        public int Semester { get; set; }
+        public int Semestr { get; set; }
+        public int Loans { get; set; }
     }
 
     public class DisciplineAvailabilityContext

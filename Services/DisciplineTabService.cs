@@ -122,57 +122,17 @@ public class DisciplineTabService : IDisciplineTabService
         };
     }
 
-    public async Task<(object? result, string? error)> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto)
-    {
-        var context = await DisciplineAvailabilityService.BuildAvailabilityContext(queryDto.StudentId, _context);
-        if (context == null)
-            return (null, "StudentNotFound");
-
-        var now = DateTime.UtcNow;
-        var deadline = await _context.DisciplineChoicePeriods
-            .Where(p => p.FacultyId == context.Student.FacultyId
-                && p.StartDate <= now
-                && p.EndDate >= now)
-            .FirstOrDefaultAsync();
-
-        if (deadline == null)
-            return (null, "PeriodNotConfirmed");
-
-        var disciplines = await _context.AddDisciplines
-            .Where(d => d.AddSemestr == (queryDto.IsEvenSemester ? (sbyte)0 : (sbyte)1))
-            .ToListAsync();
-
-        var availableDisciplines = disciplines
-            .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
-            .Select(d => new SimpleDisciplineDto
-            {
-                IdAddDisciplines = d.IdAddDisciplines,
-                NameAddDisciplines = d.NameAddDisciplines,
-                CodeAddDisciplines = d.CodeAddDisciplines
-            })
-            .ToList();
-
-        return (new DisciplineTabResponseDto
-        {
-            StudentId = context.Student.IdStudent,
-            StudentName = context.Student.NameStudent,
-            CurrentCourse = context.CurrentCourse,
-            IsEvenSemester = queryDto.IsEvenSemester,
-            Disciplines = availableDisciplines
-        }, null);
-    }
-
     public async Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto)
     {
         var context = await DisciplineAvailabilityService.BuildAvailabilityContext(dto.StudentId, _context);
         if (context == null)
             return (null, $"Student not found {dto.StudentId}");
 
-        if (dto.Semester != 0 && dto.Semester != 1)
-            return (null, "Semester must be 0 or 1");
+        if (dto.Semestr != 0 && dto.Semestr != 1)
+            return (null, "Semestr must be 0 or 1");
 
         int targetCourse = context.CurrentCourse + 1;
-        int targetSemester = (targetCourse * 2) - dto.Semester;
+        int targetSemester = (targetCourse * 2) - dto.Semestr;
 
         if (targetCourse > 4)
             return (null, "You can't choose disciplines in 5th course");

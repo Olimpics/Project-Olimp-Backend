@@ -86,7 +86,7 @@ public class BindLoansMainService : IBindLoansMainService
             CodeAddDisciplines = b.AddDisciplines.CodeAddDisciplines,
             AddDisciplineName = b.AddDisciplines.NameAddDisciplines,
             SpecialityCode = b.EducationalProgram.SpecialityCode,
-            EducationalProgramName = b.EducitionalProgram.NameEducationalProgram
+            EducationalProgramName = b.EducationalProgram.NameEducationalProgram
         }).ToList();
 
         return new PaginatedResponseDto<BindLoansMainDto>

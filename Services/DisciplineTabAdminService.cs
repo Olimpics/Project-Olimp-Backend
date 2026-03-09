@@ -546,7 +546,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         };
     }
 
-    public async Task<(int? bindId, string? error)> CreateBindAsync(AdminCreateBindDto dto)
+    public async Task<(int? bindId, string? error)> CreateBindAsync(AddDisciplineBindDto dto)
     {
         var student = await _context.Students.FindAsync(dto.StudentId);
         if (student == null)

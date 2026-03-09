@@ -16,7 +16,7 @@ public interface IDisciplineTabAdminService
 
     Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(int studentId);
 
-    Task<(int? bindId, string? error)> CreateBindAsync(AdminCreateBindDto dto);
+    Task<(int? bindId, string? error)> CreateBindAsync(AddDisciplineBindDto dto);
 
     Task<bool> DeleteBindAsync(int id);
 }
