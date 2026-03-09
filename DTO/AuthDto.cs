@@ -18,12 +18,17 @@ public class PermissionDto
     public string TypePermission { get; set; } = null!;
     public string TableName { get; set; } = null!;
 }
+public class UserLoginResponseDto
+{
+    public int UserId { get; set; }
+    public int RoleId { get; set; }
+    public string Token { get; set; }
 
-public class LoginResponseStudentDto
+}
+
+public class LoginResponseStudentDto : UserLoginResponseDto
 {
     public int? Id { get; set; }
-    public int? UserId { get; set; }
-    public int RoleId { get; set; }
     public string? Name { get; set; }
     public int FacultyId { get; set; }
     public string? NameFaculty { get; set; }
@@ -33,18 +38,10 @@ public class LoginResponseStudentDto
 
 }
 
-
-public class LoginResponseAdminDto
+public class LoginResponseAdminDto : UserLoginResponseDto
 {
     public int? Id { get; set; }
-    public int? UserId { get; set; }
-    public int RoleId { get; set; }
     public string? Name { get; set; }
     public int FacultyId { get; set; }
     public string? NameFaculty { get; set; }
-}
-
-public class LoginResponseWithTokenDto : LoginResponseStudentDto
-{
-    public string Token { get; set; }
 }

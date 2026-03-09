@@ -38,7 +38,7 @@ public class AuthAppService : IAuthAppService
             );
     }
 
-    public async Task<(LoginResponseWithTokenDto? response,
+    public async Task<(UserLoginResponseDto? response,
         List<PermissionDto>? permissions,
         string? roleName,
         int? statusCode,
@@ -93,7 +93,7 @@ public class AuthAppService : IAuthAppService
             })
             .ToListAsync();
 
-        LoginResponseWithTokenDto dbResponse;
+        UserLoginResponseDto dbResponse;
 
         if (user.Role.IdRole > 1)
         {
@@ -108,7 +108,7 @@ public class AuthAppService : IAuthAppService
                     "Admin profile not found");
             }
 
-            dbResponse = _mapper.Map<LoginResponseWithTokenDto>(admin);
+            dbResponse = _mapper.Map<LoginResponseAdminDto>(admin);
         }
         else
         {
@@ -125,7 +125,7 @@ public class AuthAppService : IAuthAppService
                     "Student not found");
             }
 
-            dbResponse = _mapper.Map<LoginResponseWithTokenDto>(student);
+            dbResponse = _mapper.Map<LoginResponseStudentDto>(student);
         }
 
         user.LastLoginAt = DateTime.UtcNow;

@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("authorization")]
-    public async Task<ActionResult<LoginResponseWithTokenDto>> Authorization(LoginDto model)
+    public async Task<ActionResult<UserLoginResponseDto>> Authorization(LoginDto model)
     {
         _logger.LogInformation($"Login attempt for email: {model.Email}");
 
@@ -48,20 +48,19 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning("STUB AUTHORIZATION MODE ENABLED");
 
-            LoginResponseWithTokenDto response;
+            UserLoginResponseDto response;
             List<PermissionDto> permissions;
 
             // ====== ADMIN ======
             if (model.Email == "admin@admin")
             {
-                response = new LoginResponseWithTokenDto
+                response = new LoginResponseAdminDto
                 {
                     Id = 4,
                     UserId = 6,
                     RoleId = 2,
                     Name = "Test Admin",
                     NameFaculty = "Faculty of Computer Science",
-                    DegreeLevel = null
                 };
 
                 permissions = new List<PermissionDto>
@@ -199,7 +198,7 @@ public class AuthController : ControllerBase
             // ====== STUDENT ======
             else
             {
-                response = new LoginResponseWithTokenDto
+                response = new LoginResponseStudentDto
                 {
                     Id = 44072,
                     UserId = 3483,
@@ -238,7 +237,7 @@ public class AuthController : ControllerBase
 
             // ====== TOKEN ======
             var token = _jwtService.GenerateToken(
-                response.UserId?.ToString() ?? string.Empty,
+                response.UserId.ToString() ?? string.Empty,
                 model.Email,
                 response.RoleId == 2 ? "Administrator" : "Student"
             );
@@ -259,12 +258,8 @@ public class AuthController : ControllerBase
 
             Response.Cookies.Append("UserInfo", JsonSerializer.Serialize(new
             {
-                response.Id,
                 response.UserId,
-                response.RoleId,
-                response.Name,
-                response.NameFaculty,
-                response.DegreeLevel
+                response.RoleId
             }), cookieOptions);
 
             Response.Cookies.Append("UserPermissions",
@@ -290,7 +285,7 @@ public class AuthController : ControllerBase
         }
 
         var jwt = _jwtService.GenerateToken(
-            dbResponse.UserId?.ToString() ?? string.Empty,
+            dbResponse.UserId.ToString() ?? string.Empty,
             model.Email,
             roleName
         );
