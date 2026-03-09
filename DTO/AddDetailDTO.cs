@@ -1,6 +1,6 @@
 namespace OlimpBack.DTO
 {
-    public class AddDetailDto
+    public class AddDetailDto 
     {
         public int IdAddDetails { get; set; }
         public int DepartmentId { get; set; }
@@ -18,7 +18,7 @@ namespace OlimpBack.DTO
         public string TypeOfControll { get; set; } = null!;
     }
 
-    public class CreateAddDetailDto
+    public class CreateAddDetailDto 
     {
         public int? DepartmentId { get; set; }
         public string? Teacher { get; set; }
