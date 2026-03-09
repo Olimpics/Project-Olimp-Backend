@@ -118,7 +118,10 @@ namespace OlimpBack.Controllers
             _context.Departments.Add(department);
             await _context.SaveChangesAsync();
 
-            var resultDto = await GetDepartmentWithIncludes(department.IdDepartment);
+            //var resultDto = await GetDepartmentWithIncludes(department.
+            await _context.Entry(department).Reference(d => d.Faculty).LoadAsync();
+
+            var resultDto = _mapper.Map<DepartmentDto>(department);
             return CreatedAtAction(nameof(GetDepartment), new { id = department.IdDepartment }, resultDto);
         }
 
