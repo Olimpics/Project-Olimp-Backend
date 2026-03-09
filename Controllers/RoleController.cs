@@ -84,10 +84,6 @@ namespace OlimpBack.Controllers
             return NoContent();
         }
 
-        private bool RoleExists(int id)
-        {
-            return _context.Roles.Any(e => e.IdRole == id);
-        }
     }
 
 }

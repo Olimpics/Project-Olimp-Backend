@@ -64,30 +64,12 @@ namespace OlimpBack.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException) when (!NotificationTemplateExists(id))
+            catch (DbUpdateConcurrencyException) 
             {
                 return NotFound();
             }
 
             return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteNotificationTemplate(int id)
-        {
-            var template = await _context.NotificationTemplates.FindAsync(id);
-            if (template == null)
-                return NotFound();
-
-            _context.NotificationTemplates.Remove(template);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool NotificationTemplateExists(int id)
-        {
-            return _context.NotificationTemplates.Any(e => e.IdNotificationTemplates == id);
         }
     }
 } 

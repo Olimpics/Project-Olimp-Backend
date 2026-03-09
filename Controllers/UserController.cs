@@ -48,24 +48,6 @@ namespace OlimpBack.Controllers
             return Ok(dto);
         }
 
-        // POST: api/User
-        [HttpPost]
-        public async Task<ActionResult<UserRoleDto>> CreateUser(CreateUserDto dto)
-        {
-            var user = _mapper.Map<User>(dto);
-            user.LastLoginAt = DateTime.UtcNow;
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var resultDto = await _context.Users
-                .Where(u => u.IdUsers == user.IdUsers)
-                .ProjectTo<UserRoleDto>(_mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync();
-
-            return CreatedAtAction(nameof(GetUser), new { id = user.IdUsers }, resultDto);
-        }
-
         // PUT: api/User/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UpdateUserDto dto)
@@ -81,31 +63,11 @@ namespace OlimpBack.Controllers
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id)) return NotFound();
+            { 
                 throw;
             }
 
             return NoContent();
-        }
-
-        // DELETE: api/User/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.IdUsers == id);
         }
     }
 

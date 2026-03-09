@@ -1,4 +1,4 @@
-﻿namespace OlimpBack.DTO
+namespace OlimpBack.DTO
 {
     public class EducationalProgramDto
     {
@@ -11,6 +11,15 @@
         public uint StudentsAmount { get; set; }
         public int StudentsCount { get; set; }
         public int DisciplinesCount { get; set; }
+    }
+    
+    public class EducationalProgramListQueryDto
+    {
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 50;
+        public string? Search { get; set; }
+        public string? DegreeLevelIds { get; set; }
+        public int SortOrder { get; set; } = 0;
     }
     public class EducationalProgramFullDto
     {

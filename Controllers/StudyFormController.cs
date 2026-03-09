@@ -83,11 +83,6 @@ namespace OlimpBack.Controllers
 
             return NoContent();
         }
-
-        private bool StudyFormExists(int id)
-        {
-            return _context.StudyForms.Any(e => e.IdStudyForm == id);
-        }
     }
 
 }

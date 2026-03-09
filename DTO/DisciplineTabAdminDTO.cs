@@ -45,16 +45,6 @@ namespace OlimpBack.DTO
         public int IsConfirm { get; set; }
     }
 
-    /// <summary>
-    /// Admin create bind request (studentId, disciplineId, semestr, optional loans).
-    /// </summary>
-    public class AdminCreateBindDto
-    {
-        public int StudentId { get; set; }
-        public int DisciplineId { get; set; }
-        public int Semestr { get; set; }
-        public int Loans { get; set; } = 5;
-    }
 
     /// <summary>
     /// One discipline in admin list with availability and normative status.

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Data;
 using OlimpBack.DTO;
@@ -123,14 +123,16 @@ namespace OlimpBack.Controllers
                 var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
                 var items = data.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-                return Ok(new
+                var response = new PaginatedResponseDto<Dictionary<string, object>>
                 {
-                    currentPage = page,
-                    pageSize,
-                    totalItems,
-                    totalPages,
-                    items
-                });
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    Items = items
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {

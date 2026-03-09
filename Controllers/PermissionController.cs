@@ -83,10 +83,5 @@ namespace OlimpBack.Controllers
 
             return NoContent();
         }
-
-        private bool PermissionExists(int id)
-        {
-            return _context.Permissions.Any(e => e.IdPermissions == id);
-        }
     }
 } 

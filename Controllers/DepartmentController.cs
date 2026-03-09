@@ -1,13 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
-using OlimpBack.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.DTO;
-using System;
-using System.Linq;
+using OlimpBack.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -15,136 +8,48 @@ namespace OlimpBack.Controllers
     [ApiController]
     public class DepartmentController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IDepartmentService _departmentService;
 
-        public DepartmentController(AppDbContext context, IMapper mapper)
+        public DepartmentController(IDepartmentService departmentService)
         {
-            _context = context;
-            _mapper = mapper;
+            _departmentService = departmentService;
         }
 
         [HttpGet]
         public async Task<ActionResult<object>> GetDepartments(
-          [FromQuery] int page = 1,
-          [FromQuery] int pageSize = 50,
-          [FromQuery] string? facultyIds = null,
-          [FromQuery] string? search = null,
-          [FromQuery] int sortOrder = 0)
+          [FromQuery] DepartmentQueryDto query)
         {
-            var query = _context.Departments
-                .Include(d => d.Faculty)
-                .AsQueryable();
-
-            // Apply facultyIds filter
-            if (!string.IsNullOrWhiteSpace(facultyIds))
-            {
-                var facultyIdList = facultyIds
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .Select(id => int.TryParse(id, out var parsedId) ? parsedId : (int?)null)
-                    .Where(id => id.HasValue)
-                    .Select(id => id!.Value)
-                    .ToList();
-
-                if (facultyIdList.Any())
-                {
-                    query = query.Where(d => facultyIdList.Contains(d.FacultyId));
-                }
-            }
-
-            // Apply search filter for both idDepartment and nameDepartment
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var lowerSearch = search.Trim().ToLower();
-
-                if (int.TryParse(search.Trim(), out int searchId))
-                {
-                    query = query.Where(d => d.IdDepartment == searchId);
-                }
-                else
-                {
-                    query = query.Where(d =>
-                        EF.Functions.Like(d.NameDepartment.ToLower(), $"%{lowerSearch}%") ||
-                        EF.Functions.Like(d.Abbreviation.ToLower(), $"%{lowerSearch}%"));
-                }
-            }
-
-            var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-            var departments = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            departments = sortOrder switch
-            {
-                1 => departments.OrderByDescending(d => d.Abbreviation).ToList(),
-                2 => departments.OrderBy(d => d.Faculty.Abbreviation).ToList(),
-                3 => departments.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
-                _ => departments.OrderBy(d => d.Abbreviation).ToList()
-            };
-
-            var result = departments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
-
-            return Ok(new
-            {
-                TotalCount = totalCount,
-                TotalPages = totalPages,
-                CurrentPage = page,
-                PageSize = pageSize,
-                Items = result
-            });
+            var result = await _departmentService.GetDepartmentsAsync(query);
+            return Ok(result);
         }
 
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DepartmentDto>> GetDepartment(int id)
         {
-            var department = await _context.Departments
-                .Include(d => d.Faculty)
-                .FirstOrDefaultAsync(d => d.IdDepartment == id);
+            var department = await _departmentService.GetDepartmentAsync(id);
 
             if (department == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<DepartmentDto>(department));
+            return Ok(department);
         }
 
         [HttpPost]
         public async Task<ActionResult<DepartmentDto>> CreateDepartment(CreateDepartmentDto dto)
         {
-            var department = _mapper.Map<Department>(dto);
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
-
-            //var resultDto = await GetDepartmentWithIncludes(department.
-            await _context.Entry(department).Reference(d => d.Faculty).LoadAsync();
-
-            var resultDto = _mapper.Map<DepartmentDto>(department);
-            return CreatedAtAction(nameof(GetDepartment), new { id = department.IdDepartment }, resultDto);
+            var resultDto = await _departmentService.CreateDepartmentAsync(dto);
+            return CreatedAtAction(nameof(GetDepartment), new { id = resultDto.IdDepartment }, resultDto);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDepartment(int id, UpdateDepartmentDto dto)
         {
-            if (id != dto.IdDepartment)
-                return BadRequest();
+            var (success, statusCode, errorMessage) =
+                await _departmentService.UpdateDepartmentAsync(id, dto);
 
-            var department = await _context.Departments.FindAsync(id);
-            if (department == null)
-                return NotFound();
-
-            _mapper.Map(dto, department);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException) when (!DepartmentExists(id))
-            {
-                return NotFound();
-            }
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
@@ -152,18 +57,13 @@ namespace OlimpBack.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDepartment(int id)
         {
-            var department = await _context.Departments.FindAsync(id);
-            if (department == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) =
+                await _departmentService.DeleteDepartmentAsync(id);
 
-            _context.Departments.Remove(department);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
-        }
-        private bool DepartmentExists(int id)
-        {
-            return _context.Departments.Any(d => d.IdDepartment == id);
         }
     }
 } 

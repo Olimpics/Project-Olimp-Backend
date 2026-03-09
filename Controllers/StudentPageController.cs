@@ -23,15 +23,6 @@ public class StudentPageController:ControllerBase
         _mapper = mapper;
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<AddDisciplineDto>>> GetAddDisciplines(int id)
-    {
-        var disciplines = await _context.AddDisciplines
-            .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
-        return Ok(disciplines);
-    }
-
     [HttpGet("disciplines/{studentId}")]
     public async Task<ActionResult<StudentDisciplinesDto>> GetStudentDisciplines(int studentId)
     {
@@ -54,62 +45,6 @@ public class StudentPageController:ControllerBase
             MainDisciplines = _mapper.Map<List<BindMainDisciplineDto>>(student.EducationalProgram.BindMainDisciplines),
             AdditionalDisciplines = _mapper.Map<List<BindAddDisciplineDto>>(student.BindAddDisciplines)
         };
-
-        return Ok(result);
-    }
-
-    [HttpGet("disciplines/by-semester/{studentId}")]
-    public async Task<ActionResult<StudentDisciplinesBySemesterDTO>> GetStudentDisciplinesBySemester(int studentId)
-    {
-        var student = await _context.Students
-            .Include(s => s.BindAddDisciplines)
-                .ThenInclude(bad => bad.AddDisciplines)
-            .Include(s => s.EducationalProgram)
-                .ThenInclude(ep => ep.BindMainDisciplines)
-            .Include(s => s.EducationalDegree)
-            .FirstOrDefaultAsync(s => s.IdStudent == studentId);
-
-        if (student == null)
-        {
-            return NotFound();
-        }
-
-        var result = new StudentDisciplinesBySemesterDTO
-        {
-            StudentId = student.IdStudent,
-            StudentName = student.NameStudent,
-            DegreeName = student.EducationalDegree.NameEducationalDegreec
-        };
-
-        // Determine number of semesters based on degree
-        int maxSemesters = student.EducationalDegree.NameEducationalDegreec == "Бакалавр" ? 8 : 2;
-
-        // Initialize dictionaries for the appropriate number of semesters
-        for (int i = 1; i <= maxSemesters; i++)
-        {
-            result.MainDisciplinesBySemester[i] = new List<BindMainDisciplineDto>();
-            result.AdditionalDisciplinesBySemester[i] = new List<BindAddDisciplineDto>();
-        }
-
-        // Group main disciplines by semester
-        var mainDisciplines = _mapper.Map<List<BindMainDisciplineDto>>(student.EducationalProgram.BindMainDisciplines);
-        foreach (var discipline in mainDisciplines)
-        {
-            if (discipline.Semestr >= 1 && discipline.Semestr <= maxSemesters)
-            {
-                result.MainDisciplinesBySemester[discipline.Semestr].Add(discipline);
-            }
-        }
-
-        // Group additional disciplines by semester
-        var additionalDisciplines = _mapper.Map<List<BindAddDisciplineDto>>(student.BindAddDisciplines);
-        foreach (var discipline in additionalDisciplines)
-        {
-            if (discipline.Semestr >= 1 && discipline.Semestr <= maxSemesters)
-            {
-                result.AdditionalDisciplinesBySemester[discipline.Semestr].Add(discipline);
-            }
-        }
 
         return Ok(result);
     }

@@ -1,14 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
-using OlimpBack.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.DTO;
-using System;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
+using OlimpBack.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -16,132 +8,36 @@ namespace OlimpBack.Controllers
     [ApiController]
     public class GroupController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IGroupService _groupService;
 
-        public GroupController(AppDbContext context, IMapper mapper)
+        public GroupController(IGroupService groupService)
         {
-            _context = context;
-            _mapper = mapper;
+            _groupService = groupService;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups(
-           [FromQuery] string? facultyIds,
-           [FromQuery] string? departmentIds,
-           [FromQuery] string? courses,
-           [FromQuery] string? degreeLevelIds,
-           [FromQuery] string? search = null,
-           [FromQuery] int sortOrder = 0)
+           [FromQuery] GroupListQueryDto query)
         {
-            var query = _context.Groups
-                .Include(g => g.Students)
-                .Include(g => g.Faculty)
-                .Include(g => g.Department)
-                .Include(g => g.Degree)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var lowerSearch = search.Trim().ToLower();
-                query = query.Where(g => EF.Functions.Like(g.GroupCode.ToLower(), $"%{lowerSearch}%"));
-            }
-
-
-            if (!string.IsNullOrWhiteSpace(facultyIds))
-            {
-                var facultyIdList = facultyIds
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
-                    .Where(id => id.HasValue)
-                    .Select(id => id.Value)
-                    .ToList();
-
-                if (facultyIdList.Any())
-                {
-                    query = query.Where(g => g.FacultyId.HasValue && facultyIdList.Contains(g.FacultyId.Value));
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(departmentIds))
-            {
-                var departmentIdList = departmentIds
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
-                    .Where(id => id.HasValue)
-                    .Select(id => id.Value)
-                    .ToList();
-
-                if (departmentIdList.Any())
-                {
-                    query = query.Where(g => g.DepartmentId.HasValue && departmentIdList.Contains(g.DepartmentId.Value));
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(courses))
-            {
-                var courseList = courses
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
-                    .Where(id => id.HasValue)
-                    .Select(id => id.Value)
-                    .ToList();
-
-                if (courseList.Any())
-                {
-                    query = query.Where(g => g.Course.HasValue && courseList.Contains(g.Course.Value));
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(degreeLevelIds))
-            {
-                var degreeLevelIdList = degreeLevelIds
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.TryParse(id.Trim(), out var val) ? val : (int?)null)
-                    .Where(id => id.HasValue)
-                    .Select(id => id.Value)
-                    .ToList();
-
-                if (degreeLevelIdList.Any())
-                {
-                    query = query.Where(g => g.DegreeId.HasValue && degreeLevelIdList.Contains(g.DegreeId.Value));
-                }
-            }
-
-            var groups = await query.ToListAsync();
-            groups = sortOrder switch
-            {
-                1 => groups.OrderByDescending(d => d.GroupCode).ToList(),
-                2 => groups.OrderBy(d => d.Faculty.Abbreviation).ToList(),
-                3 => groups.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
-                4 => groups.OrderBy(d => d.Course).ToList(),
-                5 => groups.OrderByDescending(d => d.Course).ToList(),
-                _ => groups.OrderBy(d => d.GroupCode).ToList()
-            };
-            return Ok(_mapper.Map<IEnumerable<GroupFilterDto>>(groups));
+            var groups = await _groupService.GetGroupsAsync(query);
+            return Ok(groups);
         }
        
         [HttpGet("{id}")]
         public async Task<ActionResult<GroupDto>> GetGroup(int id)
         {
-            var group = await _context.Groups
-                .Include(g => g.Students)
-                .FirstOrDefaultAsync(g => g.IdGroup == id);
+            var group = await _groupService.GetGroupAsync(id);
 
             if (group == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<GroupDto>(group));
+            return Ok(group);
         }
 
         [HttpPost]
         public async Task<ActionResult<GroupDto>> CreateGroup(CreateGroupDto dto)
         {
-            var group = _mapper.Map<Group>(dto);
-            _context.Groups.Add(group);
-            await _context.SaveChangesAsync();
-
-            var resultDto = _mapper.Map<GroupDto>(group);
-            return CreatedAtAction(nameof(GetGroup), new { id = group.IdGroup }, resultDto);
+            var resultDto = await _groupService.CreateGroupAsync(dto);
+            return CreatedAtAction(nameof(GetGroup), new { id = resultDto.IdGroup }, resultDto);
         }
 
         [HttpPut("{id}")]
@@ -150,20 +46,10 @@ namespace OlimpBack.Controllers
             if (id != dto.IdGroup)
                 return BadRequest();
 
-            var group = await _context.Groups.FindAsync(id);
-            if (group == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) = await _groupService.UpdateGroupAsync(id, dto);
 
-            _mapper.Map(dto, group);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException) when (!GroupExists(id))
-            {
-                return NotFound();
-            }
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
@@ -171,19 +57,13 @@ namespace OlimpBack.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGroup(int id)
         {
-            var group = await _context.Groups.FindAsync(id);
-            if (group == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) = await _groupService.DeleteGroupAsync(id);
 
-            _context.Groups.Remove(group);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
 
-        private bool GroupExists(int id)
-        {
-            return _context.Groups.Any(g => g.IdGroup == id);
-        }
     }
 } 

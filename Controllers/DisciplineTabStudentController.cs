@@ -6,11 +6,11 @@ namespace OlimpBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DisciplineTabController : ControllerBase
+    public class DisciplineTabStudentController : ControllerBase
     {
         private readonly IDisciplineTabService _service;
 
-        public DisciplineTabController(IDisciplineTabService service)
+        public DisciplineTabStudentController(IDisciplineTabService service)
         {
             _service = service;
         }
@@ -25,17 +25,6 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
-        [HttpGet("GetDisciplinesBySemester")]
-        public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
-            [FromQuery] GetDisciplinesBySemesterQueryDto query)
-        {
-            var (result, error) = await _service.GetDisciplinesBySemesterAsync(query);
-            if (error == "StudentNotFound")
-                return NotFound("Student not found");
-            if (error == "PeriodNotConfirmed")
-                return BadRequest("The period for choosing a discipline is being confirmed or has not yet appeared");
-            return Ok(result);
-        }
 
         [HttpPost("AddDisciplineBind")]
         public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
@@ -96,15 +85,6 @@ namespace OlimpBack.Controllers
                     return NotFound("Discipline not found");
                 return BadRequest(error);
             }
-            return NoContent();
-        }
-
-        [HttpDelete("DeleteDisciplineWithDetails/{id}")]
-        public async Task<IActionResult> DeleteDisciplineWithDetails(int id)
-        {
-            var deleted = await _service.DeleteDisciplineWithDetailsAsync(id);
-            if (!deleted)
-                return NotFound("Discipline not found");
             return NoContent();
         }
     }

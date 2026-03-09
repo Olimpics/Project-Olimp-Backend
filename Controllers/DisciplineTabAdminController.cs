@@ -71,26 +71,5 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<object>> CreateBind(AdminCreateBindDto dto)
-        {
-            var (bindId, error) = await _service.CreateBindAsync(dto);
-            if (error != null)
-            {
-                if (error == "Student not found" || error == "Discipline not found")
-                    return NotFound(new { error });
-                return BadRequest(new { error });
-            }
-            return CreatedAtAction(nameof(GetBind), new { id = bindId }, new { message = "Bind created", bindId });
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBind(int id)
-        {
-            var deleted = await _service.DeleteBindAsync(id);
-            if (!deleted)
-                return NotFound();
-            return NoContent();
-        }
     }
 }

@@ -121,12 +121,4 @@ namespace OlimpBack.DTO
         public int SortOrder { get; set; } = 0;
     }
 
-    /// <summary>
-    /// Query parameters for GetDisciplinesBySemester.
-    /// </summary>
-    public class GetDisciplinesBySemesterQueryDto
-    {
-        public int StudentId { get; set; }
-        public bool IsEvenSemester { get; set; }
-    }
 }

@@ -82,11 +82,6 @@ namespace OlimpBack.Controllers
 
             return NoContent();
         }
-
-        private bool EducationalDegreeExists(int id)
-        {
-            return _context.EducationalDegrees.Any(e => e.IdEducationalDegree == id);
-        }
     }
 
 }

@@ -1,11 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
-using OlimpBack.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.DTO;
+using OlimpBack.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -13,43 +8,35 @@ namespace OlimpBack.Controllers
     [ApiController]
     public class FacultyController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IFacultyService _facultyService;
 
-        public FacultyController(AppDbContext context, IMapper mapper)
+        public FacultyController(IFacultyService facultyService)
         {
-            _context = context;
-            _mapper = mapper;
+            _facultyService = facultyService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FacultyDto>>> GetFaculties()
         {
-            var faculties = await _context.Faculties.ToListAsync();
-            return Ok(_mapper.Map<IEnumerable<FacultyDto>>(faculties));
+            var faculties = await _facultyService.GetFacultiesAsync();
+            return Ok(faculties);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<FacultyDto>> GetFaculty(int id)
         {
-            var faculty = await _context.Faculties.FindAsync(id);
+            var faculty = await _facultyService.GetFacultyAsync(id);
             if (faculty == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<FacultyDto>(faculty));
+            return Ok(faculty);
         }
 
         [HttpPost]
         public async Task<ActionResult<FacultyDto>> CreateFaculty(FacultyCreateDto facultyDto)
         {
-            var faculty = _mapper.Map<Faculty>(facultyDto);
-
-            _context.Faculties.Add(faculty);
-            await _context.SaveChangesAsync();
-
-            var resultDto = _mapper.Map<FacultyDto>(faculty);
-
-            return CreatedAtAction(nameof(GetFaculty), new { id = faculty.IdFaculty }, resultDto);
+            var resultDto = await _facultyService.CreateFacultyAsync(facultyDto);
+            return CreatedAtAction(nameof(GetFaculty), new { id = resultDto.IdFaculty }, resultDto);
         }
 
 
@@ -59,36 +46,13 @@ namespace OlimpBack.Controllers
             if (id != facultyDto.IdFaculty)
                 return BadRequest();
 
-            var faculty = await _context.Faculties.FindAsync(id);
-            if (faculty == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) = await _facultyService.UpdateFacultyAsync(id, facultyDto);
 
-            _mapper.Map(facultyDto, faculty);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteFaculty(int id)
-        {
-            var faculty = await _context.Faculties.FindAsync(id);
-            if (faculty == null)
-                return NotFound();
-
-            _context.Faculties.Remove(faculty);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool FacultyExists(int id)
-        {
-            return _context.Faculties.Any(e => e.IdFaculty == id);
-        }
-
-      
 
     }
-
 }

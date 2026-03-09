@@ -201,6 +201,27 @@ builder.Services.AddScoped<JwtService>();
 // Auth services
 builder.Services.AddScoped<IAuthAppService, AuthAppService>();
 
+// Educational program services
+builder.Services.AddScoped<IEducationalProgramService, EducationalProgramService>();
+
+// Group services
+builder.Services.AddScoped<IGroupService, GroupService>();
+
+// Faculty services
+builder.Services.AddScoped<IFacultyService, FacultyService>();
+
+// Notification services
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Student services
+builder.Services.AddScoped<IStudentService, StudentService>();
+
+// Department services
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+
+// BindLoansMain services
+builder.Services.AddScoped<IBindLoansMainService, BindLoansMainService>();
+
 // Discipline tab services
 builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();
 builder.Services.AddScoped<IDisciplineTabService, DisciplineTabService>();

@@ -6,7 +6,6 @@ public interface IDisciplineTabService
 {
     Task<object?> GetAllDisciplinesWithAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto query);
 
-    Task<(object? result, string? error)> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto query);
 
     Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto);
 
@@ -16,5 +15,4 @@ public interface IDisciplineTabService
 
     Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateAddDisciplineWithDetailsDto dto);
 
-    Task<bool> DeleteDisciplineWithDetailsAsync(int id);
 }

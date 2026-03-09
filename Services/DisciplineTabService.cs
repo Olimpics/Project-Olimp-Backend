@@ -300,31 +300,4 @@ public class DisciplineTabService : IDisciplineTabService
         }
     }
 
-    public async Task<bool> DeleteDisciplineWithDetailsAsync(int id)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var discipline = await _context.AddDisciplines
-                .Include(d => d.AddDetail)
-                .FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
-
-            if (discipline == null)
-                return false;
-
-            if (discipline.AddDetail != null)
-                _context.AddDetails.Remove(discipline.AddDetail);
-
-            _context.AddDisciplines.Remove(discipline);
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return true;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-    }
 }
