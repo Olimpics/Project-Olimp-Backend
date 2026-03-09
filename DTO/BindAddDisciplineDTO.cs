@@ -22,11 +22,8 @@ namespace OlimpBack.DTO
         public int Loans { get; set; }
     }
 
-    public class UpdateBindAddDisciplineDto
+    public class UpdateBindAddDisciplineDto : CreateBindAddDisciplineDto
     {
-        public int StudentId { get; set; }
-        public int AddDisciplinesId { get; set; }
-        public int Semestr { get; set; }
-        public int Loans { get; set; }
+        public int IdBindAddDisciplines { get; set; }
     }
 }

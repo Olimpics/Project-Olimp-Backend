@@ -11,11 +11,6 @@ public class ChangePasswordDto
     public string OldPassword { get; set; }
     public string NewPassword { get; set; }
 }
-public class LoginRequestDto
-{
-    public string Email { get; set; } = null!;
-    public string Password { get; set; } = null!;
-}
 
 public class PermissionDto
 {
@@ -24,7 +19,7 @@ public class PermissionDto
     public string TableName { get; set; } = null!;
 }
 
-public class LoginResponseDto
+public class LoginResponseStudentDto
 {
     public int? Id { get; set; }
     public int? UserId { get; set; }
@@ -38,7 +33,18 @@ public class LoginResponseDto
 
 }
 
-public class LoginResponseWithTokenDto : LoginResponseDto
+
+public class LoginResponseAdminDto
+{
+    public int? Id { get; set; }
+    public int? UserId { get; set; }
+    public int RoleId { get; set; }
+    public string? Name { get; set; }
+    public int FacultyId { get; set; }
+    public string? NameFaculty { get; set; }
+}
+
+public class LoginResponseWithTokenDto : LoginResponseStudentDto
 {
     public string Token { get; set; }
 }

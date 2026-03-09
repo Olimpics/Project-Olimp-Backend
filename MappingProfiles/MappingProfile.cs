@@ -21,7 +21,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<User, UpdateUserDto>();
 
             // Login mapping
-            CreateMap<Student, LoginResponseDto>()
+            CreateMap<Student, LoginResponseStudentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
@@ -33,9 +33,9 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.DegreeLevel, opt => opt.MapFrom(src => src.EducationalDegree.NameEducationalDegreec));
 
             CreateMap<Student, LoginResponseWithTokenDto>()
-                .IncludeBase<Student, LoginResponseDto>();
+                .IncludeBase<Student, LoginResponseStudentDto>();
 
-            CreateMap<AdminsPersonal, LoginResponseDto>()
+            CreateMap<AdminsPersonal, LoginResponseStudentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdAdmins))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User.RoleId))
@@ -43,7 +43,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
 
             CreateMap<AdminsPersonal, LoginResponseWithTokenDto>()
-                .IncludeBase<AdminsPersonal, LoginResponseDto>();
+                .IncludeBase<AdminsPersonal, LoginResponseStudentDto>();
 
             //Student
             CreateMap<Student, StudentDto>()

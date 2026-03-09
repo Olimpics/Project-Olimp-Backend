@@ -12,7 +12,7 @@ public interface IAuthAppService
           int? statusCode,
           object? errorPayload)> AuthorizeWithDatabaseAsync(LoginDto model);
 
-    Task<(LoginResponseDto? response,
+    Task<(object? response,
           List<PermissionDto>? permissions,
           int? statusCode,
           string? errorPayload)> GetCurrentUserAsync(int userId);
