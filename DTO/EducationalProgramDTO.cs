@@ -18,7 +18,10 @@ namespace OlimpBack.DTO
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
-        public string? DegreeLevelIds { get; set; }
+
+        // Більше ніяких ком!
+        public List<int>? DegreeLevelIds { get; set; }
+
         public int SortOrder { get; set; } = 0;
     }
     public class EducationalProgramFullDto
@@ -49,7 +52,10 @@ namespace OlimpBack.DTO
         public int? CountAddSemestr6 { get; set; }
         public int? CountAddSemestr7 { get; set; }
         public int? CountAddSemestr8 { get; set; }
-        public string Degree { get; set; } = null!;
+        
+        // Замість string Degree робимо нормальний ID (джеміні так сказав)
+        public int DegreeId { get; set; }
+
         public string Speciality { get; set; } = null!;
         public sbyte Accreditation { get; set; }
         public string AccreditationType { get; set; } = null!;
