@@ -4,7 +4,7 @@ namespace OlimpBack.Services;
 
 public interface IDisciplineTabService
 {
-    Task<object?> GetAllDisciplinesWithAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto query);
+    Task<PaginatedResponseDto<FullDisciplineDto>?> GetAllDisciplinesWithAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto query);
 
 
     Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto);

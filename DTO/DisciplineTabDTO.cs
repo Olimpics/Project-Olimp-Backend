@@ -84,7 +84,7 @@ namespace OlimpBack.DTO
         public string TypeOfControll { get; set; } = null!;
     }
 
-    
+
 
     /// <summary>
     /// Query parameters for GetAllDisciplinesWithAvailability.
@@ -96,10 +96,13 @@ namespace OlimpBack.DTO
         public int PageSize { get; set; } = 50;
         public bool OnlyAvailable { get; set; } = false;
         public string? Search { get; set; }
-        public string? Faculties { get; set; }
-        public string? Courses { get; set; }
+
+        // Замість string? використовуємо типізовані списки
+        public List<int>? Faculties { get; set; }
+        public List<int>? Courses { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+
         public bool? IsEvenSemester { get; set; }
-        public string? DegreeLevelIds { get; set; }
         public int SortOrder { get; set; } = 0;
     }
 
