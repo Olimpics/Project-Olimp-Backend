@@ -53,7 +53,7 @@ namespace OlimpBack.DTO
         public int? CountAddSemestr7 { get; set; }
         public int? CountAddSemestr8 { get; set; }
         
-        // Замість string Degree робимо нормальний ID (джеміні так сказав)
+        // Замість string Degree робимо нормальний ID
         public int DegreeId { get; set; }
 
         public string Speciality { get; set; } = null!;

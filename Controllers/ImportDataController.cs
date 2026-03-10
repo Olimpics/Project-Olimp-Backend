@@ -180,7 +180,7 @@ namespace OlimpBack.Controllers
 
             var results = new List<EducationalProgramDto>();
 
-            foreach (var dto in dtos)
+            foreach (CreateEducationalProgramDto dto in dtos)
             {
                 if (string.IsNullOrWhiteSpace(dto.NameEducationalProgram))
                     continue;
@@ -200,7 +200,7 @@ namespace OlimpBack.Controllers
                     if (dto.CountAddSemestr6.HasValue) program.CountAddSemestr6 = dto.CountAddSemestr6;
                     if (dto.CountAddSemestr7.HasValue) program.CountAddSemestr7 = dto.CountAddSemestr7;
                     if (dto.CountAddSemestr8.HasValue) program.CountAddSemestr8 = dto.CountAddSemestr8;
-                    if (!string.IsNullOrWhiteSpace(dto.Degree)) program.DegreeId = int.TryParse(dto.Degree, out var deg) ? deg : program.DegreeId;
+                    program.DegreeId = dto.DegreeId;
                     if (!string.IsNullOrWhiteSpace(dto.Speciality)) program.Speciality = dto.Speciality;
                     if (dto.Accreditation != 0) program.Accreditation = dto.Accreditation;
                     if (!string.IsNullOrWhiteSpace(dto.AccreditationType)) program.AccreditationType = dto.AccreditationType;
