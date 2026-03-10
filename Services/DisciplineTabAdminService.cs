@@ -28,17 +28,12 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         };
     }
 
-    public async Task<object?> GetStudentsWithDisciplineChoicesAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto)
-    {
-        var query = _context.Students
-            .Include(s => s.Faculty)
-            .Include(s => s.Group)
-            .Include(s => s.EducationalDegree)
-            .Include(s => s.EducationalProgram)
-            .Include(s => s.BindAddDisciplines)
-                .ThenInclude(b => b.AddDisciplines)
-            .AsQueryable();
 
+    public async Task<PaginatedResponseDto<StudentWithDisciplineChoicesDto>> GetStudentsWithDisciplineChoicesAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto)
+    {
+        var query = _context.Students.AsQueryable();
+
+        // 1. ФІЛЬТРАЦІЯ НА РІВНІ БАЗИ ДАНИХ (БЕЗ SPLIT!)
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
@@ -50,124 +45,107 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 (s.Group != null && EF.Functions.Like(s.Group.GroupCode.ToLower(), $"%{lowerSearch}%")));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Faculties))
-        {
-            var facultyIds = queryDto.Faculties
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(f => int.TryParse(f.Trim(), out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
-            if (facultyIds.Any())
-                query = query.Where(s => facultyIds.Contains(s.FacultyId));
-        }
+        if (queryDto.Faculties != null && queryDto.Faculties.Any())
+            query = query.Where(s => queryDto.Faculties.Contains(s.FacultyId));
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Courses))
-        {
-            var courseList = queryDto.Courses
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(c => int.TryParse(c.Trim(), out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
-            if (courseList.Any())
-                query = query.Where(s => courseList.Contains(s.Course));
-        }
+        if (queryDto.Courses != null && queryDto.Courses.Any())
+            query = query.Where(s => queryDto.Courses.Contains(s.Course));
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Groups))
-        {
-            var groupIds = queryDto.Groups
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(g => int.TryParse(g.Trim(), out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
-            if (groupIds.Any())
-                query = query.Where(s => groupIds.Contains(s.GroupId));
-        }
+        if (queryDto.Groups != null && queryDto.Groups.Any())
+            query = query.Where(s => queryDto.Groups.Contains(s.GroupId));
 
-        if (!string.IsNullOrWhiteSpace(queryDto.DegreeLevelIds))
-        {
-            var levelIds = queryDto.DegreeLevelIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(d => int.TryParse(d.Trim(), out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
-            if (levelIds.Any())
-                query = query.Where(s => levelIds.Contains(s.EducationalDegreeId));
-        }
+        if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
+            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.EducationalDegreeId));
 
         DateTime? periodStart = null;
         if (queryDto.IsNew == 1 && queryDto.FacultyId > 0)
         {
             query = query.Where(s => s.FacultyId == queryDto.FacultyId);
-            var lastPeriod = await _context.DisciplineChoicePeriods
+            periodStart = await _context.DisciplineChoicePeriods
                 .Where(p => p.FacultyId == queryDto.FacultyId)
                 .OrderByDescending(p => p.StartDate)
-                .Select(p => new { p.StartDate })
+                .Select(p => p.StartDate)
                 .FirstOrDefaultAsync();
-            periodStart = lastPeriod?.StartDate;
         }
 
-        var students = await query.ToListAsync();
-
-        var items = new List<StudentWithDisciplineChoicesDto>();
-        foreach (var s in students)
+        // 2. ОПТИМІЗОВАНА ВИБІРКА (ЛЕГКОВІСНА)
+        // Замість Include тягнемо тільки потрібні поля в пам'ять. Це зменшить споживання ОЗП в десятки разів.
+        var studentsData = await query.Select(s => new
         {
-            var bindSource = s.BindAddDisciplines.AsEnumerable();
-            if (queryDto.IsNew == 1 && periodStart.HasValue)
-                bindSource = bindSource.Where(b => b.CreatedAt >= periodStart.Value);
-
-            var selected = bindSource
+            s.IdStudent,
+            s.NameStudent,
+            FacultyName = s.Faculty != null ? s.Faculty.Abbreviation ?? s.Faculty.NameFaculty : "",
+            GroupCode = s.Group != null ? s.Group.GroupCode : "",
+            s.Course,
+            s.EducationalDegreeId,
+            DegreeName = s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegreec : "",
+            Program = s.EducationalProgram,
+            // Одразу мапимо дисципліни, EF Core перетворить це на LEFT JOIN
+            SelectedDisciplines = s.BindAddDisciplines
+                .Where(b => queryDto.IsNew == 0 || periodStart == null || b.CreatedAt >= periodStart)
                 .Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindAddDisciplines = b.IdBindAddDisciplines,
                     IdAddDisciplines = b.AddDisciplinesId,
-                    NameAddDisciplines = b.AddDisciplines?.NameAddDisciplines ?? "",
-                    CodeAddDisciplines = b.AddDisciplines?.CodeAddDisciplines ?? "",
+                    NameAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
+                    CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
                     Semestr = b.Semestr,
                     InProcess = b.InProcess
-                })
-                .ToList();
+                }).ToList()
+        }).ToListAsync();
 
-            var semestersWithChoices = selected.Select(x => x.Semestr).Distinct().ToList();
+        // 3. ОБРОБКА БІЗНЕС-ЛОГІКИ В ПАМ'ЯТІ
+        var items = new List<StudentWithDisciplineChoicesDto>(studentsData.Count);
+
+        foreach (var s in studentsData)
+        {
             var selectionOk = true;
-            if (s.EducationalProgram != null)
+
+            // ВИПРАВЛЕНИЙ БАГ: Тепер ми перевіряємо всі семестри від 3 до 8.
+            // Якщо студент мав обрати, але обрав 0 (немає в колекції), selectionOk стане false!
+            if (s.Program != null)
             {
-                foreach (var sem in semestersWithChoices)
+                for (int sem = 3; sem <= 8; sem++)
                 {
-                    var required = GetRequiredCountForSemester(s.EducationalProgram, sem);
-                    var count = selected.Count(d => d.Semestr == sem);
-                    if (count < required)
+                    var required = GetRequiredCountForSemester(s.Program, sem);
+                    if (required > 0)
                     {
-                        selectionOk = false;
-                        break;
+                        var count = s.SelectedDisciplines.Count(d => d.Semestr == sem);
+                        if (count < required)
+                        {
+                            selectionOk = false;
+                            break;
+                        }
                     }
                 }
             }
+            else
+            {
+                selectionOk = false; // Якщо немає програми, вибір не може бути валідним
+            }
 
-            var confirmationOk = selected.Count == 0 || selected.All(d => d.InProcess == 0);
+            var confirmationOk = s.SelectedDisciplines.Count == 0 || s.SelectedDisciplines.All(d => d.InProcess == 0);
 
             items.Add(new StudentWithDisciplineChoicesDto
             {
                 StudentId = s.IdStudent,
                 FullName = s.NameStudent ?? "",
-                Faculty = s.Faculty?.Abbreviation ?? s.Faculty?.NameFaculty ?? "",
-                Group = s.Group?.GroupCode ?? "",
+                Faculty = s.FacultyName,
+                Group = s.GroupCode,
                 Year = s.Course,
                 DegreeLevelId = s.EducationalDegreeId,
-                DegreeLevelName = s.EducationalDegree?.NameEducationalDegreec ?? "",
-                SelectedDisciplines = selected,
+                DegreeLevelName = s.DegreeName,
+                SelectedDisciplines = s.SelectedDisciplines,
                 SelectionStatus = selectionOk ? 1 : 0,
                 ConfirmationStatus = confirmationOk ? 1 : 0
             });
         }
 
-        if (queryDto.SelectionStatus.HasValue && (queryDto.SelectionStatus.Value == 0 || queryDto.SelectionStatus.Value == 1))
+        // 4. ФІЛЬТРАЦІЯ ПО СТАТУСАХ І СОРТУВАННЯ
+        if (queryDto.SelectionStatus.HasValue)
             items = items.Where(x => x.SelectionStatus == queryDto.SelectionStatus.Value).ToList();
 
-        if (queryDto.ConfirmationStatus.HasValue && (queryDto.ConfirmationStatus.Value == 0 || queryDto.ConfirmationStatus.Value == 1))
+        if (queryDto.ConfirmationStatus.HasValue)
             items = items.Where(x => x.ConfirmationStatus == queryDto.ConfirmationStatus.Value).ToList();
 
         items = queryDto.SortOrder switch
@@ -182,114 +160,143 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             _ => items.OrderBy(x => x.FullName).ToList()
         };
 
+        // 5. ПАГІНАЦІЯ
         var totalItems = items.Count;
         var totalPages = (int)Math.Ceiling(totalItems / (double)queryDto.PageSize);
+
         var paginated = items
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .ToList();
 
-        return new
+        return new PaginatedResponseDto<StudentWithDisciplineChoicesDto>
         {
-            totalPages,
-            totalItems,
-            currentPage = queryDto.Page,
-            pageSize = queryDto.PageSize,
-            students = paginated,
-            filters = new
-            {
-                faculties = string.IsNullOrWhiteSpace(queryDto.Faculties) ? null : queryDto.Faculties.Split(',').Select(f => f.Trim()).ToList(),
-                courses = string.IsNullOrWhiteSpace(queryDto.Courses) ? null : queryDto.Courses.Split(',').Select(c => c.Trim()).ToList(),
-                groups = string.IsNullOrWhiteSpace(queryDto.Groups) ? null : queryDto.Groups.Split(',').Select(g => g.Trim()).ToList(),
-                degreeLevelIds = string.IsNullOrWhiteSpace(queryDto.DegreeLevelIds) ? null : queryDto.DegreeLevelIds.Split(',').Select(d => int.Parse(d.Trim())).ToList(),
-                selectionStatus = queryDto.SelectionStatus,
-                confirmationStatus = queryDto.ConfirmationStatus,
-                isNew = queryDto.IsNew,
-                facultyId = queryDto.FacultyId > 0 ? queryDto.FacultyId : (int?)null
-            }
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            CurrentPage = queryDto.Page,
+            PageSize = queryDto.PageSize,
+            Items = paginated,
+            Filters = queryDto // Якщо фронту дуже треба, віддаємо сам об'єкт запиту назад
         };
     }
-
-    public async Task<object> UpdateChoiceAsync(ConfirmOrRejectChoiceDto[] items)
+    
+    public async Task<UpdateChoiceResponseDto> UpdateChoiceAsync(ConfirmOrRejectChoiceDto[] items)
     {
-        var results = new List<object>();
-        var errors = new List<object>();
+        var response = new UpdateChoiceResponseDto();
 
+        if (items == null || items.Length == 0)
+            return response;
+
+        // 1. ВИРІШУЄМО ПРОБЛЕМУ N+1
+        // Збираємо всі унікальні ID і робимо ЛИШЕ ОДИН запит до бази даних
+        var bindIds = items.Select(i => i.BindId).Distinct().ToList();
+
+        var bindsDictionary = await _context.BindAddDisciplines
+            .Include(b => b.Student)
+            .Include(b => b.AddDisciplines)
+            .Where(b => bindIds.Contains(b.IdBindAddDisciplines))
+            .ToDictionaryAsync(b => b.IdBindAddDisciplines);
+
+        // Словник для збереження зв'язку між BindId та створеною нотифікацією,
+        // щоб після SaveChanges() дістати згенерований NotificationId
+        var pendingNotifications = new Dictionary<int, Notification>();
+        var successfulConfirms = new List<ChoiceResultDto>();
+        var successfulRejects = new List<ChoiceResultDto>();
+
+        // 2. ОБРОБКА ДАНИХ У ПАМ'ЯТІ (БЕЗ ЗАПИТІВ ДО БД)
         foreach (var dto in items)
         {
-            var bind = await _context.BindAddDisciplines
-                .Include(b => b.Student)
-                .Include(b => b.AddDisciplines)
-                .FirstOrDefaultAsync(b => b.IdBindAddDisciplines == dto.BindId);
-
-            if (bind == null)
+            if (!bindsDictionary.TryGetValue(dto.BindId, out var bind))
             {
-                errors.Add(new { bindId = dto.BindId, error = "Bind not found" });
+                response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = "Bind not found" });
                 continue;
             }
 
-            var action = dto.IsConfirm;
-            if (action == 1)
+            if (dto.IsConfirm == 1) // Підтвердження
             {
                 bind.InProcess = 0;
-                results.Add(new
+                successfulConfirms.Add(new ChoiceResultDto
                 {
-                    message = "Choice confirmed",
-                    bindId = bind.IdBindAddDisciplines,
-                    disciplineName = bind.AddDisciplines?.NameAddDisciplines
+                    Message = "Choice confirmed",
+                    BindId = bind.IdBindAddDisciplines,
+                    DisciplineName = bind.AddDisciplines?.NameAddDisciplines
                 });
-                continue;
             }
-
-            if (action == 0)
+            else if (dto.IsConfirm == 0) // Відхилення
             {
-                var student = bind.Student;
-                var userId = student?.UserId ?? 0;
+                // БЕЗПЕКА: Перевіряємо наявність UserId, щоб база не впала з помилкою Foreign Key
+                var userId = bind.Student?.UserId;
+                if (userId == null || userId <= 0)
+                {
+                    response.Errors.Add(new ChoiceErrorDto
+                    {
+                        BindId = dto.BindId,
+                        Error = "Student has no valid UserId for notification. Rejection aborted."
+                    });
+                    continue;
+                }
+
                 var disciplineName = bind.AddDisciplines?.NameAddDisciplines ?? "elective";
 
                 _context.BindAddDisciplines.Remove(bind);
 
                 var notification = new Notification
                 {
-                    UserId = userId,
-                    TemplateId = null,
+                    UserId = userId.Value,
                     CustomTitle = "Elective discipline rejected",
                     CustomMessage = $"Your choice \"{disciplineName}\" was rejected by the administrator.",
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow,
-                    NotificationType = "DisciplineRejected",
-                    Metadata = null
+                    NotificationType = "DisciplineRejected"
                 };
+
                 _context.Notifications.Add(notification);
+                pendingNotifications.Add(dto.BindId, notification); // Зберігаємо посилання на об'єкт
 
-                results.Add(new
+                successfulRejects.Add(new ChoiceResultDto
                 {
-                    message = "Choice rejected and student notified",
-                    bindId = dto.BindId,
-                    disciplineName,
-                    notificationId = notification.IdNotification
+                    Message = "Choice rejected and student notified",
+                    BindId = dto.BindId,
+                    DisciplineName = disciplineName
                 });
-                continue;
             }
-
-            errors.Add(new { bindId = dto.BindId, error = "Action must be 0 (Reject) or 1 (Confirm)" });
+            else
+            {
+                response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = "Action must be 0 (Reject) or 1 (Confirm)" });
+            }
         }
 
-        await _context.SaveChangesAsync();
+        // 3. ЗБЕРІГАЄМО ВСІ ЗМІНИ ОДНИМ ТРАНЗАКЦІЙНИМ ВИКЛИКОМ
+        // Тільки зараз EF Core відправить SQL-запити в БД і згенерує ID для нотифікацій
+        if (successfulConfirms.Any() || pendingNotifications.Any())
+        {
+            await _context.SaveChangesAsync();
+        }
 
-        return new { results, errors = errors.Count > 0 ? errors : null };
+        // 4. ДОДАЄМО РЕЗУЛЬТАТИ ТА ПРИСВОЮЄМО ЗГЕНЕРОВАНІ ID
+        response.Results.AddRange(successfulConfirms);
+
+        foreach (var rejectResult in successfulRejects)
+        {
+            if (pendingNotifications.TryGetValue(rejectResult.BindId, out var savedNotification))
+            {
+                // Тепер savedNotification.IdNotification містить справжній ID з бази!
+                rejectResult.NotificationId = savedNotification.IdNotification;
+            }
+            response.Results.Add(rejectResult);
+        }
+
+        // Якщо помилок немає, можна повернути null замість порожнього масиву, якщо так вимагає твій фронтенд
+        if (!response.Errors.Any()) response.Errors = null!;
+
+        return response;
     }
-
-    public async Task<object?> GetDisciplinesWithStatusAsync(GetDisciplinesWithStatusQueryDto queryDto)
+    
+    public async Task<PaginatedResponseDto<AdminDisciplineListItemDto>> GetDisciplinesWithStatusAsync(GetDisciplinesWithStatusQueryDto queryDto)
     {
-        var query = _context.AddDisciplines
-            .Include(d => d.Faculty)
-            .Include(d => d.DegreeLevel)
-            .Include(d => d.Type)
-            .Include(d => d.AddDetail)
-                .ThenInclude(a => a!.Department)
-            .AsQueryable();
+        var query = _context.AddDisciplines.AsNoTracking().AsQueryable();
 
+        // 1. ФІЛЬТРАЦІЯ НА РІВНІ БАЗИ ДАНИХ
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
@@ -298,81 +305,66 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Faculties))
-        {
-            var facultyIds = queryDto.Faculties
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(f => int.TryParse(f.Trim(), out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
-            if (facultyIds.Any())
-                query = query.Where(d => facultyIds.Contains(d.FacultyId));
-        }
+        if (queryDto.Faculties != null && queryDto.Faculties.Any())
+            query = query.Where(d => queryDto.Faculties.Contains(d.FacultyId));
 
         if (queryDto.IsFaculty.HasValue)
             query = query.Where(d => d.IsFaculty == queryDto.IsFaculty.Value);
 
-        if (!string.IsNullOrWhiteSpace(queryDto.DegreeLevelIds))
-        {
-            var levelIds = queryDto.DegreeLevelIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(d => int.TryParse(d.Trim(), out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
-            if (levelIds.Any())
-                query = query.Where(d => d.DegreeLevelId.HasValue && levelIds.Contains(d.DegreeLevelId.Value));
-        }
+        if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
+            query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
 
-        var disciplines = await query.ToListAsync();
-
-        var facultyIdsInList = disciplines.Select(d => d.FacultyId).Distinct().ToList();
+        // 2. ПОПЕРЕДНЄ ЗАВАНТАЖЕННЯ ДОВІДНИКІВ (Вони маленькі, тому тягнемо в пам'ять)
         var lastPeriodByFaculty = await _context.DisciplineChoicePeriods
-            .Where(p => p.FacultyId != null && facultyIdsInList.Contains(p.FacultyId.Value))
+            .Where(p => p.FacultyId != null)
             .GroupBy(p => p.FacultyId!.Value)
             .Select(g => new { FacultyId = g.Key, StartDate = g.Max(p => p.StartDate) })
             .ToDictionaryAsync(x => x.FacultyId, x => x.StartDate);
 
-        var normativeByLevelAndFaculty = await _context.Normatives
+        var normativeLookup = await _context.Normatives
             .Where(n => n.DegreeLevelId != null)
-            .Select(n => new { n.DegreeLevelId, n.IsFaculty, n.Count })
-            .ToListAsync();
-        var normativeLookup = normativeByLevelAndFaculty
-            .GroupBy(n => (n.DegreeLevelId!.Value, n.IsFaculty))
-            .ToDictionary(g => g.Key, g => g.First().Count);
+            .GroupBy(n => new { Level = n.DegreeLevelId!.Value, IsFaculty = n.IsFaculty })
+            .ToDictionaryAsync(g => g.Key, g => g.First().Count);
 
-        var disciplineIds = disciplines.Select(d => d.IdAddDisciplines).ToList();
-        var facultyByDiscipline = disciplines.ToDictionary(d => d.IdAddDisciplines, d => d.FacultyId);
-        var allBindsInScope = await _context.BindAddDisciplines
-            .Where(b => disciplineIds.Contains(b.AddDisciplinesId))
-            .Select(b => new { b.AddDisciplinesId, b.CreatedAt })
-            .ToListAsync();
-
-        var countByDiscipline = disciplineIds.ToDictionary(id => id, _ => 0);
-        foreach (var b in allBindsInScope)
+        // 3. ЛЕГКОВАГОВА ПРОЕКЦІЯ (Тягнемо мінімум даних замість Include)
+        var disciplinesData = await query.Select(d => new
         {
-            if (facultyByDiscipline.TryGetValue(b.AddDisciplinesId, out var facultyId)
-                && lastPeriodByFaculty.TryGetValue(facultyId, out var periodStart)
-                && b.CreatedAt >= periodStart)
-            {
-                countByDiscipline[b.AddDisciplinesId]++;
-            }
-        }
+            d.IdAddDisciplines,
+            d.NameAddDisciplines,
+            Teachers = d.AddDetail != null ? d.AddDetail.Teachers : null,
+            DepartmentName = (d.AddDetail != null && d.AddDetail.Department != null) ? d.AddDetail.Department.NameDepartment : null,
+            d.MinCountPeople,
+            d.MaxCountPeople,
+            d.IsForseChange, // Зберіг твоє написання з 's'
+            TypeName = d.Type != null ? d.Type.TypeName : "",
+            d.DegreeLevelId,
+            d.IsFaculty,
+            d.FacultyId,
+            FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation : null,
+            // Замість всіх об'єктів заявок тягнемо ЛИШЕ їхні дати створення!
+            BindDates = d.BindAddDisciplines.Select(b => b.CreatedAt).ToList()
+        }).ToListAsync();
 
-        var fullList = new List<AdminDisciplineListItemDto>();
-        foreach (var d in disciplines)
+        // 4. ОБРОБКА БІЗНЕС-ЛОГІКИ В ПАМ'ЯТІ
+        var fullList = new List<AdminDisciplineListItemDto>(disciplinesData.Count);
+
+        foreach (var d in disciplinesData)
         {
-            var currentCount = countByDiscipline.TryGetValue(d.IdAddDisciplines, out var c) ? c : 0;
-            var normativeCount = d.DegreeLevelId.HasValue
-                && normativeLookup.TryGetValue((d.DegreeLevelId.Value, d.IsFaculty), out var norm)
+            // Рахуємо кількість актуальних заявок
+            var periodStart = lastPeriodByFaculty.TryGetValue(d.FacultyId, out var start) ? start : DateTime.MinValue;
+            var currentCount = d.BindDates.Count(date => date >= periodStart);
+
+            // Отримуємо норматив
+            var lookupKey = new { Level = d.DegreeLevelId ?? 0, IsFaculty = d.IsFaculty };
+            var normativeCount = d.DegreeLevelId.HasValue && normativeLookup.TryGetValue(lookupKey, out var norm)
                 ? norm
                 : (int?)null;
 
+            // Визначаємо статус
             string statusStr;
             if (d.IsForseChange == 1)
             {
-                statusStr = d.Type?.TypeName ?? string.Empty;
+                statusStr = string.IsNullOrEmpty(d.TypeName) ? string.Empty : d.TypeName;
             }
             else if (normativeCount == null || normativeCount == 0)
             {
@@ -380,7 +372,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             }
             else
             {
-                var ratio = (double)currentCount / normativeCount;
+                var ratio = (double)currentCount / normativeCount.Value;
                 statusStr = ratio >= 1.0 ? "Accepted" : ratio >= 0.8 ? "Smartly Acquired" : "Not Acquired";
             }
 
@@ -388,9 +380,9 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             {
                 IdAddDisciplines = d.IdAddDisciplines,
                 NameAddDisciplines = d.NameAddDisciplines,
-                Teachers = d.AddDetail?.Teachers,
-                DepartmentName = d.AddDetail?.Department?.NameDepartment,
-                Credits = 5,
+                Teachers = d.Teachers,
+                DepartmentName = d.DepartmentName,
+                Credits = 5, // Твоє хардкод значення
                 Normative = normativeCount,
                 MaxCountPeople = d.MaxCountPeople,
                 CurrentCount = currentCount,
@@ -399,17 +391,28 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 DegreeLevelId = d.DegreeLevelId,
                 IsFaculty = d.IsFaculty,
                 FacultyId = d.FacultyId,
-                FacultyAbbreviation = d.Faculty?.Abbreviation
+                FacultyAbbreviation = d.FacultyAbbreviation
             });
         }
 
-        if (queryDto.StatusFilter.HasValue && queryDto.StatusFilter.Value >= 1 && queryDto.StatusFilter.Value <= 4)
+        // 5. ФІЛЬТРАЦІЯ ПО СТАТУСУ (Безпечний мапінг через словник)
+        if (queryDto.StatusFilter.HasValue)
         {
-            var statusMap = new[] { "Empty", "Not Acquired", "Smartly Acquired", "Accepted", "Collected" };
-            var filterStatus = statusMap[queryDto.StatusFilter.Value];
-            fullList = fullList.Where(x => x.Status == filterStatus).ToList();
+            var statusDictionary = new Dictionary<int, string>
+        {
+            { 1, "Not Acquired" },
+            { 2, "Smartly Acquired" },
+            { 3, "Accepted" },
+            { 4, "Collected" }
+        };
+
+            if (statusDictionary.TryGetValue(queryDto.StatusFilter.Value, out var filterStatus))
+            {
+                fullList = fullList.Where(x => x.Status == filterStatus).ToList();
+            }
         }
 
+        // 6. СОРТУВАННЯ ТА ПАГІНАЦІЯ
         fullList = queryDto.SortOrder switch
         {
             1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
@@ -420,127 +423,155 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
         var totalItems = fullList.Count;
         var totalPages = (int)Math.Ceiling(totalItems / (double)queryDto.PageSize);
+
         var paginated = fullList
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .ToList();
 
-        return new
+        // Використовуємо наш PagedResponse<T> з попереднього кроку
+        return new PaginatedResponseDto<AdminDisciplineListItemDto>
         {
-            totalPages,
-            totalItems,
-            currentPage = queryDto.Page,
-            pageSize = queryDto.PageSize,
-            disciplines = paginated,
-            filters = new
-            {
-                faculties = string.IsNullOrWhiteSpace(queryDto.Faculties) ? null : queryDto.Faculties.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).ToList(),
-                isFaculty = queryDto.IsFaculty,
-                degreeLevelIds = string.IsNullOrWhiteSpace(queryDto.DegreeLevelIds) ? null : queryDto.DegreeLevelIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(d => int.Parse(d.Trim())).ToList(),
-                search = string.IsNullOrWhiteSpace(queryDto.Search) ? null : queryDto.Search,
-                statusFilter = queryDto.StatusFilter,
-                sortOrder = queryDto.SortOrder
-            }
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            CurrentPage = queryDto.Page,
+            PageSize = queryDto.PageSize,
+            Items = paginated
         };
     }
-
-    public async Task<object?> UpdateDisciplineStatusAsync(UpdateDisciplineStatusDto dto)
+    
+    public async Task<UpdateDisciplineStatusResponseDto?> UpdateDisciplineStatusAsync(UpdateDisciplineStatusDto dto)
     {
+        // 1. БЕЗПЕЧНИЙ СЛОВНИК ЗАМІСТЬ МАСИВУ
+        // Відкидаємо нульовий "Empty", бо в тебе статуси в DTO йдуть від 1 до 4
+        var statusDictionary = new Dictionary<int, string>
+        {
+            { 1, "Not Selected" }, // Зверни увагу: в коментарях DTO ти писав "1 = Not Selected"
+            { 2, "Intellectually Selected" }, // "2 = Intellectually Selected" (Smartly Acquired)
+            { 3, "Selected" }, // "3 = Selected" (Accepted)
+            { 4, "Collected" }
+        };
+
+        // 2. ВАЛІДАЦІЯ ВХІДНИХ ДАНИХ
+        if (!statusDictionary.TryGetValue(dto.Status, out var statusName))
+        {
+            // Якщо прийшов невалідний статус, можна викинути помилку або обробити це.
+            // Оскільки метод повертає null при помилці пошуку, викинемо ArgumentException
+            throw new ArgumentException($"Invalid status value: {dto.Status}. Must be between 1 and 4.");
+        }
+
+        // 3. ШУКАЄМО СУТНІСТЬ
         var discipline = await _context.AddDisciplines.FindAsync(dto.DisciplineId);
         if (discipline == null)
-            return null;
+            return null; // Контролер має перехопити це і повернути NotFound()
 
-        discipline.IsForseChange = 1;
+        // 4. ОНОВЛЮЄМО ДАНІ
+        discipline.IsForseChange = 1; // Залишив твоє написання з 's'
         discipline.TypeId = dto.Status;
+
         await _context.SaveChangesAsync();
 
-        var statusNames = new[] { "Empty", "Not Acquired", "Smartly Acquired", "Accepted", "Collected" };
-        return new
+        // 5. ПОВЕРТАЄМО ЧІТКИЙ DTO
+        return new UpdateDisciplineStatusResponseDto
         {
-            message = "Discipline status updated",
-            disciplineId = discipline.IdAddDisciplines,
-            status = statusNames[dto.Status],
-            isForceChange = 1
+            Message = "Discipline status updated",
+            DisciplineId = discipline.IdAddDisciplines,
+            Status = statusName,
+            IsForceChange = 1
         };
     }
-
     public async Task<BindAddDisciplineDto?> GetBindAsync(int id)
     {
-        var bind = await _context.BindAddDisciplines
-            .Include(b => b.Student)
-            .Include(b => b.AddDisciplines)
-            .FirstOrDefaultAsync(b => b.IdBindAddDisciplines == id);
+        // Відразу робимо проекцію (Select). Include більше не потрібен!
+        var bindDto = await _context.BindAddDisciplines
+            .Where(b => b.IdBindAddDisciplines == id)
+            .Select(b => new BindAddDisciplineDto
+            {
+                IdBindAddDisciplines = b.IdBindAddDisciplines,
+                StudentId = b.StudentId,
+                // EF Core сам зробить JOIN і безпечно витягне NameStudent
+                StudentFullName = b.Student != null ? b.Student.NameStudent : "",
+                AddDisciplinesId = b.AddDisciplinesId,
+                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
+                Semestr = b.Semestr,
+                Loans = b.Loans,
+                InProcess = b.InProcess == 1
+            })
+            .FirstOrDefaultAsync();
 
-        if (bind == null)
-            return null;
-
-        return new BindAddDisciplineDto
-        {
-            IdBindAddDisciplines = bind.IdBindAddDisciplines,
-            StudentId = bind.StudentId,
-            StudentFullName = bind.Student?.NameStudent ?? "",
-            AddDisciplinesId = bind.AddDisciplinesId,
-            AddDisciplineName = bind.AddDisciplines?.NameAddDisciplines ?? "",
-            Semestr = bind.Semestr,
-            Loans = bind.Loans,
-            InProcess = bind.InProcess == 1
-        };
+        // Якщо запис не знайдено, bindDto буде null. Це саме те, що нам треба!
+        return bindDto;
     }
 
     public async Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(int studentId)
     {
-        var student = await _context.Students
-            .Include(s => s.Faculty)
-            .Include(s => s.Group)
-            .Include(s => s.EducationalDegree)
-            .Include(s => s.EducationalProgram)
-            .Include(s => s.BindAddDisciplines)
-                .ThenInclude(b => b.AddDisciplines)
-            .FirstOrDefaultAsync(s => s.IdStudent == studentId);
+        // 1. ОПТИМІЗОВАНИЙ ЗАПИТ (Без Include)
+        var studentData = await _context.Students
+            .Where(s => s.IdStudent == studentId)
+            .Select(s => new
+            {
+                s.IdStudent,
+                s.NameStudent,
+                FacultyName = s.Faculty != null ? (s.Faculty.Abbreviation ?? s.Faculty.NameFaculty) : "",
+                GroupCode = s.Group != null ? s.Group.GroupCode : "",
+                s.Course,
+                s.EducationalDegreeId,
+                DegreeName = s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegreec : "",
+                Program = s.EducationalProgram,
+                SelectedDisciplines = s.BindAddDisciplines.Select(b => new StudentSelectedDisciplineDto
+                {
+                    IdBindAddDisciplines = b.IdBindAddDisciplines,
+                    IdAddDisciplines = b.AddDisciplinesId,
+                    NameAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
+                    CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
+                    Semestr = b.Semestr,
+                    InProcess = b.InProcess
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
 
-        if (student == null)
+        if (studentData == null)
             return null;
 
-        var selected = student.BindAddDisciplines
-            .Select(b => new StudentSelectedDisciplineDto
-            {
-                IdBindAddDisciplines = b.IdBindAddDisciplines,
-                IdAddDisciplines = b.AddDisciplinesId,
-                NameAddDisciplines = b.AddDisciplines?.NameAddDisciplines ?? "",
-                CodeAddDisciplines = b.AddDisciplines?.CodeAddDisciplines ?? "",
-                Semestr = b.Semestr,
-                InProcess = b.InProcess
-            })
-            .ToList();
-
-        var semestersWithChoices = selected.Select(x => x.Semestr).Distinct().ToList();
+        // 2. ВИПРАВЛЕНА БІЗНЕС-ЛОГІКА ПЕРЕВІРКИ
         var selectionOk = true;
-        if (student.EducationalProgram != null)
+
+        if (studentData.Program != null)
         {
-            foreach (var sem in semestersWithChoices)
+            // Перевіряємо всі семестри, де МОЖЕ бути вибір (3-8)
+            for (int sem = 3; sem <= 8; sem++)
             {
-                var required = GetRequiredCountForSemester(student.EducationalProgram, sem);
-                var count = selected.Count(d => d.Semestr == sem);
-                if (count < required)
+                var required = GetRequiredCountForSemester(studentData.Program, sem);
+                if (required > 0)
                 {
-                    selectionOk = false;
-                    break;
+                    var count = studentData.SelectedDisciplines.Count(d => d.Semestr == sem);
+                    if (count < required)
+                    {
+                        selectionOk = false;
+                        break; // Якщо хоча б в одному семестрі недобір — статус 0
+                    }
                 }
             }
         }
+        else
+        {
+            selectionOk = false; // Якщо немає програми, вибір не може бути валідним
+        }
 
-        var confirmationOk = selected.Count == 0 || selected.All(d => d.InProcess == 0);
+        var confirmationOk = studentData.SelectedDisciplines.Count == 0 ||
+                             studentData.SelectedDisciplines.All(d => d.InProcess == 0);
 
+        // 3. ПОВЕРНЕННЯ ЧІТКОГО DTO
         return new StudentWithDisciplineChoicesDto
         {
-            StudentId = student.IdStudent,
-            FullName = student.NameStudent ?? "",
-            Faculty = student.Faculty?.Abbreviation ?? student.Faculty?.NameFaculty ?? "",
-            Group = student.Group?.GroupCode ?? "",
-            Year = student.Course,
-            DegreeLevelId = student.EducationalDegreeId,
-            DegreeLevelName = student.EducationalDegree?.NameEducationalDegreec ?? "",
-            SelectedDisciplines = selected,
+            StudentId = studentData.IdStudent,
+            FullName = studentData.NameStudent ?? "",
+            Faculty = studentData.FacultyName,
+            Group = studentData.GroupCode,
+            Year = studentData.Course,
+            DegreeLevelId = studentData.EducationalDegreeId,
+            DegreeLevelName = studentData.DegreeName,
+            SelectedDisciplines = studentData.SelectedDisciplines,
             SelectionStatus = selectionOk ? 1 : 0,
             ConfirmationStatus = confirmationOk ? 1 : 0
         };
@@ -548,22 +579,26 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
     public async Task<(int? bindId, string? error)> CreateBindAsync(AddDisciplineBindDto dto)
     {
-        var student = await _context.Students.FindAsync(dto.StudentId);
-        if (student == null)
-            return (null, "Student not found");
+        // 1. Швидка валідація БЕЗ походів у БД (Fail Fast)
+        if (dto.Semestr < 1 || dto.Semestr > 8)
+            return (null, "Semestr must be between 1 and 8");
 
-        var discipline = await _context.AddDisciplines.FindAsync(dto.DisciplineId);
-        if (discipline == null)
-            return (null, "Discipline not found");
-
+        // 2. Перевірка на дублікат (найчастіша помилка, тому перевіряємо відразу)
         var exists = await _context.BindAddDisciplines
             .AnyAsync(b => b.StudentId == dto.StudentId && b.AddDisciplinesId == dto.DisciplineId);
         if (exists)
             return (null, "This student is already bound to this discipline");
 
-        if (dto.Semestr < 1 || dto.Semestr > 8)
-            return (null, "Semestr must be between 1 and 8");
+        // 3. Перевірка існування студента і дисципліни через AnyAsync (дуже швидкі запити EXISTS у SQL)
+        var studentExists = await _context.Students.AnyAsync(s => s.IdStudent == dto.StudentId);
+        if (!studentExists)
+            return (null, "Student not found");
 
+        var disciplineExists = await _context.AddDisciplines.AnyAsync(d => d.IdAddDisciplines == dto.DisciplineId);
+        if (!disciplineExists)
+            return (null, "Discipline not found");
+
+        // 4. Створення запису
         var bind = new BindAddDiscipline
         {
             StudentId = dto.StudentId,
@@ -572,6 +607,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             Loans = dto.Loans,
             InProcess = 1
         };
+
         _context.BindAddDisciplines.Add(bind);
         await _context.SaveChangesAsync();
 
@@ -580,16 +616,11 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
     public async Task<bool> DeleteBindAsync(int id)
     {
-        var bind = await _context.BindAddDisciplines
-            .Include(b => b.Student)
-            .Include(b => b.AddDisciplines)
-            .FirstOrDefaultAsync(b => b.IdBindAddDisciplines == id);
+        // Робить прямий DELETE FROM BindAddDisciplines WHERE IdBindAddDisciplines = id
+        var deletedCount = await _context.BindAddDisciplines
+            .Where(b => b.IdBindAddDisciplines == id)
+            .ExecuteDeleteAsync();
 
-        if (bind == null)
-            return false;
-
-        _context.BindAddDisciplines.Remove(bind);
-        await _context.SaveChangesAsync();
-        return true;
+        return deletedCount > 0;
     }
 }

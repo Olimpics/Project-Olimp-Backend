@@ -83,15 +83,20 @@ namespace OlimpBack.DTO
     /// <summary>
     /// Query parameters for GetStudentsWithDisciplineChoices.
     /// </summary>
+    /// 
+
     public class GetStudentsWithDisciplineChoicesQueryDto
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
-        public string? Faculties { get; set; }
-        public string? Courses { get; set; }
-        public string? Groups { get; set; }
-        public string? DegreeLevelIds { get; set; }
+
+        // Замість string? використовуємо List<int> (сказав джеміні)
+        public List<int>? Faculties { get; set; }
+        public List<int>? Courses { get; set; }
+        public List<int>? Groups { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+
         public int? SelectionStatus { get; set; }
         public int? ConfirmationStatus { get; set; }
         public int SortOrder { get; set; } = 0;
@@ -125,10 +130,43 @@ namespace OlimpBack.DTO
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
-        public string? Faculties { get; set; }
+
+        // Замість string? використовуємо List<int>? (сказав джеміні)
+        public List<int>? Faculties { get; set; }
         public sbyte? IsFaculty { get; set; }
-        public string? DegreeLevelIds { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+
         public int? StatusFilter { get; set; }
         public int SortOrder { get; set; } = 0;
+    }
+
+
+    // Це допоміжні DTO для відповіді на підтвердження/відхилення вибору
+    public class UpdateChoiceResponseDto
+    {
+        public List<ChoiceResultDto> Results { get; set; } = new();
+        public List<ChoiceErrorDto> Errors { get; set; } = new();
+    }
+
+    public class ChoiceResultDto
+    {
+        public string Message { get; set; } = null!;
+        public int BindId { get; set; }
+        public string? DisciplineName { get; set; }
+        public int? NotificationId { get; set; } // Nullable, бо при підтвердженні його немає
+    }
+
+    public class ChoiceErrorDto
+    {
+        public int BindId { get; set; }
+        public string Error { get; set; } = null!;
+    }
+
+    public class UpdateDisciplineStatusResponseDto
+    {
+        public string Message { get; set; } = null!;
+        public int DisciplineId { get; set; }
+        public string Status { get; set; } = null!;
+        public int IsForceChange { get; set; }
     }
 }
