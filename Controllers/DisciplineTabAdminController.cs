@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OlimpBack.DTO;
 using OlimpBack.Services;
 
@@ -70,6 +71,34 @@ namespace OlimpBack.Controllers
                 return NotFound();
             return Ok(result);
         }
+
+
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateBindAddDiscipline(int id, UpdateBindAddDisciplineDto updateDto)
+        //{
+        //    var bind = await _context.BindAddDisciplines.FindAsync(id);
+        //    if (bind == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    _mapper.Map(updateDto, bind);
+
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+               
+                
+        //            throw;
+                
+        //    }
+
+        //    return NoContent();
+        //}
+
 
     }
 }
