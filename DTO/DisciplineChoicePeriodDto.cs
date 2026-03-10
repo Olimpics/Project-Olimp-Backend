@@ -55,7 +55,6 @@ namespace OlimpBack.DTO
     public class GetDisciplineChoicePeriodsQueryDto
     {
         public int? FacultyId { get; set; }
-        public int? DepartmentId { get; set; }
         public int? DegreeLevelId { get; set; }
         public int? PeriodType { get; set; }
         public int? IsClose { get; set; }

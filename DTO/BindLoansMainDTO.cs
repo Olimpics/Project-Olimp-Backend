@@ -25,12 +25,15 @@ namespace OlimpBack.DTO
         public int IdBindLoan { get; set; }
     }
 
-    public class BindLoansMainFilterDto
+    public class BindLoansMainQueryDto
     {
         public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
+        public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
+        public string? AddDisciplinesIds { get; set; }
+        public string? EducationalProgramIds { get; set; }
         public string? Faculties { get; set; }
         public string? Specialities { get; set; }
+        public int SortOrder { get; set; } = 0;
     }
 } 
