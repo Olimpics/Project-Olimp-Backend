@@ -100,6 +100,24 @@ namespace OlimpBack.DTO
     }
 
     /// <summary>
+    /// For mapping.
+    /// </summary>
+    public class FullForAdminDisciplineDto
+    {
+        public int IdAddDisciplines { get; set; }
+        public string NameAddDisciplines { get; set; } = null!;
+        public string CodeAddDisciplines { get; set; } = null!;
+        public string Faculty { get; set; } = null!;
+        public int? MinCountPeople { get; set; }
+        public int? MaxCountPeople { get; set; }
+        public int? MinCourse { get; set; }
+        public int? MaxCourse { get; set; }
+        public sbyte? AddSemestr { get; set; }
+        public string DegreeLevelName { get; set; }
+        public int CountOfPeople { get; set; }
+    }
+
+    /// <summary>
     /// Query parameters for GetDisciplinesWithStatus.
     /// </summary>
     public class GetDisciplinesWithStatusQueryDto
