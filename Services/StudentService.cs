@@ -21,151 +21,82 @@ public class StudentService : IStudentService
         _mapper = mapper;
     }
 
-    public async Task<PaginatedResponseDto<StudentForCatalogDto>> GetStudentsAsync(
-        StudentQueryDto queryDto)
+    public async Task<PaginatedResponseDto<StudentForCatalogDto>> GetStudentsAsync(StudentQueryDto queryDto)
     {
-        var query = _context.Students
-            .Include(s => s.EducationStatus)
-            .Include(s => s.Faculty)
-            .Include(s => s.EducationalProgram)
-            .Include(s => s.EducationalDegree)
-            .Include(s => s.Group)
-            .Include(s => s.StudyForm)
-            .AsQueryable();
+        // Відключаємо трекінг, Include нам більше не потрібні завдяки ProjectTo!
+        var query = _context.Students.AsNoTracking().AsQueryable();
 
+        // 1. ПОШУК І ФІЛЬТРАЦІЯ НА РІВНІ БД
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
+            query = query.Where(s => EF.Functions.Like(s.NameStudent.ToLower(), $"%{lowerSearch}%"));
+        }
+
+        if (queryDto.Faculties != null && queryDto.Faculties.Any())
+        {
+            var numericValues = queryDto.Faculties.Where(f => int.TryParse(f, out _)).Select(int.Parse).ToList();
+            var textValues = queryDto.Faculties.Where(f => !int.TryParse(f, out _)).Select(f => f.ToLower()).ToList();
+
+            // Динамічний OR для факультетів
             query = query.Where(s =>
-                EF.Functions.Like(s.NameStudent.ToLower(), $"%{lowerSearch}%"));
+                numericValues.Contains(s.FacultyId) ||
+                (s.Faculty != null && textValues.Any(t => s.Faculty.NameFaculty.ToLower().Contains(t) || s.Faculty.Abbreviation.ToLower().Contains(t)))
+            );
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Faculties))
+        if (queryDto.Specialities != null && queryDto.Specialities.Any())
         {
-            var facultyValues = queryDto.Faculties
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToList();
+            // Спрощене Expression Tree для спеціальностей (StartsWith -> Like 'val%')
+            var parameter = Expression.Parameter(typeof(Student), "s");
+            var progProp = Expression.Property(parameter, nameof(Student.EducationalProgram));
+            var specCodeProp = Expression.Property(progProp, nameof(EducationalProgram.SpecialityCode));
 
-            var numericValues = facultyValues
-                .Where(f => int.TryParse(f, out _))
-                .Select(int.Parse)
-                .ToList();
-
-            var textValues = facultyValues
-                .Where(f => !int.TryParse(f, out _))
-                .Select(f => f.ToLower())
-                .ToList();
-
-            if (numericValues.Any())
+            Expression? orExpression = null;
+            foreach (var val in queryDto.Specialities.Select(s => s.ToLower()))
             {
-                query = query.Where(s => numericValues.Contains(s.FacultyId));
-            }
-
-            if (textValues.Any())
-            {
-                query = query.Where(s =>
-                    textValues.Any(t =>
-                        EF.Functions.Like(s.Faculty.NameFaculty.ToLower(), $"%{t}%") ||
-                        EF.Functions.Like(s.Faculty.Abbreviation.ToLower(), $"%{t}%")));
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(queryDto.Speciality))
-        {
-            var specialityValues = queryDto.Speciality
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(f => f.ToLower())
-                .ToList();
-
-            if (specialityValues.Any())
-            {
-                var parameter = Expression.Parameter(typeof(Student), "s");
-                var property = Expression.Property(
-                    Expression.Property(parameter, nameof(Student.EducationalProgram)),
-                    nameof(EducationalProgram.SpecialityCode)
+                var likeCall = Expression.Call(
+                    typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), Type.EmptyTypes,
+                    Expression.Constant(EF.Functions), specCodeProp, Expression.Constant(val + "%")
                 );
-
-                var toLowerCall = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes)!);
-
-                Expression? combinedExpression = null;
-                foreach (var val in specialityValues)
-                {
-                    var startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!;
-                    var startsWithCall = Expression.Call(toLowerCall, startsWithMethod, Expression.Constant(val));
-
-                    combinedExpression = combinedExpression == null
-                        ? startsWithCall
-                        : Expression.OrElse(combinedExpression, startsWithCall);
-                }
-
-                var lambda = Expression.Lambda<Func<Student, bool>>(combinedExpression!, parameter);
-                query = query.Where(lambda);
+                orExpression = orExpression == null ? likeCall : Expression.OrElse(orExpression, likeCall);
             }
+            query = query.Where(Expression.Lambda<Func<Student, bool>>(orExpression!, parameter));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Group))
+        if (queryDto.GroupIds != null && queryDto.GroupIds.Any())
+            query = query.Where(s => queryDto.GroupIds.Contains(s.GroupId));
+
+        if (queryDto.Courses != null && queryDto.Courses.Any())
+            query = query.Where(s => queryDto.Courses.Contains(s.Course));
+
+        if (queryDto.StudyFormIds != null && queryDto.StudyFormIds.Any())
+            query = query.Where(s => queryDto.StudyFormIds.Contains(s.StudyFormId));
+
+        if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
+            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.EducationalDegreeId));
+
+        // 2. СОРТУВАННЯ НА РІВНІ БД (До ToListAsync!)
+        query = queryDto.SortOrder switch
         {
-            var groupIdList = queryDto.Group
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(g => int.TryParse(g, out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (groupIdList.Any())
-            {
-                query = query.Where(s => groupIdList.Contains(s.Group.IdGroup));
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(queryDto.Courses))
-        {
-            var courseList = queryDto.Courses
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(int.Parse)
-                .ToList();
-            query = query.Where(s => courseList.Contains(s.Course));
-        }
-
-        if (!string.IsNullOrWhiteSpace(queryDto.StudyForm))
-        {
-            var studyFormIds = queryDto.StudyForm
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(int.Parse)
-                .ToList();
-            query = query.Where(s => studyFormIds.Contains(s.StudyFormId));
-        }
-
-        if (!string.IsNullOrWhiteSpace(queryDto.DegreeLevelIds))
-        {
-            var levelIds = queryDto.DegreeLevelIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(int.Parse)
-                .ToList();
-            query = query.Where(s => levelIds.Contains(s.EducationalDegreeId));
-        }
-
-        var students = await query.ToListAsync();
-
-        students = queryDto.SortOrder switch
-        {
-            1 => students.OrderByDescending(d => d.NameStudent).ToList(),
-            2 => students.OrderBy(d => d.Faculty.Abbreviation).ToList(),
-            3 => students.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
-            4 => students.OrderBy(d => d.Group.GroupCode).ToList(),
-            5 => students.OrderByDescending(d => d.Group.GroupCode).ToList(),
-            _ => students.OrderBy(d => d.NameStudent).ToList()
+            1 => query.OrderByDescending(d => d.NameStudent),
+            2 => query.OrderBy(d => d.Faculty.Abbreviation),
+            3 => query.OrderByDescending(d => d.Faculty.Abbreviation),
+            4 => query.OrderBy(d => d.Group.GroupCode),
+            5 => query.OrderByDescending(d => d.Group.GroupCode),
+            _ => query.OrderBy(d => d.NameStudent)
         };
 
-        var totalItems = students.Count;
+        var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)queryDto.PageSize);
 
-        var paginatedResult = students
+        // 3. БЛИСКАВИЧНА ПАГІНАЦІЯ І ПРОЕКЦІЯ
+        // Ми одразу конвертуємо SQL у DTO, минаючи важкі моделі
+        var items = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
-            .ToList();
-
-        var items = _mapper.Map<List<StudentForCatalogDto>>(paginatedResult);
+            .ProjectTo<StudentForCatalogDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
 
         return new PaginatedResponseDto<StudentForCatalogDto>
         {
@@ -174,55 +105,61 @@ public class StudentService : IStudentService
             CurrentPage = queryDto.Page,
             PageSize = queryDto.PageSize,
             Items = items,
-            Filters = new
-            {
-                faculties = queryDto.Faculties?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
-                queryDto.Speciality,
-                queryDto.Group,
-                courses = queryDto.Courses?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(int.Parse).ToList(),
-                studyForm = queryDto.StudyForm?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(int.Parse).ToList(),
-                degreeLevelIds = queryDto.DegreeLevelIds?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(int.Parse).ToList()
-            }
+            Filters = queryDto // Віддаємо просто сам об'єкт, він вже чистий
         };
     }
 
     public async Task<StudentDto?> GetStudentAsync(int id)
     {
-        var student = await _context.Students
+        // Ти тут вже написав ідеально! Додав лише AsNoTracking для швидкості
+        return await _context.Students
+            .AsNoTracking()
             .Where(s => s.IdStudent == id)
             .ProjectTo<StudentDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
-
-        return student;
     }
 
     public async Task<IReadOnlyList<StudentDto>> CreateStudentsAsync(IReadOnlyList<CreateStudentDto> dtos)
     {
+        // 4. ОПТИМІЗАЦІЯ ПАКЕТНОГО ВСТАВЛЕННЯ (BULK INSERT)
         var results = new List<StudentDto>();
+        var studentsToAdd = new List<Student>();
+
+        // Перевіряємо всіх існуючих студентів ОДНИМ запитом, а не в циклі
+        var namesToCheck = dtos.Where(d => !string.IsNullOrWhiteSpace(d.NameStudent)).Select(d => d.NameStudent).ToList();
+        var existingStudents = await _context.Students
+            .Where(s => namesToCheck.Contains(s.NameStudent))
+            .Select(s => new { s.IdStudent, s.NameStudent })
+            .ToListAsync();
 
         foreach (var dto in dtos)
         {
             if (string.IsNullOrWhiteSpace(dto.NameStudent))
                 continue;
 
-            var existing = await _context.Students
-                .FirstOrDefaultAsync(s => s.NameStudent == dto.NameStudent && s.IdStudent == dto.IdStudent);
-
-            if (existing != null)
+            // Перевіряємо в пам'яті (миттєво)
+            if (existingStudents.Any(s => s.NameStudent == dto.NameStudent && s.IdStudent == dto.IdStudent))
                 continue;
 
             var userId = dto.UserId;
             if (userId == 0)
+            {
+                // Залишив твій сервіс, припускаємо що він зберігає юзера
                 userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
-
+            }
             dto.UserId = userId;
 
             var student = _mapper.Map<Student>(dto);
-            _context.Students.Add(student);
+            studentsToAdd.Add(student);
+        }
+
+        if (studentsToAdd.Any())
+        {
+            // Додаємо всіх разом і зберігаємо ОДИН раз!
+            _context.Students.AddRange(studentsToAdd);
             await _context.SaveChangesAsync();
 
-            var createdDto = _mapper.Map<StudentDto>(student);
-            results.Add(createdDto);
+            results.AddRange(_mapper.Map<List<StudentDto>>(studentsToAdd));
         }
 
         return results;
@@ -252,4 +189,3 @@ public class StudentService : IStudentService
         return (true, StatusCodes.Status204NoContent, null);
     }
 }
-
