@@ -30,6 +30,13 @@ namespace OlimpBack.DTO
         public string? DegreeName { get; set; }
     }
 
+    public class DisciplineFiltersDto
+    {
+        public List<string>? Faculties { get; set; }
+        public List<int>? Courses { get; set; }
+        public bool? IsEvenSemester { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+    }
     public class NotificationTemplateFilterDto
     {
         public int IdNotificationTemplates { get; set; }

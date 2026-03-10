@@ -4,13 +4,13 @@ namespace OlimpBack.Services;
 
 public interface IDisciplineTabAdminService
 {
-    Task<object?> GetStudentsWithDisciplineChoicesAsync(GetStudentsWithDisciplineChoicesQueryDto query);
+    Task<PaginatedResponseDto<StudentWithDisciplineChoicesDto>> GetStudentsWithDisciplineChoicesAsync(GetStudentsWithDisciplineChoicesQueryDto query);
 
-    Task<object> UpdateChoiceAsync(ConfirmOrRejectChoiceDto[] items);
+    Task<UpdateChoiceResponseDto> UpdateChoiceAsync(ConfirmOrRejectChoiceDto[] items);
 
-    Task<object?> GetDisciplinesWithStatusAsync(GetDisciplinesWithStatusQueryDto query);
+    Task<PaginatedResponseDto<AdminDisciplineListItemDto>> GetDisciplinesWithStatusAsync(GetDisciplinesWithStatusQueryDto query);
 
-    Task<object?> UpdateDisciplineStatusAsync(UpdateDisciplineStatusDto dto);
+    Task<UpdateDisciplineStatusResponseDto?> UpdateDisciplineStatusAsync(UpdateDisciplineStatusDto dto);
 
     Task<BindAddDisciplineDto?> GetBindAsync(int id);
 

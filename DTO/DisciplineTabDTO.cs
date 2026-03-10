@@ -36,20 +36,7 @@ namespace OlimpBack.DTO
         public int CountOfPeople { get; set; }
     }
 
-    public class FullForAdminDisciplineDto
-    {
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
-        public string Faculty { get; set; } = null!;
-        public int? MinCountPeople { get; set; }
-        public int? MaxCountPeople { get; set; }
-        public int? MinCourse { get; set; }
-        public int? MaxCourse { get; set; }
-        public sbyte? AddSemestr { get; set; }
-        public string DegreeLevelName { get; set; }
-        public int CountOfPeople { get; set; }
-    }
+   
     public class AddDisciplineBindDto
     {
         public int StudentId { get; set; }
@@ -97,13 +84,7 @@ namespace OlimpBack.DTO
         public string TypeOfControll { get; set; } = null!;
     }
 
-    public class DisciplineFiltersDto
-    {
-        public List<string>? Faculties { get; set; }
-        public List<int>? Courses { get; set; }
-        public bool? IsEvenSemester { get; set; }
-        public List<int>? DegreeLevelIds { get; set; }
-    }
+
 
     /// <summary>
     /// Query parameters for GetAllDisciplinesWithAvailability.
@@ -115,10 +96,13 @@ namespace OlimpBack.DTO
         public int PageSize { get; set; } = 50;
         public bool OnlyAvailable { get; set; } = false;
         public string? Search { get; set; }
-        public string? Faculties { get; set; }
-        public string? Courses { get; set; }
+
+        // Замість string? використовуємо типізовані списки
+        public List<int>? Faculties { get; set; }
+        public List<int>? Courses { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+
         public bool? IsEvenSemester { get; set; }
-        public string? DegreeLevelIds { get; set; }
         public int SortOrder { get; set; } = 0;
     }
 
