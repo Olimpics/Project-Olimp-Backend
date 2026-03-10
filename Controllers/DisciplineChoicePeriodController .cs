@@ -70,7 +70,6 @@ namespace OlimpBack.Controllers
             var periods = await _context.DisciplineChoicePeriods
                 .Where(p =>
                     (!queryDto.FacultyId.HasValue || p.FacultyId == queryDto.FacultyId) &&
-                    (!queryDto.DepartmentId.HasValue || p.DepartmentId == queryDto.DepartmentId) &&
                     (!queryDto.DegreeLevelId.HasValue || p.DegreeLevelId == queryDto.DegreeLevelId) &&
                     (!queryDto.PeriodType.HasValue || p.PeriodType == queryDto.PeriodType) &&
                     (!queryDto.IsClose.HasValue || p.IsClose == queryDto.IsClose) &&
