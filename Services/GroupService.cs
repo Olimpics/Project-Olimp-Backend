@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions; // Додано для ProjectTo
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Data;
@@ -19,104 +20,63 @@ public class GroupService : IGroupService
 
     public async Task<IEnumerable<GroupFilterDto>> GetGroupsAsync(GroupListQueryDto queryDto)
     {
-        var query = _context.Groups
-            .Include(g => g.Students)
-            .Include(g => g.Faculty)
-            .Include(g => g.Department)
-            .Include(g => g.Degree)
-            .AsQueryable();
+        // Відключаємо трекінг, Include нам більше не потрібні завдяки ProjectTo!
+        var query = _context.Groups.AsNoTracking().AsQueryable();
 
+        // 1. ФІЛЬТРАЦІЯ
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(g => EF.Functions.Like(g.GroupCode.ToLower(), $"%{lowerSearch}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.FacultyIds))
+        if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
         {
-            var facultyIdList = queryDto.FacultyIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(id => int.TryParse(id, out var val) ? val : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (facultyIdList.Any())
-            {
-                query = query.Where(g => g.FacultyId.HasValue && facultyIdList.Contains(g.FacultyId.Value));
-            }
+            query = query.Where(g => g.FacultyId.HasValue && queryDto.FacultyIds.Contains(g.FacultyId.Value));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.DepartmentIds))
+        if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
         {
-            var departmentIdList = queryDto.DepartmentIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(id => int.TryParse(id, out var val) ? val : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (departmentIdList.Any())
-            {
-                query = query.Where(g => g.DepartmentId.HasValue && departmentIdList.Contains(g.DepartmentId.Value));
-            }
+            query = query.Where(g => g.DepartmentId.HasValue && queryDto.DepartmentIds.Contains(g.DepartmentId.Value));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Courses))
+        if (queryDto.Courses != null && queryDto.Courses.Any())
         {
-            var courseList = queryDto.Courses
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(id => int.TryParse(id, out var val) ? val : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (courseList.Any())
-            {
-                query = query.Where(g => g.Course.HasValue && courseList.Contains(g.Course.Value));
-            }
+            query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
         }
 
-        if (!string.IsNullOrWhiteSpace(queryDto.DegreeLevelIds))
+        if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
-            var degreeLevelIdList = queryDto.DegreeLevelIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(id => int.TryParse(id, out var val) ? val : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (degreeLevelIdList.Any())
-            {
-                query = query.Where(g => g.DegreeId.HasValue && degreeLevelIdList.Contains(g.DegreeId.Value));
-            }
+            query = query.Where(g => g.DegreeId.HasValue && queryDto.DegreeLevelIds.Contains(g.DegreeId.Value));
         }
 
-        var groups = await query.ToListAsync();
-        groups = queryDto.SortOrder switch
+        // 2. СОРТУВАННЯ НА РІВНІ БД (До ToListAsync!)
+        query = queryDto.SortOrder switch
         {
-            1 => groups.OrderBy(d => d.GroupCode).ToList(),
-            2 => groups.OrderByDescending(d => d.GroupCode).ToList(),
-            3 => groups.OrderBy(d => d.Faculty.Abbreviation).ToList(),
-            4 => groups.OrderByDescending(d => d.Faculty.Abbreviation).ToList(),
-            5 => groups.OrderBy(d => d.Course).ToList(),
-            6 => groups.OrderByDescending(d => d.Course).ToList(),
-            _ => groups.OrderBy(d => d.GroupCode).ToList()
+            1 => query.OrderBy(d => d.GroupCode),
+            2 => query.OrderByDescending(d => d.GroupCode),
+            3 => query.OrderBy(d => d.Faculty.Abbreviation), // EF Core сам зробить JOIN, якщо треба
+            4 => query.OrderByDescending(d => d.Faculty.Abbreviation),
+            5 => query.OrderBy(d => d.Course),
+            6 => query.OrderByDescending(d => d.Course),
+            _ => query.OrderBy(d => d.GroupCode)
         };
 
-        return _mapper.Map<IEnumerable<GroupFilterDto>>(groups);
+        // 3. БЛИСКАВИЧНА ПРОЕКЦІЯ
+        // SQL-запит витягне лише ті колонки, які вказані в GroupFilterDto
+        return await query
+            .ProjectTo<GroupFilterDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
     }
 
     public async Task<GroupDto?> GetGroupAsync(int id)
     {
-        var group = await _context.Groups
-            .Include(g => g.Students)
-            .FirstOrDefaultAsync(g => g.IdGroup == id);
-
-        if (group == null)
-            return null;
-
-        return _mapper.Map<GroupDto>(group);
+        // Видалено Include, використано AsNoTracking та ProjectTo
+        return await _context.Groups
+            .AsNoTracking()
+            .Where(g => g.IdGroup == id)
+            .ProjectTo<GroupDto>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<GroupDto> CreateGroupAsync(CreateGroupDto dto)
@@ -132,9 +92,7 @@ public class GroupService : IGroupService
     {
         var group = await _context.Groups.FindAsync(id);
         if (group == null)
-        {
             return (false, StatusCodes.Status404NotFound, "Group not found");
-        }
 
         _mapper.Map(dto, group);
 
@@ -146,9 +104,7 @@ public class GroupService : IGroupService
         {
             var exists = await _context.Groups.AnyAsync(g => g.IdGroup == id);
             if (!exists)
-            {
                 return (false, StatusCodes.Status404NotFound, "Group not found");
-            }
 
             throw;
         }
@@ -158,16 +114,14 @@ public class GroupService : IGroupService
 
     public async Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(int id)
     {
-        var group = await _context.Groups.FindAsync(id);
-        if (group == null)
-        {
-            return (false, StatusCodes.Status404NotFound, "Group not found");
-        }
+        // 4. СУЧАСНЕ ВИДАЛЕННЯ БЕЗ ЗАВАНТАЖЕННЯ (EF Core 7+)
+        var deletedRows = await _context.Groups
+            .Where(g => g.IdGroup == id)
+            .ExecuteDeleteAsync();
 
-        _context.Groups.Remove(group);
-        await _context.SaveChangesAsync();
+        if (deletedRows == 0)
+            return (false, StatusCodes.Status404NotFound, "Group not found");
 
         return (true, StatusCodes.Status204NoContent, null);
     }
 }
-
