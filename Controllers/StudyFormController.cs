@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Models;
-using OlimpBack.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using OlimpBack.DTO;
+using OlimpBack.Application.DTO;
+using OlimpBack.Infrastructure.Database;
 
 namespace OlimpBack.Controllers
 {

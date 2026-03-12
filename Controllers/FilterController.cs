@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OlimpBack.Data;
-using OlimpBack.DTO;
+using OlimpBack.Application.DTO;
+using OlimpBack.Infrastructure.Database;
 
 namespace OlimpBack.Controllers
 {

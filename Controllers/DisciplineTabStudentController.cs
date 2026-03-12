@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using OlimpBack.DTO;
-using OlimpBack.Services;
+using OlimpBack.Application.DTO;
+using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
 {

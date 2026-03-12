@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using OlimpBack.DTO;
-using OlimpBack.Services;
+using OlimpBack.Application.Services;
+using OlimpBack.Application.DTO;
 
 namespace OlimpBack.Controllers
 {

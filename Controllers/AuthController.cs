@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OlimpBack.DTO;
-using OlimpBack.Services;
+using OlimpBack.Application.DTO;
+using OlimpBack.Application.Services;
 using OlimpBack.Utils;
 using System.Security.Claims;
 using System.Text.Json;

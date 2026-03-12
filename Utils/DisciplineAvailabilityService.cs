@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OlimpBack.Data;
-using OlimpBack.DTO;
+using OlimpBack.Application.DTO;
+using OlimpBack.Infrastructure.Database;
 using OlimpBack.Models;
 
 namespace OlimpBack.Utils

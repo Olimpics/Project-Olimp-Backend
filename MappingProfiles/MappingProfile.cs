@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using OlimpBack.Application.DTO;
 using OlimpBack.Data;
-using OlimpBack.DTO;
 using OlimpBack.Models;
 
 namespace OlimpBack.MappingProfiles
