@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
-using OlimpBack.DTO;
+using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
 using System.Text;
 using System.Text.Json;
