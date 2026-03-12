@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Application\Permissions\" />
     <Folder Include="Infrastructure\Repositories\" />
     <Folder Include="Infrastructure\Redis\" />
   </ItemGroup>
