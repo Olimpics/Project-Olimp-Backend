@@ -198,38 +198,79 @@ builder.Services.AddAuthentication(options =>
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
+// ==========================================
+// РЕПОЗИТОРІЇ ТА СЕРВІСИ (Domain Modules)
+// ==========================================
 
-// Auth services
+// Auth
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthAppService, AuthAppService>();
 
-// Educational program services
-builder.Services.AddScoped<IEducationalProgramService, EducationalProgramService>();
-
-// Group services
-builder.Services.AddScoped<IGroupService, GroupService>();
-
-// Faculty services
-builder.Services.AddScoped<IFacultyService, FacultyService>();
-
-// Notification services
-builder.Services.AddScoped<INotificationService, NotificationService>();
-
-// Student services
-builder.Services.AddScoped<IStudentService, StudentService>();
-
-// Department services
-builder.Services.AddScoped<IDepartmentService, DepartmentService>();
-
-// BindLoansMain services
+// BindLoansMain
+builder.Services.AddScoped<IBindLoansMainRepository, BindLoansMainRepository>();
 builder.Services.AddScoped<IBindLoansMainService, BindLoansMainService>();
 
-// Discipline tab services
+// BindMainDiscipline
+builder.Services.AddScoped<IBindMainDisciplineRepository, BindMainDisciplineRepository>();
+builder.Services.AddScoped<IBindMainDisciplineService, BindMainDisciplineService>();
+
+// BindRolePermission
+builder.Services.AddScoped<IBindRolePermissionRepository, BindRolePermissionRepository>();
+builder.Services.AddScoped<IBindRolePermissionService, BindRolePermissionService>();
+
+// Department
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+
+// DisciplineChoicePeriod
+builder.Services.AddScoped<IDisciplineChoicePeriodRepository, DisciplineChoicePeriodRepository>();
+builder.Services.AddScoped<IDisciplineChoicePeriodService, DisciplineChoicePeriodService>();
+
+// DisciplineTabAdmin
+builder.Services.AddScoped<IDisciplineTabAdminRepository, DisciplineTabAdminRepository>();
 builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();
+
+// DisciplineTab
+builder.Services.AddScoped<IDisciplineTabRepository, DisciplineTabRepository>();
 builder.Services.AddScoped<IDisciplineTabService, DisciplineTabService>();
 
+// EducationalDegree
 builder.Services.AddScoped<IEducationalDegreeRepository, EducationalDegreeRepository>();
 builder.Services.AddScoped<IEducationalDegreeService, EducationalDegreeService>();
+
+// EducationalProgram
+builder.Services.AddScoped<IEducationalProgramRepository, EducationalProgramRepository>();
+builder.Services.AddScoped<IEducationalProgramService, EducationalProgramService>();
+
+// EducationStatus
+builder.Services.AddScoped<IEducationStatusRepository, EducationStatusRepository>();
+builder.Services.AddScoped<IEducationStatusService, EducationStatusService>();
+
+// Faculty
+builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
+builder.Services.AddScoped<IFacultyService, FacultyService>();
+
+// Group
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<IGroupService, GroupService>();
+
+// StudentPage
+builder.Services.AddScoped<IStudentPageRepository, StudentPageRepository>();
 builder.Services.AddScoped<IStudentPageService, StudentPageService>();
+
+// StudyForm
+builder.Services.AddScoped<IStudyFormRepository, StudyFormRepository>();
+builder.Services.AddScoped<IStudyFormService, StudyFormService>();
+
+// ==========================================
+// СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)
+// ==========================================
+
+// Notification
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Student
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 // Authorization
 builder.Services.AddAuthorization();
