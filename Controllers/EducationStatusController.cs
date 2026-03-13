@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -13,55 +10,44 @@ namespace OlimpBack.Controllers
     [ApiController]
     public class EducationStatusController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IEducationStatusService _service;
 
-        public EducationStatusController(AppDbContext context, IMapper mapper)
+        public EducationStatusController(IEducationStatusService service)
         {
-            _context = context;
-            _mapper = mapper;
+            _service = service;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EducationStatusDto>>> GetEducationStatuses()
         {
-            var statuses = await _context.EducationStatuses.ToListAsync();
-            return Ok(_mapper.Map<IEnumerable<EducationStatusDto>>(statuses));
+            var statuses = await _service.GetAllAsync();
+            return Ok(statuses);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<EducationStatusDto>> GetEducationStatus(int id)
         {
-            var status = await _context.EducationStatuses.FindAsync(id);
+            var status = await _service.GetByIdAsync(id);
             if (status == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<EducationStatusDto>(status));
+            return Ok(status);
         }
 
         [HttpPost]
         public async Task<ActionResult<EducationStatusDto>> CreateEducationStatus(EducationStatusDto statusDto)
         {
-            var status = _mapper.Map<EducationStatus>(statusDto);
-            _context.EducationStatuses.Add(status);
-            await _context.SaveChangesAsync();
-
-            var resultDto = _mapper.Map<EducationStatusDto>(status);
-            return CreatedAtAction(nameof(GetEducationStatus), new { id = status.IdEducationStatus }, resultDto);
+            var resultDto = await _service.CreateAsync(statusDto);
+            return CreatedAtAction(nameof(GetEducationStatus), new { id = resultDto.IdEducationStatus }, resultDto);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEducationStatus(int id, EducationStatusDto statusDto)
         {
-            if (id != statusDto.IdEducationStatus)
-                return BadRequest();
+            var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, statusDto);
 
-            var status = await _context.EducationStatuses.FindAsync(id);
-            if (status == null)
-                return NotFound();
-
-            _mapper.Map(statusDto, status);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
@@ -69,15 +55,12 @@ namespace OlimpBack.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEducationStatus(int id)
         {
-            var status = await _context.EducationStatuses.FindAsync(id);
-            if (status == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);
 
-            _context.EducationStatuses.Remove(status);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
     }
-
 }
