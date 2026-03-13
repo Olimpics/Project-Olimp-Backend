@@ -30,8 +30,11 @@ namespace OlimpBack.Application.DTO
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
-        public string? AddDisciplinesIds { get; set; }
-        public string? EducationalProgramIds { get; set; }
+
+        // “ип≥зован≥ списки зам≥сть string з≥ Split(',')
+        public List<int>? AddDisciplinesIds { get; set; }
+        public List<int>? EducationalProgramIds { get; set; }
+
         public string? Faculties { get; set; }
         public string? Specialities { get; set; }
         public int SortOrder { get; set; } = 0;

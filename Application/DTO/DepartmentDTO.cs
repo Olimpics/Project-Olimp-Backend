@@ -25,7 +25,7 @@ namespace OlimpBack.Application.DTO
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
-        public string? FacultyIds { get; set; }
+        public List<int>? FacultyIds { get; set; } // Замість string
         public string? Search { get; set; }
         public int SortOrder { get; set; } = 0;
     }

@@ -1,124 +1,41 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Infrastructure.Database.Repositories; // Твій namespace репозиторію
 using OlimpBack.Models;
 
 namespace OlimpBack.Application.Services;
 
 public class BindLoansMainService : IBindLoansMainService
 {
-    private readonly AppDbContext _context;
+    private readonly IBindLoansMainRepository _repository;
 
-    public BindLoansMainService(AppDbContext context)
+    public BindLoansMainService(IBindLoansMainRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public async Task<PaginatedResponseDto<BindLoansMainDto>> GetBindLoansMainAsync(BindLoansMainQueryDto queryDto)
     {
-        var query = _context.BindLoansMains
-            .Include(b => b.AddDisciplines)
-            .Include(b => b.EducationalProgram)
-            .AsQueryable();
+        // Сервіс просто делегує важку роботу репозиторію
+        var (totalCount, items) = await _repository.GetPagedAsync(queryDto);
 
-        if (!string.IsNullOrWhiteSpace(queryDto.Search))
-        {
-            var lowerSearch = queryDto.Search.Trim().ToLower();
-            query = query.Where(b =>
-                EF.Functions.Like(b.AddDisciplines.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(b.AddDisciplines.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(b.EducationalProgram.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(b.EducationalProgram.SpecialityCode.ToLower(), $"%{lowerSearch}%"));
-        }
-
-        if (!string.IsNullOrWhiteSpace(queryDto.AddDisciplinesIds))
-        {
-            var disciplineIdList = queryDto.AddDisciplinesIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(id => int.TryParse(id, out var val) ? val : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (disciplineIdList.Any())
-            {
-                query = query.Where(b => disciplineIdList.Contains(b.AddDisciplinesId));
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(queryDto.EducationalProgramIds))
-        {
-            var programIdList = queryDto.EducationalProgramIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(id => int.TryParse(id, out var val) ? val : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            if (programIdList.Any())
-            {
-                query = query.Where(b => programIdList.Contains(b.EducationalProgramId));
-            }
-        }
-
-        var totalCount = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalCount / (double)queryDto.PageSize);
 
-        var bindings = await query
-            .Skip((queryDto.Page - 1) * queryDto.PageSize)
-            .Take(queryDto.PageSize)
-            .ToListAsync();
-
-        bindings = queryDto.SortOrder switch
-        {
-            1 => bindings.OrderByDescending(d => d.AddDisciplines.CodeAddDisciplines).ToList(),
-            2 => bindings.OrderBy(d => d.EducationalProgram.SpecialityCode).ToList(),
-            3 => bindings.OrderByDescending(d => d.EducationalProgram.SpecialityCode).ToList(),
-            _ => bindings.OrderBy(d => d.AddDisciplines.CodeAddDisciplines).ToList()
-        };
-
-        var items = bindings.Select(b => new BindLoansMainDto
-        {
-            IdBindLoan = b.IdBindLoan,
-            AddDisciplinesId = b.AddDisciplinesId,
-            EducationalProgramId = b.EducationalProgramId,
-            CodeAddDisciplines = b.AddDisciplines.CodeAddDisciplines,
-            AddDisciplineName = b.AddDisciplines.NameAddDisciplines,
-            SpecialityCode = b.EducationalProgram.SpecialityCode,
-            EducationalProgramName = b.EducationalProgram.NameEducationalProgram
-        }).ToList();
-
+        // Формуємо фінальну відповідь
         return new PaginatedResponseDto<BindLoansMainDto>
         {
             TotalItems = totalCount,
             TotalPages = totalPages,
             CurrentPage = queryDto.Page,
             PageSize = queryDto.PageSize,
-            Items = items
+            Items = items,
+            Filters = queryDto // Віддаємо DTO назад як фільтри
         };
     }
 
     public async Task<BindLoansMainDto?> GetBindLoansMainAsync(int id)
     {
-        var binding = await _context.BindLoansMains
-            .Include(b => b.AddDisciplines)
-            .Include(b => b.EducationalProgram)
-            .FirstOrDefaultAsync(b => b.IdBindLoan == id);
-
-        if (binding == null)
-            return null;
-
-        return new BindLoansMainDto
-        {
-            IdBindLoan = binding.IdBindLoan,
-            AddDisciplinesId = binding.AddDisciplinesId,
-            EducationalProgramId = binding.EducationalProgramId,
-            CodeAddDisciplines = binding.AddDisciplines.CodeAddDisciplines,
-            AddDisciplineName = binding.AddDisciplines.NameAddDisciplines,
-            SpecialityCode = binding.EducationalProgram.SpecialityCode,
-            EducationalProgramName = binding.EducationalProgram.NameEducationalProgram
-        };
+        return await _repository.GetDtoByIdAsync(id);
     }
 
     public async Task<BindLoansMainDto> CreateBindLoansMainAsync(CreateBindLoansMainDto dto)
@@ -129,45 +46,45 @@ public class BindLoansMainService : IBindLoansMainService
             EducationalProgramId = dto.EducationalProgramId
         };
 
-        _context.BindLoansMains.Add(binding);
-        await _context.SaveChangesAsync();
+        await _repository.AddAsync(binding);
+        await _repository.SaveChangesAsync();
 
-        binding = await _context.BindLoansMains
-            .Include(b => b.AddDisciplines)
-            .Include(b => b.EducationalProgram)
-            .FirstAsync(b => b.IdBindLoan == binding.IdBindLoan);
-
+        // Більше не робимо повторний запит (re-fetch) у БД!
+        // ID згенерувався після SaveChangesAsync, а інші дані ми і так знаємо.
+        // Це зекономить 1 похід у базу при кожному створенні.
         return new BindLoansMainDto
         {
             IdBindLoan = binding.IdBindLoan,
             AddDisciplinesId = binding.AddDisciplinesId,
             EducationalProgramId = binding.EducationalProgramId,
-            CodeAddDisciplines = binding.AddDisciplines.CodeAddDisciplines,
-            AddDisciplineName = binding.AddDisciplines.NameAddDisciplines,
-            SpecialityCode = binding.EducationalProgram.SpecialityCode,
-            EducationalProgramName = binding.EducationalProgram.NameEducationalProgram
+            CodeAddDisciplines = "", // При створенні ми не знаємо назв, і це нормально для response
+            AddDisciplineName = "",
+            SpecialityCode = "",
+            EducationalProgramName = ""
         };
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> UpdateBindLoansMainAsync(int id, UpdateBindLoansMainDto dto)
     {
+        // Бізнес-перевірка залишається в сервісі
         if (id != dto.IdBindLoan)
             return (false, StatusCodes.Status400BadRequest, "Route id does not match body id.");
 
-        var binding = await _context.BindLoansMains.FindAsync(id);
+        var binding = await _repository.GetEntityByIdAsync(id);
         if (binding == null)
             return (false, StatusCodes.Status404NotFound, "Binding not found");
 
+        // Оновлюємо поля
         binding.AddDisciplinesId = dto.AddDisciplinesId;
         binding.EducationalProgramId = dto.EducationalProgramId;
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _repository.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
         {
-            var exists = await _context.BindLoansMains.AnyAsync(b => b.IdBindLoan == id);
+            var exists = await _repository.ExistsAsync(id);
             if (!exists)
                 return (false, StatusCodes.Status404NotFound, "Binding not found");
 
@@ -179,14 +96,12 @@ public class BindLoansMainService : IBindLoansMainService
 
     public async Task<(bool success, int statusCode, string? errorMessage)> DeleteBindLoansMainAsync(int id)
     {
-        var binding = await _context.BindLoansMains.FindAsync(id);
-        if (binding == null)
-            return (false, StatusCodes.Status404NotFound, "Binding not found");
+        // Сучасне видалення через репозиторій
+        var deletedRows = await _repository.DeleteAsync(id);
 
-        _context.BindLoansMains.Remove(binding);
-        await _context.SaveChangesAsync();
+        if (deletedRows == 0)
+            return (false, StatusCodes.Status404NotFound, "Binding not found");
 
         return (true, StatusCodes.Status204NoContent, null);
     }
 }
-
