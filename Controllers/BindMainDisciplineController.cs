@@ -1,11 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -13,60 +8,39 @@ namespace OlimpBack.Controllers
     [ApiController]
     public class BindMainDisciplineController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IBindMainDisciplineService _service;
 
-        public BindMainDisciplineController(AppDbContext context, IMapper mapper)
+        public BindMainDisciplineController(IBindMainDisciplineService service)
         {
-            _context = context;
-            _mapper = mapper;
+            _service = service;
         }
-
 
         [HttpGet("{id}")]
         public async Task<ActionResult<BindMainDisciplineDto>> GetBindMainDiscipline(int id)
         {
-            var entity = await _context.BindMainDisciplines
-                .Include(bmd => bmd.EducationalProgram)
-                .FirstOrDefaultAsync(bmd => bmd.IdBindMainDisciplines == id);
+            var result = await _service.GetByIdAsync(id);
 
-            if (entity == null)
+            if (result == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<BindMainDisciplineDto>(entity));
+            return Ok(result);
         }
 
         [HttpPost]
         public async Task<ActionResult<BindMainDisciplineDto>> CreateBindMainDiscipline(CreateBindMainDisciplineDto dto)
         {
-            var entity = _mapper.Map<BindMainDiscipline>(dto);
-            _context.BindMainDisciplines.Add(entity);
-            await _context.SaveChangesAsync();
+            var resultDto = await _service.CreateAsync(dto);
 
-            var resultDto = _mapper.Map<BindMainDisciplineDto>(entity);
-            return CreatedAtAction(nameof(GetBindMainDiscipline), new { id = entity.IdBindMainDisciplines }, resultDto);
+            return CreatedAtAction(nameof(GetBindMainDiscipline), new { id = resultDto.IdBindMainDisciplines }, resultDto);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBindMainDiscipline(int id, UpdateBindMainDisciplineDto dto)
         {
-            if (id != dto.IdBindMainDisciplines)
-                return BadRequest();
+            var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
 
-            var entity = await _context.BindMainDisciplines.FindAsync(id);
-            if (entity == null)
-                return NotFound();
-
-            _mapper.Map(dto, entity);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException) when (!BindMainDisciplineExists(id))
-            {
-                return NotFound();
-            }
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
@@ -74,20 +48,12 @@ namespace OlimpBack.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBindMainDiscipline(int id)
         {
-            var entity = await _context.BindMainDisciplines.FindAsync(id);
-            if (entity == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);
 
-            _context.BindMainDisciplines.Remove(entity);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
-
-        private bool BindMainDisciplineExists(int id)
-        {
-            return _context.BindMainDisciplines.Any(e => e.IdBindMainDisciplines == id);
-        }
     }
-
 }
