@@ -226,6 +226,9 @@ builder.Services.AddScoped<IBindLoansMainService, BindLoansMainService>();
 builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();
 builder.Services.AddScoped<IDisciplineTabService, DisciplineTabService>();
 
+
+builder.Services.AddScoped<IStudentPageService, StudentPageService>();
+
 // Authorization
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<FileCleanupService>();
