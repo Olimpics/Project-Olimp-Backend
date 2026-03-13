@@ -1,11 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OlimpBack.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -13,124 +8,62 @@ namespace OlimpBack.Controllers
     [ApiController]
     public class BindRolePermissionController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IBindRolePermissionService _service;
 
-        public BindRolePermissionController(AppDbContext context, IMapper mapper)
+        public BindRolePermissionController(IBindRolePermissionService service)
         {
-            _context = context;
-            _mapper = mapper;
+            _service = service;
         }
 
-        // GET: api/BindRolePermission
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BindRolePermissionDto>>> GetBindRolePermissions()
         {
-            var bindings = await _context.BindRolePermissions
-                .Include(b => b.Role)
-                .Include(b => b.Permission)
-                .ToListAsync();
-            return Ok(_mapper.Map<IEnumerable<BindRolePermissionDto>>(bindings));
+            var result = await _service.GetAllAsync();
+            return Ok(result);
         }
 
-        // GET: api/BindRolePermission/5
         [HttpGet("{id}")]
         public async Task<ActionResult<BindRolePermissionDto>> GetBindRolePermission(int id)
         {
-            var binding = await _context.BindRolePermissions
-                .Include(b => b.Role)
-                .Include(b => b.Permission)
-                .FirstOrDefaultAsync(b => b.IdBindRolePermission == id);
+            var result = await _service.GetByIdAsync(id);
 
-            if (binding == null)
+            if (result == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<BindRolePermissionDto>(binding));
+            return Ok(result);
         }
 
-        // POST: api/BindRolePermission
         [HttpPost]
         public async Task<ActionResult<BindRolePermissionDto>> CreateBindRolePermission(CreateBindRolePermissionDto dto)
         {
-            // Check if role exists
-            var role = await _context.Roles.FindAsync(dto.RoleId);
-            if (role == null)
-                return BadRequest("Role not found");
+            var (resultDto, statusCode, errorMessage) = await _service.CreateAsync(dto);
 
-            // Check if permission exists
-            var permission = await _context.Permissions.FindAsync(dto.PermissionId);
-            if (permission == null)
-                return BadRequest("Permission not found");
+            if (resultDto == null)
+                return StatusCode(statusCode!.Value, errorMessage);
 
-            // Check if binding already exists
-            var existingBinding = await _context.BindRolePermissions
-                .FirstOrDefaultAsync(b => b.RoleId == dto.RoleId && b.PermissionId == dto.PermissionId);
-            if (existingBinding != null)
-                return BadRequest("This role-permission binding already exists");
-
-            var binding = _mapper.Map<BindRolePermission>(dto);
-            _context.BindRolePermissions.Add(binding);
-            await _context.SaveChangesAsync();
-
-            var resultDto = await GetBindRolePermissionWithIncludes(binding.IdBindRolePermission);
-            return CreatedAtAction(nameof(GetBindRolePermission), new { id = binding.IdBindRolePermission }, resultDto);
+            return CreatedAtAction(nameof(GetBindRolePermission), new { id = resultDto.IdBindRolePermission }, resultDto);
         }
 
-        // PUT: api/BindRolePermission/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBindRolePermission(int id, UpdateBindRolePermissionDto dto)
         {
-            if (id != dto.IdBindRolePermission)
-                return BadRequest();
+            var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
 
-            var binding = await _context.BindRolePermissions.FindAsync(id);
-            if (binding == null)
-                return NotFound();
-
-            // Check if role exists
-            var role = await _context.Roles.FindAsync(dto.RoleId);
-            if (role == null)
-                return BadRequest("Role not found");
-
-            // Check if permission exists
-            var permission = await _context.Permissions.FindAsync(dto.PermissionId);
-            if (permission == null)
-                return BadRequest("Permission not found");
-
-            // Check if new binding already exists
-            var existingBinding = await _context.BindRolePermissions
-                .FirstOrDefaultAsync(b => b.RoleId == dto.RoleId && b.PermissionId == dto.PermissionId && b.IdBindRolePermission != id);
-            if (existingBinding != null)
-                return BadRequest("This role-permission binding already exists");
-
-            _mapper.Map(dto, binding);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
 
-        // DELETE: api/BindRolePermission/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBindRolePermission(int id)
         {
-            var binding = await _context.BindRolePermissions.FindAsync(id);
-            if (binding == null)
-                return NotFound();
+            var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);
 
-            _context.BindRolePermissions.Remove(binding);
-            await _context.SaveChangesAsync();
+            if (!success)
+                return StatusCode(statusCode, errorMessage);
 
             return NoContent();
         }
-
-        private async Task<BindRolePermissionDto> GetBindRolePermissionWithIncludes(int id)
-        {
-            var binding = await _context.BindRolePermissions
-                .Include(b => b.Role)
-                .Include(b => b.Permission)
-                .FirstOrDefaultAsync(b => b.IdBindRolePermission == id);
-
-            return _mapper.Map<BindRolePermissionDto>(binding);
-        }
     }
-} 
+}
