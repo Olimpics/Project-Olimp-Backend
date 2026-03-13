@@ -1,9 +1,6 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
-using OlimpBack.Models;
+using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
 {
@@ -11,74 +8,52 @@ namespace OlimpBack.Controllers
     [Route("api/[controller]")]
     public class DisciplineChoicePeriodController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IDisciplineChoicePeriodService _service;
 
-        public DisciplineChoicePeriodController(AppDbContext context, IMapper mapper)
+        public DisciplineChoicePeriodController(IDisciplineChoicePeriodService service)
         {
-            _context = context;
-            _mapper = mapper;
+            _service = service;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll([FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
+        {
+            var result = await _service.GetAllAsync(queryDto);
+            return Ok(result);
         }
 
         [HttpPost]
         public async Task<ActionResult<DisciplineChoicePeriodDto>> Create([FromBody] CreateDisciplineChoicePeriodDto dto)
         {
-            var period = _mapper.Map<DisciplineChoicePeriod>(dto);
-            _context.DisciplineChoicePeriods.Add(period);
-            await _context.SaveChangesAsync();
-            return Ok(_mapper.Map<DisciplineChoicePeriodDto>(period));
+            var result = await _service.CreateAsync(dto);
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateDisciplineChoicePeriodDto dto)
         {
-            if (id != dto.Id) return BadRequest("ID mismatch");
-            var period = await _context.DisciplineChoicePeriods.FindAsync(id);
-            if (period == null) return NotFound();
+            var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
+            if (!success) return StatusCode(statusCode, errorMessage);
 
-            _mapper.Map(dto, period);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
-        [HttpPut("UpdateAfterStart")]
+
+        [HttpPut("UpdateAfterStart/{id}")]
         public async Task<ActionResult> UpdateAfterStart(int id, [FromBody] UpdateDisciplineChoicePeriodAfterStartDto dto)
         {
-            if (id != dto.Id) return BadRequest("ID mismatch");
-            var period = await _context.DisciplineChoicePeriods.FindAsync(id);
-            if (period == null) return NotFound();
+            var (success, statusCode, errorMessage) = await _service.UpdateAfterStartAsync(id, dto);
+            if (!success) return StatusCode(statusCode, errorMessage);
 
-            _mapper.Map(dto, period);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
-        [HttpPut("OpenOrClose")]
+
+        [HttpPut("OpenOrClose/{id}")]
         public async Task<ActionResult> OpenOrClose(int id, [FromBody] UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
         {
-            if (id != dto.Id) return BadRequest("ID mismatch");
-            var period = await _context.DisciplineChoicePeriods.FindAsync(id);
-            if (period == null) return NotFound();
+            var (success, statusCode, errorMessage) = await _service.OpenOrCloseAsync(id, dto);
+            if (!success) return StatusCode(statusCode, errorMessage);
 
-            _mapper.Map(dto, period);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll(
-     [FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
-        {
-            var periods = await _context.DisciplineChoicePeriods
-                .Where(p =>
-                    (!queryDto.FacultyId.HasValue || p.FacultyId == queryDto.FacultyId) &&
-                    (!queryDto.DegreeLevelId.HasValue || p.DegreeLevelId == queryDto.DegreeLevelId) &&
-                    (!queryDto.PeriodType.HasValue || p.PeriodType == queryDto.PeriodType) &&
-                    (!queryDto.IsClose.HasValue || p.IsClose == queryDto.IsClose) &&
-                    (!queryDto.PeriodCourse.HasValue || p.PeriodCourse == queryDto.PeriodCourse)
-                )
-                .OrderByDescending(p => p.StartDate)
-                .ToListAsync();
-            return Ok(_mapper.Map<List<DisciplineChoicePeriodDto>>(periods));
-        }
     }
-
 }
