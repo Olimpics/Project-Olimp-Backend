@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OlimpBack.Application.Services;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
 using System.Configuration;
@@ -226,7 +227,8 @@ builder.Services.AddScoped<IBindLoansMainService, BindLoansMainService>();
 builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();
 builder.Services.AddScoped<IDisciplineTabService, DisciplineTabService>();
 
-
+builder.Services.AddScoped<IEducationalDegreeRepository, EducationalDegreeRepository>();
+builder.Services.AddScoped<IEducationalDegreeService, EducationalDegreeService>();
 builder.Services.AddScoped<IStudentPageService, StudentPageService>();
 
 // Authorization
