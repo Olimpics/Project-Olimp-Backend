@@ -169,4 +169,29 @@ namespace OlimpBack.Application.DTO
         public string Status { get; set; } = null!;
         public int IsForceChange { get; set; }
     }
+
+    // Проекції для Репозиторію
+    public record StudentChoicesProjection(int IdStudent, 
+        string NameStudent, 
+        string FacultyName, 
+        string GroupCode, 
+        int Course, 
+        int EducationalDegreeId, 
+        string DegreeName, 
+        Models.EducationalProgram? Program, 
+        List<StudentSelectedDisciplineDto> SelectedDisciplines);
+
+    public record DisciplineStatusProjection(int IdAddDisciplines, 
+        string NameAddDisciplines, 
+        string? Teachers, 
+        string? DepartmentName, 
+        int? MinCountPeople,
+        int? MaxCountPeople,
+        sbyte IsForseChange,
+        string TypeName, 
+        int? DegreeLevelId, 
+        sbyte IsFaculty, 
+        int FacultyId, 
+        string? FacultyAbbreviation, 
+        List<DateTime> BindDates);
 }

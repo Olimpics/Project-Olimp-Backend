@@ -1,96 +1,40 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions; // Додано для ProjectTo
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Infrastructure.Database.Repositories;
+using OlimpBack.Models;
 
 namespace OlimpBack.Application.Services;
 
 public class GroupService : IGroupService
 {
-    private readonly AppDbContext _context;
+    private readonly IGroupRepository _repository;
     private readonly IMapper _mapper;
 
-    public GroupService(AppDbContext context, IMapper mapper)
+    public GroupService(IGroupRepository repository, IMapper mapper)
     {
-        _context = context;
+        _repository = repository;
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<GroupFilterDto>> GetGroupsAsync(GroupListQueryDto queryDto)
-    {
-        // Відключаємо трекінг, Include нам більше не потрібні завдяки ProjectTo!
-        var query = _context.Groups.AsNoTracking().AsQueryable();
+    public async Task<IEnumerable<GroupFilterDto>> GetGroupsAsync(GroupListQueryDto queryDto) =>
+        await _repository.GetFilteredGroupsAsync(queryDto);
 
-        // 1. ФІЛЬТРАЦІЯ
-        if (!string.IsNullOrWhiteSpace(queryDto.Search))
-        {
-            var lowerSearch = queryDto.Search.Trim().ToLower();
-            query = query.Where(g => EF.Functions.Like(g.GroupCode.ToLower(), $"%{lowerSearch}%"));
-        }
-
-        if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
-        {
-            query = query.Where(g => g.FacultyId.HasValue && queryDto.FacultyIds.Contains(g.FacultyId.Value));
-        }
-
-        if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
-        {
-            query = query.Where(g => g.DepartmentId.HasValue && queryDto.DepartmentIds.Contains(g.DepartmentId.Value));
-        }
-
-        if (queryDto.Courses != null && queryDto.Courses.Any())
-        {
-            query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
-        }
-
-        if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-        {
-            query = query.Where(g => g.DegreeId.HasValue && queryDto.DegreeLevelIds.Contains(g.DegreeId.Value));
-        }
-
-        // 2. СОРТУВАННЯ НА РІВНІ БД (До ToListAsync!)
-        query = queryDto.SortOrder switch
-        {
-            1 => query.OrderBy(d => d.GroupCode),
-            2 => query.OrderByDescending(d => d.GroupCode),
-            3 => query.OrderBy(d => d.Faculty.Abbreviation), // EF Core сам зробить JOIN, якщо треба
-            4 => query.OrderByDescending(d => d.Faculty.Abbreviation),
-            5 => query.OrderBy(d => d.Course),
-            6 => query.OrderByDescending(d => d.Course),
-            _ => query.OrderBy(d => d.GroupCode)
-        };
-
-        // 3. БЛИСКАВИЧНА ПРОЕКЦІЯ
-        // SQL-запит витягне лише ті колонки, які вказані в GroupFilterDto
-        return await query
-            .ProjectTo<GroupFilterDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
-    }
-
-    public async Task<GroupDto?> GetGroupAsync(int id)
-    {
-        // Видалено Include, використано AsNoTracking та ProjectTo
-        return await _context.Groups
-            .AsNoTracking()
-            .Where(g => g.IdGroup == id)
-            .ProjectTo<GroupDto>(_mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync();
-    }
+    public async Task<GroupDto?> GetGroupAsync(int id) =>
+        await _repository.GetDtoByIdAsync(id);
 
     public async Task<GroupDto> CreateGroupAsync(CreateGroupDto dto)
     {
-        var group = _mapper.Map<Models.Group>(dto);
-        _context.Groups.Add(group);
-        await _context.SaveChangesAsync();
+        var group = _mapper.Map<Group>(dto);
+        await _repository.AddAsync(group);
+        await _repository.SaveChangesAsync();
 
         return _mapper.Map<GroupDto>(group);
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> UpdateGroupAsync(int id, UpdateGroupDto dto)
     {
-        var group = await _context.Groups.FindAsync(id);
+        var group = await _repository.GetEntityByIdAsync(id);
         if (group == null)
             return (false, StatusCodes.Status404NotFound, "Group not found");
 
@@ -98,12 +42,11 @@ public class GroupService : IGroupService
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _repository.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
         {
-            var exists = await _context.Groups.AnyAsync(g => g.IdGroup == id);
-            if (!exists)
+            if (!await _repository.ExistsAsync(id))
                 return (false, StatusCodes.Status404NotFound, "Group not found");
 
             throw;
@@ -114,11 +57,7 @@ public class GroupService : IGroupService
 
     public async Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(int id)
     {
-        // 4. СУЧАСНЕ ВИДАЛЕННЯ БЕЗ ЗАВАНТАЖЕННЯ (EF Core 7+)
-        var deletedRows = await _context.Groups
-            .Where(g => g.IdGroup == id)
-            .ExecuteDeleteAsync();
-
+        var deletedRows = await _repository.DeleteAsync(id);
         if (deletedRows == 0)
             return (false, StatusCodes.Status404NotFound, "Group not found");
 
