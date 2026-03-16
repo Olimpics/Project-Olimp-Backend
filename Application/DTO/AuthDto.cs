@@ -20,12 +20,19 @@ public class PermissionDto
 }
 public class UserLoginResponseDto
 {
+
+    
+    public int? Id { get; set; }
+    public string? Name { get; set; }
+
     public int UserId { get; set; }
     public int RoleId { get; set; }
     public string Token { get; set; }
 
 }
 
+//FIXME: ъ ме лнфс сб╡ирх мю яюир вепег ж╡ йкюях, бнмх ме лнфсрэ глюохрхяэ опх бунд╡.
+//
 public class LoginResponseStudentDto : UserLoginResponseDto
 {
     public int? Id { get; set; }
@@ -40,8 +47,6 @@ public class LoginResponseStudentDto : UserLoginResponseDto
 
 public class LoginResponseAdminDto : UserLoginResponseDto
 {
-    public int? Id { get; set; }
-    public string? Name { get; set; }
     public int FacultyId { get; set; }
     public string? NameFaculty { get; set; }
 }
