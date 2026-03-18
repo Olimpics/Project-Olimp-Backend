@@ -31,8 +31,7 @@ public class UserLoginResponseDto
 
 }
 
-//FIXME: ъ ме лнфс сб╡ирх мю яюир вепег ж╡ йкюях, бнмх ме лнфсрэ глюохрхяэ опх бунд╡.
-//
+
 public class LoginResponseStudentDto : UserLoginResponseDto
 {
     public int? Id { get; set; }

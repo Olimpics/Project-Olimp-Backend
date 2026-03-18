@@ -61,6 +61,7 @@ public class AuthRepository : IAuthRepository
             .Include(x => x.Faculty)
             .Include(x => x.EducationalProgram)
             .Include(x => x.EducationalDegree)
+            .Include(x => x.User)
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
@@ -69,6 +70,7 @@ public class AuthRepository : IAuthRepository
         return await _context.AdminsPersonals
             .AsNoTracking()
             .Include(x => x.Faculty)
+            .Include(x => x.User)
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
