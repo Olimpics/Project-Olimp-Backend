@@ -6,7 +6,6 @@ namespace OlimpBack.Application.DTO
         public int PeriodType { get; set; }
         public int PeriodCourse { get; set; }
         public int DegreeLevelId { get; set; }
-
         public int isShort { get; set; }
         public int IsClose { get; set; }
         public int? FacultyId { get; set; }

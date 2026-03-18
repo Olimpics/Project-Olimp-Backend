@@ -25,7 +25,6 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
-
         [HttpPost("AddDisciplineBind")]
         public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
         {
