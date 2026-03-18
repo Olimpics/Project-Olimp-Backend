@@ -63,7 +63,7 @@ public class AuthAppService : IAuthAppService
             if (admin == null)
                 return (null, null, null, StatusCodes.Status404NotFound, "Admin profile not found");
 
-            dbResponse = _mapper.Map<LoginResponseAdminDto>(admin); // Твоя база для DTO
+            dbResponse = _mapper.Map<LoginResponseAdminDto>(admin);
         }
         else
         {
