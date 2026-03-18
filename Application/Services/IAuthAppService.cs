@@ -6,6 +6,7 @@ public interface IAuthAppService
 {
     Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(int roleId);
 
+    
     Task<(UserLoginResponseDto? response,
           List<PermissionDto>? permissions,
           string? roleName,
