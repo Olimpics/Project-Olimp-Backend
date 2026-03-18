@@ -122,6 +122,18 @@ namespace OlimpBack.Application.DTO
         public int CountOfPeople { get; set; }
     }
 
+    public class GetAllDisciplinesAdminQueryDto
+    {
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 50;
+        public string? Search { get; set; }
+        public List<int>? Faculties { get; set; }
+        public List<int>? Courses { get; set; }
+        public bool? IsEvenSemester { get; set; }
+        public List<int>? DegreeLevelIds { get; set; }
+        public int SortOrder { get; set; } = 0;
+    }
+
     /// <summary>
     /// Query parameters for GetDisciplinesWithStatus.
     /// </summary>

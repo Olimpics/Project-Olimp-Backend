@@ -7,6 +7,7 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IDisciplineTabAdminRepository
 {
+    Task<(int TotalCount, List<FullDisciplineDto> Items)> GetAllDisciplinesPagedAsync(GetAllDisciplinesAdminQueryDto queryDto);
     Task<DateTime?> GetLastPeriodStartDateAsync(int facultyId);
     Task<List<StudentChoicesProjection>> GetStudentsChoicesDataAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto, DateTime? periodStart);
     Task<Dictionary<int, DateTime>> GetLastPeriodsByFacultyAsync();
@@ -34,7 +35,84 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         _context = context;
     }
+    public async Task<(int TotalCount, List<FullDisciplineDto> Items)> GetAllDisciplinesPagedAsync(GetAllDisciplinesAdminQueryDto queryDto)
+    {
+        var query = _context.AddDisciplines.AsNoTracking().AsQueryable();
 
+        // 1. Фільтрація по пошуку
+        if (!string.IsNullOrWhiteSpace(queryDto.Search))
+        {
+            var lowerSearch = queryDto.Search.Trim().ToLower();
+            query = query.Where(d =>
+                EF.Functions.Like(d.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
+        }
+
+        // 2. Фільтрація по факультетах
+        if (queryDto.Faculties != null && queryDto.Faculties.Any())
+        {
+            query = query.Where(d => queryDto.Faculties.Contains(d.FacultyId));
+        }
+
+        // 3. Фільтрація по курсах
+        if (queryDto.Courses != null && queryDto.Courses.Any())
+        {
+            query = query.Where(d =>
+                (!d.MinCourse.HasValue || queryDto.Courses.Contains(d.MinCourse.Value)) &&
+                (!d.MaxCourse.HasValue || queryDto.Courses.Contains(d.MaxCourse.Value)));
+        }
+
+        // 4. Фільтрація по семестру
+        if (queryDto.IsEvenSemester.HasValue)
+        {
+            query = query.Where(d => d.AddSemestr.HasValue &&
+                ((queryDto.IsEvenSemester.Value && d.AddSemestr.Value % 2 == 0) ||
+                 (!queryDto.IsEvenSemester.Value && d.AddSemestr.Value % 2 == 1)));
+        }
+
+        // 5. Фільтрація по ступенях (Degree Levels)
+        if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
+        {
+            query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
+        }
+
+        // Підрахунок загальної кількості до пагінації
+        var totalCount = await query.CountAsync();
+
+        // 6. Сортування на рівні БД
+        query = queryDto.SortOrder switch
+        {
+            1 => query.OrderBy(d => d.NameAddDisciplines),
+            2 => query.OrderByDescending(d => d.NameAddDisciplines),
+            3 => query.OrderBy(d => d.CodeAddDisciplines),
+            4 => query.OrderByDescending(d => d.CodeAddDisciplines),
+            _ => query.OrderBy(d => d.IdAddDisciplines)
+        };
+
+        // 7. Проекція (Магія: EF Core перетворить BindAddDisciplines.Count на підзапит SELECT COUNT(*))
+        var items = await query
+            .Skip((queryDto.Page - 1) * queryDto.PageSize)
+            .Take(queryDto.PageSize)
+            .Select(d => new FullDisciplineDto
+            {
+                IdAddDisciplines = d.IdAddDisciplines,
+                NameAddDisciplines = d.NameAddDisciplines,
+                CodeAddDisciplines = d.CodeAddDisciplines,
+                FacultyId = d.FacultyId,
+                FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation : "",
+                MinCountPeople = d.MinCountPeople,
+                MaxCountPeople = d.MaxCountPeople,
+                MinCourse = d.MinCourse,
+                MaxCourse = d.MaxCourse,
+                AddSemestr = d.AddSemestr,
+                DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec : "",
+                CountOfPeople = d.BindAddDisciplines.Count, // Ніяких важких Include!
+                IsAvailable = false // Для адмін-панелі це поле зазвичай неактуальне, або можна ставити true
+            })
+            .ToListAsync();
+
+        return (totalCount, items);
+    }
     public async Task<DateTime?> GetLastPeriodStartDateAsync(int facultyId)
     {
         return await _context.DisciplineChoicePeriods

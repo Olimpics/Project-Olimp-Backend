@@ -13,6 +13,22 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         _repository = repository;
     }
 
+    public async Task<PaginatedResponseDto<FullDisciplineDto>> GetAllDisciplinesAsync(GetAllDisciplinesAdminQueryDto queryDto)
+    {
+        var (totalCount, items) = await _repository.GetAllDisciplinesPagedAsync(queryDto);
+
+        var totalPages = (int)Math.Ceiling(totalCount / (double)queryDto.PageSize);
+
+        return new PaginatedResponseDto<FullDisciplineDto>
+        {
+            TotalItems = totalCount,
+            TotalPages = totalPages,
+            CurrentPage = queryDto.Page,
+            PageSize = queryDto.PageSize,
+            Items = items
+        };
+    }
+
     private static int GetRequiredCountForSemester(EducationalProgram? program, int semester)
     {
         if (program == null) return 0;
