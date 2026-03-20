@@ -13,6 +13,6 @@ public class StudentQueryDto
     public List<int>? Courses { get; set; }
     public List<int>? StudyFormIds { get; set; }
     public List<int>? DegreeLevelIds { get; set; }
-    public sbyte isShort { get; set; }
+    public sbyte? IsShort { get; set; }
     public int SortOrder { get; set; } = 0;
 }

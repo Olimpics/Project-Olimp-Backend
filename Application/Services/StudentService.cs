@@ -76,8 +76,10 @@ public class StudentService : IStudentService
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
             query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.EducationalDegreeId));
 
-        if (queryDto.isShort.ToString().Any())
-            query = query.Where(s => s.IsShort != 0);
+        if (queryDto.IsShort.HasValue)
+        {
+            query = query.Where(s => s.IsShort == queryDto.IsShort.Value);
+        }
 
         // 2. янпрсбюммъ мю п╡бм╡ ад (дН ToListAsync!)
         query = queryDto.SortOrder switch
