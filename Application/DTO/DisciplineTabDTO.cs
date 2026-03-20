@@ -26,7 +26,6 @@ namespace OlimpBack.Application.DTO
         public string CodeAddDisciplines { get; set; } = null!;
         public int FacultyId { get; set; }
         public string FacultyAbbreviation { get; set; } = null!;
-        public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
         public int? MaxCourse { get; set; }
