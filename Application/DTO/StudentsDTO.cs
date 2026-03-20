@@ -26,6 +26,7 @@
         public string DegreeName { get; set; }
         public string GroupName { get; set; }
         public int Course { get; set; }
+        public sbyte IsShort { get; set; }
     }
 
     // DTO/CreateStudentDto.cs
