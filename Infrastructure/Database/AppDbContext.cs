@@ -165,7 +165,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdAddDisciplines)
                 .HasColumnType("int(11)")
                 .HasColumnName("idAddDisciplines");
-            entity.Property(e => e.AddSemestr).HasColumnType("tinyint(4)");
+            entity.Property(e => e.IsEven).HasColumnType("tinyint(4)");
             entity.Property(e => e.CodeAddDisciplines)
                 .HasMaxLength(200)
                 .HasColumnName("codeAddDisciplines");

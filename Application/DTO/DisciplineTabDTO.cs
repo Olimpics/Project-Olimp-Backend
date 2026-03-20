@@ -29,7 +29,7 @@ namespace OlimpBack.Application.DTO
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
         public int? MaxCourse { get; set; }
-        public sbyte? AddSemestr { get; set; }
+        public sbyte? IsEven { get; set; }
         public string DegreeLevelName { get; set; }
         public bool IsAvailable { get; set; }
         public int CountOfPeople { get; set; }
@@ -65,7 +65,7 @@ namespace OlimpBack.Application.DTO
         public int? MaxCountPeople { get; set; }
         public int? MinCourse { get; set; }
         public int? MaxCourse { get; set; }
-        public sbyte? AddSemestr { get; set; }
+        public sbyte? IsEven { get; set; }
         public string DegreeLevelName { get; set; } = null!;
         
         // Details from AddDetail

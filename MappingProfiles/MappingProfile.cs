@@ -177,7 +177,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
                 .ForMember(dest => dest.MinCourse, opt => opt.MapFrom(src => src.discipline.MinCourse))
                 .ForMember(dest => dest.MaxCourse, opt => opt.MapFrom(src => src.discipline.MaxCourse))
-                .ForMember(dest => dest.AddSemestr, opt => opt.MapFrom(src => src.discipline.AddSemestr))
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegreec))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.details.Department.NameDepartment))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teachers))

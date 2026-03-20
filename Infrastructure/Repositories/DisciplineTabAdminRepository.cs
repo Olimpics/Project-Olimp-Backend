@@ -65,9 +65,9 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         // 4. Фільтрація по семестру
         if (queryDto.IsEvenSemester.HasValue)
         {
-            query = query.Where(d => d.AddSemestr.HasValue &&
-                ((queryDto.IsEvenSemester.Value && d.AddSemestr.Value % 2 == 0) ||
-                 (!queryDto.IsEvenSemester.Value && d.AddSemestr.Value % 2 == 1)));
+            query = query.Where(d => d.IsEven.HasValue &&
+                ((queryDto.IsEvenSemester.Value && d.IsEven.Value % 2 == 0) ||
+                 (!queryDto.IsEvenSemester.Value && d.IsEven.Value % 2 == 1)));
         }
 
         // 5. Фільтрація по ступенях (Degree Levels)
@@ -100,11 +100,10 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 CodeAddDisciplines = d.CodeAddDisciplines,
                 FacultyId = d.FacultyId,
                 FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation : "",
-                MinCountPeople = d.MinCountPeople,
                 MaxCountPeople = d.MaxCountPeople,
                 MinCourse = d.MinCourse,
                 MaxCourse = d.MaxCourse,
-                AddSemestr = d.AddSemestr,
+                IsEven = d.IsEven,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec : "",
                 CountOfPeople = d.BindAddDisciplines.Count, // Ніяких важких Include!
                 IsAvailable = false // Для адмін-панелі це поле зазвичай неактуальне, або можна ставити true

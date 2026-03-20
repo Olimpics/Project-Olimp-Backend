@@ -53,7 +53,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         if (queryDto.IsEvenSemester.HasValue)
         {
             var semesterValue = queryDto.IsEvenSemester.Value ? (sbyte)0 : (sbyte)1;
-            query = query.Where(d => d.AddSemestr == semesterValue);
+            query = query.Where(d => d.IsEven == semesterValue);
         }
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
@@ -80,7 +80,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 MaxCountPeople = d.MaxCountPeople,
                 MinCourse = d.MinCourse,
                 MaxCourse = d.MaxCourse,
-                AddSemestr = d.AddSemestr,
+                IsEven = d.IsEven,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec : "",
                 DepartmentName = d.AddDetail != null && d.AddDetail.Department != null ? d.AddDetail.Department.NameDepartment : "",
                 Teacher = d.AddDetail != null ? d.AddDetail.Teachers : null,

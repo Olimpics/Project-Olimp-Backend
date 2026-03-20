@@ -23,7 +23,7 @@ public partial class AddDiscipline
 
     public int? MaxCourse { get; set; }
 
-    public sbyte? AddSemestr { get; set; }
+    public sbyte? IsEven { get; set; }
 
     public int? DegreeLevelId { get; set; }
 
