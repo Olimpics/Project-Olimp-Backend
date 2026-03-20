@@ -52,7 +52,11 @@ namespace OlimpBack.Application.DTO
         public HashSet<int> BoundDisciplineIds { get; set; } = new();
         public Dictionary<int, int> DisciplineCounts { get; set; } = new();
     }
-
+    public class GetDisciplinesBySemesterQueryDto
+    {
+        public int StudentId { get; set; }
+        public bool IsEvenSemester { get; set; }
+    }
     public class FullDisciplineWithDetailsDto
     {
         // Basic discipline info

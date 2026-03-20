@@ -63,6 +63,37 @@ public class DisciplineTabService : IDisciplineTabService
             Items = paginatedResult
         };
     }
+    public async Task<DisciplineTabResponseDto?> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto)
+    {
+        var context = await DisciplineAvailabilityService.BuildAvailabilityContext(queryDto.StudentId, _context);
+        if (context == null) return null;
+
+        var now = DateTime.UtcNow;
+
+        var isPeriodActive = await _repository.IsChoicePeriodActiveAsync(context.Student.FacultyId, now);
+        if (!isPeriodActive) return null;
+
+        var disciplines = await _repository.GetDisciplinesBySemesterAsync(queryDto);
+
+        var availableDisciplines = disciplines
+            .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
+            .Select(d => new SimpleDisciplineDto
+            {
+                IdAddDisciplines = d.IdAddDisciplines,
+                NameAddDisciplines = d.NameAddDisciplines,
+                CodeAddDisciplines = d.CodeAddDisciplines
+            })
+            .ToList();
+
+        return new DisciplineTabResponseDto
+        {
+            StudentId = context.Student.IdStudent,
+            StudentName = context.Student.NameStudent,
+            CurrentCourse = context.CurrentCourse,
+            IsEvenSemester = queryDto.IsEvenSemester,
+            Disciplines = availableDisciplines
+        };
+    }
 
     public async Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto)
     {

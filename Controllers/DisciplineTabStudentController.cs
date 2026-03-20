@@ -62,6 +62,18 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
+        [HttpGet("GetDisciplinesBySemester")]
+        public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
+           [FromQuery] GetDisciplinesBySemesterQueryDto query)
+        {
+            var result = await _service.GetDisciplinesBySemesterAsync(query);
+
+            if (result == null)
+                return BadRequest(new { message = "Student not found or choice period is not active" });
+
+            return Ok(result);
+        }
+
         [HttpPost("CreateDisciplineWithDetails")]
         public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateAddDisciplineWithDetailsDto dto)
         {

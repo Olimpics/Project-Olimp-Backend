@@ -8,6 +8,8 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IDisciplineTabRepository
 {
     Task<List<AddDiscipline>> GetDisciplinesForAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto queryDto);
+    Task<List<AddDiscipline>> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto);
+    Task<bool> IsChoicePeriodActiveAsync(int facultyId, DateTime now);
     Task<AddDiscipline?> GetDisciplineByIdAsNoTrackingAsync(int id);
     Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsDtoAsync(int id);
     Task<AddDiscipline?> GetDisciplineWithDetailEntityAsync(int id);
@@ -61,7 +63,22 @@ public class DisciplineTabRepository : IDisciplineTabRepository
 
         return await query.ToListAsync();
     }
+    public async Task<List<AddDiscipline>> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto)
+    {
+        var isEven = queryDto.IsEvenSemester ? (sbyte)0 : (sbyte)1;
 
+        return await _context.AddDisciplines
+            .Where(d => d.IsEven == isEven)
+            .ToListAsync();
+    }
+    public async Task<bool> IsChoicePeriodActiveAsync(int facultyId, DateTime now)
+    {
+        return await _context.DisciplineChoicePeriods
+            .AnyAsync(p =>
+                p.FacultyId == facultyId &&
+                p.StartDate <= now &&
+                p.EndDate >= now);
+    }
     public async Task<AddDiscipline?> GetDisciplineByIdAsNoTrackingAsync(int id) =>
         await _context.AddDisciplines.AsNoTracking().FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
 
