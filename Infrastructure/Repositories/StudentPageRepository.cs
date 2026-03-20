@@ -70,6 +70,7 @@ public class StudentPageRepository : IStudentPageRepository
         return new StudentAddDisciplinesDto
         {
             StudentId = data.IdStudent,
+            StudentName = data.NameStudent ?? "",
             AdditionalDisciplines = data.AdditionalDisciplines != null
                 ? _mapper.Map<List<BindAddDisciplineDto>>(data.AdditionalDisciplines)
                 : new List<BindAddDisciplineDto>()
