@@ -7,7 +7,8 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IStudentPageRepository
 {
-    Task<StudentDisciplinesDto?> GetStudentDisciplinesAsync(int studentId);
+    Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(int studentId);
+    Task<StudentAddDisciplinesDto?> GetStudentAddDisciplinesAsync(int studentId);
 }
 
 public class StudentPageRepository : IStudentPageRepository
@@ -21,9 +22,8 @@ public class StudentPageRepository : IStudentPageRepository
         _mapper = mapper;
     }
 
-    public async Task<StudentDisciplinesDto?> GetStudentDisciplinesAsync(int studentId)
+    public async Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(int studentId)
     {
-        // 1. Блискавична вибірка через Select БЕЗ Include!
         var data = await _context.Students
             .AsNoTracking()
             .Where(s => s.IdStudent == studentId)
@@ -31,7 +31,6 @@ public class StudentPageRepository : IStudentPageRepository
             {
                 s.IdStudent,
                 s.NameStudent,
-                // EF Core сам зробить JOIN і витягне тільки пов'язані колекції
                 MainDisciplines = s.EducationalProgram != null ? s.EducationalProgram.BindMainDisciplines : null,
                 AdditionalDisciplines = s.BindAddDisciplines
             })
@@ -40,14 +39,37 @@ public class StudentPageRepository : IStudentPageRepository
         if (data == null)
             return null;
 
-        // 2. Формуємо DTO в пам'яті (безпечно і швидко)
-        return new StudentDisciplinesDto
+        return new StudentEducationalProgramDto
         {
             StudentId = data.IdStudent,
             StudentName = data.NameStudent ?? "",
             MainDisciplines = data.MainDisciplines != null
                 ? _mapper.Map<List<BindMainDisciplineDto>>(data.MainDisciplines)
                 : new List<BindMainDisciplineDto>(),
+            AdditionalDisciplines = data.AdditionalDisciplines != null
+                ? _mapper.Map<List<BindAddDisciplineDto>>(data.AdditionalDisciplines)
+                : new List<BindAddDisciplineDto>()
+        };
+    }
+    public async Task<StudentAddDisciplinesDto?> GetStudentAddDisciplinesAsync(int studentId)
+    {
+        var data = await _context.Students
+            .AsNoTracking()
+            .Where(s => s.IdStudent == studentId)
+            .Select(s => new
+            {
+                s.IdStudent,
+                s.NameStudent,
+                AdditionalDisciplines = s.BindAddDisciplines
+            })
+            .FirstOrDefaultAsync();
+
+        if (data == null)
+            return null;
+
+        return new StudentAddDisciplinesDto
+        {
+            StudentId = data.IdStudent,
             AdditionalDisciplines = data.AdditionalDisciplines != null
                 ? _mapper.Map<List<BindAddDisciplineDto>>(data.AdditionalDisciplines)
                 : new List<BindAddDisciplineDto>()

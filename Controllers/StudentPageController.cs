@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Application.Services;
 using System.Threading.Tasks;
@@ -16,10 +17,23 @@ public class StudentPageController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("disciplines/{studentId}")]
-    public async Task<ActionResult<StudentDisciplinesDto>> GetStudentDisciplines(int studentId)
+    [HttpGet("educational-program/{studentId}")]
+    public async Task<ActionResult<StudentEducationalProgramDto>> GetStudentEducationalProgram(int studentId)
     {
-        var result = await _service.GetStudentDisciplinesAsync(studentId);
+        var result = await _service.GetStudentEducationalProgramAsync(studentId);
+
+        if (result == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(result);
+    }
+
+    [HttpGet("add-disciplines/{studentId}")]
+    public async Task<ActionResult<StudentAddDisciplinesDto>> GetStudentAddDisciplines(int studentId)
+    {
+        var result = await _service.GetStudentAddDisciplinesAsync(studentId);
 
         if (result == null)
         {
