@@ -184,11 +184,11 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recomend))
                 .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.details.Language))
-                .ForMember(dest => dest.Determination, opt => opt.MapFrom(src => src.details.Determination))
+                .ForMember(dest => dest.Provision , opt => opt.MapFrom(src => src.details.Provision))
                 .ForMember(dest => dest.WhyInterestingDetermination, opt => opt.MapFrom(src => src.details.WhyInterestingDetermination))
                 .ForMember(dest => dest.ResultEducation, opt => opt.MapFrom(src => src.details.ResultEducation))
                 .ForMember(dest => dest.UsingIrl, opt => opt.MapFrom(src => src.details.UsingIrl))
-                .ForMember(dest => dest.AdditionaLiterature, opt => opt.MapFrom(src => src.details.AdditionaLiterature))
+                .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.details.DisciplineTopics))
                 .ForMember(dest => dest.TypesOfTraining, opt => opt.MapFrom(src => src.details.TypesOfTraining))
                 .ForMember(dest => dest.TypeOfControll, opt => opt.MapFrom(src => src.details.TypeOfControll));
 
@@ -208,13 +208,24 @@ namespace OlimpBack.MappingProfiles
             CreateMap<UpdateBindLoansMainDto, BindLoansMain>();
 
             //AddDetail
-            CreateMap<AddDetail, AddDetailDto>()
-               .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment));
+            CreateMap<DetailContentDto, AddDetail>();
+
+            // 2. Вчимо мапити CreateAddDetailDto на AddDetail
             CreateMap<CreateAddDetailDto, AddDetail>()
-                .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
+                // Кажемо: "Розпакуй властивість Content і візьми поля звідти"
+                .IncludeMembers(src => src.Content);
+
+            // 3. І так само у зворотний бік (якщо треба мапити з БД у DTO)
+            CreateMap<AddDetail, DetailContentDto>();
+
+            CreateMap<AddDetail, AddDetailDto>()
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment))
+                // Кажемо: "Запакуй всі текстові поля у властивість Content"
+                .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src));
+
 
             //Notification
-             CreateMap<Notification, NotificationDto>()
+            CreateMap<Notification, NotificationDto>()
             .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => src.IsRead));
         
             CreateMap<CreateNotificationDto, Notification>();

@@ -19,13 +19,13 @@ public partial class AddDetail
 
     public string? WhyInterestingDetermination { get; set; }
 
-    public string? Determination { get; set; }
+    public string? Provision { get; set; }
 
     public string? UsingIrl { get; set; }
 
     public string? ResultEducation { get; set; }
 
-    public string? AdditionaLiterature { get; set; }
+    public string? DisciplineTopics { get; set; }
 
     public string TypesOfTraining { get; set; } = null!;
 

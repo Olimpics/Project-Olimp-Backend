@@ -143,17 +143,17 @@ namespace OlimpBack.Controllers
                     {
                         var det = dto.Details;
                         if (det.DepartmentId.HasValue) discipline.AddDetail.DepartmentId = det.DepartmentId;
-                        if (!string.IsNullOrWhiteSpace(det.Teacher)) discipline.AddDetail.Teachers = det.Teacher;
-                        if (!string.IsNullOrWhiteSpace(det.Recomend)) discipline.AddDetail.Recomend = det.Recomend;
-                        if (!string.IsNullOrWhiteSpace(det.Prerequisites)) discipline.AddDetail.Prerequisites = det.Prerequisites;
-                        if (!string.IsNullOrWhiteSpace(det.Language)) discipline.AddDetail.Language = det.Language;
-                        if (!string.IsNullOrWhiteSpace(det.Determination)) discipline.AddDetail.Determination = det.Determination;
-                        if (!string.IsNullOrWhiteSpace(det.WhyInterestingDetermination)) discipline.AddDetail.WhyInterestingDetermination = det.WhyInterestingDetermination;
-                        if (!string.IsNullOrWhiteSpace(det.ResultEducation)) discipline.AddDetail.ResultEducation = det.ResultEducation;
-                        if (!string.IsNullOrWhiteSpace(det.UsingIrl)) discipline.AddDetail.UsingIrl = det.UsingIrl;
-                        if (!string.IsNullOrWhiteSpace(det.AdditionaLiterature)) discipline.AddDetail.AdditionaLiterature = det.AdditionaLiterature;
-                        if (!string.IsNullOrWhiteSpace(det.TypesOfTraining)) discipline.AddDetail.TypesOfTraining = det.TypesOfTraining;
-                        if (!string.IsNullOrWhiteSpace(det.TypeOfControll)) discipline.AddDetail.TypeOfControll = det.TypeOfControll;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Teacher)) discipline.AddDetail.Teachers = det.Content.Teacher;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Recomend)) discipline.AddDetail.Recomend = det.Content.Recomend;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Prerequisites)) discipline.AddDetail.Prerequisites = det.Content.Prerequisites;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Language)) discipline.AddDetail.Language = det.Content.Language;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Provision )) discipline.AddDetail.Provision = det.Content.Provision ;
+                        if (!string.IsNullOrWhiteSpace(det.Content.WhyInterestingDetermination)) discipline.AddDetail.WhyInterestingDetermination = det.Content.WhyInterestingDetermination;
+                        if (!string.IsNullOrWhiteSpace(det.Content.ResultEducation)) discipline.AddDetail.ResultEducation = det.Content.ResultEducation;
+                        if (!string.IsNullOrWhiteSpace(det.Content.UsingIrl)) discipline.AddDetail.UsingIrl = det.Content.UsingIrl;
+                        if (!string.IsNullOrWhiteSpace(det.Content.DisciplineTopics)) discipline.AddDetail.DisciplineTopics = det.Content.DisciplineTopics;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypesOfTraining)) discipline.AddDetail.TypesOfTraining = det.Content.TypesOfTraining;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.AddDetail.TypeOfControll = det.Content.TypeOfControll;
                     }
                 }
                 await _context.SaveChangesAsync();

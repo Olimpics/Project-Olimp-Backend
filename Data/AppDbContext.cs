@@ -122,11 +122,11 @@ public partial class AppDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnType("int(11)")
                 .HasColumnName("idAddDetails");
-            entity.Property(e => e.AdditionaLiterature).HasMaxLength(800);
             entity.Property(e => e.DepartmentId).HasColumnType("int(11)");
-            entity.Property(e => e.Determination).HasMaxLength(800);
+            entity.Property(e => e.DisciplineTopics).HasMaxLength(800);
             entity.Property(e => e.Language).HasMaxLength(200);
             entity.Property(e => e.Prerequisites).HasMaxLength(800);
+            entity.Property(e => e.Provision).HasMaxLength(800);
             entity.Property(e => e.Recomend).HasMaxLength(800);
             entity.Property(e => e.ResultEducation).HasMaxLength(800);
             entity.Property(e => e.Teachers).HasColumnType("json");

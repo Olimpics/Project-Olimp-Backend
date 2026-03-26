@@ -104,11 +104,11 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 Recomend = d.AddDetail != null ? d.AddDetail.Recomend : null,
                 Prerequisites = d.AddDetail != null ? d.AddDetail.Prerequisites : null,
                 Language = d.AddDetail != null ? d.AddDetail.Language : null,
-                Determination = d.AddDetail != null ? d.AddDetail.Determination : null,
+                Provision = d.AddDetail != null ? d.AddDetail.Provision : null,
                 WhyInterestingDetermination = d.AddDetail != null ? d.AddDetail.WhyInterestingDetermination : null,
                 ResultEducation = d.AddDetail != null ? d.AddDetail.ResultEducation : null,
                 UsingIrl = d.AddDetail != null ? d.AddDetail.UsingIrl : null,
-                AdditionaLiterature = d.AddDetail != null ? d.AddDetail.AdditionaLiterature : null,
+                DisciplineTopics = d.AddDetail != null ? d.AddDetail.DisciplineTopics : null,
                 TypesOfTraining = d.AddDetail != null ? d.AddDetail.TypesOfTraining : "",
                 TypeOfControll = d.AddDetail != null ? d.AddDetail.TypeOfControll : ""
             })
