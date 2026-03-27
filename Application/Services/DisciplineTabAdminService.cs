@@ -7,10 +7,14 @@ namespace OlimpBack.Application.Services;
 public class DisciplineTabAdminService : IDisciplineTabAdminService
 {
     private readonly IDisciplineTabAdminRepository _repository;
+    private readonly IAdminDisciplineStudentListRepository _studentListRepository;
 
-    public DisciplineTabAdminService(IDisciplineTabAdminRepository repository)
+    public DisciplineTabAdminService(
+        IDisciplineTabAdminRepository repository,
+        IAdminDisciplineStudentListRepository studentListRepository)
     {
         _repository = repository;
+        _studentListRepository = studentListRepository;
     }
 
     public async Task<PaginatedResponseDto<FullDisciplineDto>> GetAllDisciplinesAsync(GetAllDisciplinesAdminQueryDto queryDto)
@@ -357,4 +361,34 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
     public async Task<bool> DeleteBindAsync(int id) =>
         await _repository.DeleteBindAsync(id) > 0;
+
+    public async Task<PaginatedResponseDto<AdminStudentByAddDisciplineDto>> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query)
+    {
+        var (totalCount, items) = await _studentListRepository.GetStudentsByAddDisciplineAsync(query);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+
+        return new PaginatedResponseDto<AdminStudentByAddDisciplineDto>
+        {
+            TotalItems = totalCount,
+            TotalPages = totalPages,
+            CurrentPage = query.Page,
+            PageSize = query.PageSize,
+            Items = items
+        };
+    }
+
+    public async Task<PaginatedResponseDto<AdminStudentByMainDisciplineDto>> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query)
+    {
+        var (totalCount, items) = await _studentListRepository.GetStudentsByMainDisciplineAsync(query);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+
+        return new PaginatedResponseDto<AdminStudentByMainDisciplineDto>
+        {
+            TotalItems = totalCount,
+            TotalPages = totalPages,
+            CurrentPage = query.Page,
+            PageSize = query.PageSize,
+            Items = items
+        };
+    }
 }

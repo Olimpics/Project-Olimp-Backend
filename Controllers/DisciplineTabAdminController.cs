@@ -81,6 +81,22 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
+        [HttpGet("GetStudentsByAddDiscipline")]
+        public async Task<ActionResult<PaginatedResponseDto<AdminStudentByAddDisciplineDto>>> GetStudentsByAddDiscipline(
+            [FromQuery] GetStudentsByAddDisciplineQueryDto query)
+        {
+            var result = await _service.GetStudentsByAddDisciplineAsync(query);
+            return Ok(result);
+        }
+
+        [HttpGet("GetStudentsByMainDiscipline")]
+        public async Task<ActionResult<PaginatedResponseDto<AdminStudentByMainDisciplineDto>>> GetStudentsByMainDiscipline(
+            [FromQuery] GetStudentsByMainDisciplineQueryDto query)
+        {
+            var result = await _service.GetStudentsByMainDisciplineAsync(query);
+            return Ok(result);
+        }
+
 
         //[HttpPut("{id}")]
         //public async Task<IActionResult> UpdateBindAddDiscipline(int id, UpdateBindAddDisciplineDto updateDto)

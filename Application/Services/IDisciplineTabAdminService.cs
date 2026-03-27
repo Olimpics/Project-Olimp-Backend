@@ -20,4 +20,8 @@ public interface IDisciplineTabAdminService
     Task<(int? bindId, string? error)> CreateBindAsync(AddDisciplineBindDto dto);
 
     Task<bool> DeleteBindAsync(int id);
+
+    Task<PaginatedResponseDto<AdminStudentByAddDisciplineDto>> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query);
+
+    Task<PaginatedResponseDto<AdminStudentByMainDisciplineDto>> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query);
 }

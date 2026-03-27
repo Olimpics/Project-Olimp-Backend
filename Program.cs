@@ -227,6 +227,7 @@ builder.Services.AddScoped<IDisciplineChoicePeriodRepository, DisciplineChoicePe
 builder.Services.AddScoped<IDisciplineChoicePeriodService, DisciplineChoicePeriodService>();
 
 // DisciplineTabAdmin
+builder.Services.AddScoped<IAdminDisciplineStudentListRepository, AdminDisciplineStudentListRepository>();
 builder.Services.AddScoped<IDisciplineTabAdminRepository, DisciplineTabAdminRepository>();
 builder.Services.AddScoped<IDisciplineTabAdminService, DisciplineTabAdminService>();
 
