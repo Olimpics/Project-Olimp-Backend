@@ -5,7 +5,6 @@ namespace OlimpBack.Application.DTO
     public class DetailContentDto
     {
         public string? Teacher { get; set; }
-
         public string? Recomend { get; set; }
         public string? Prerequisites { get; set; }
         public string? Language { get; set; }
