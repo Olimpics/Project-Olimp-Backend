@@ -1,6 +1,6 @@
 using AutoMapper;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
 using OlimpBack.Utils; // Äëÿ DisciplineAvailabilityService

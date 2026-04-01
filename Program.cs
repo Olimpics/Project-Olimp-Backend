@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OlimpBack.Application.Services;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
@@ -263,7 +263,6 @@ builder.Services.AddScoped<IStudentPageService, StudentPageService>();
 builder.Services.AddScoped<IStudyFormRepository, StudyFormRepository>();
 builder.Services.AddScoped<IStudyFormService, StudyFormService>();
 
-// BindStudentsFavouriteDisciplines
 // BindStudentsFavouriteDisciplines
 builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesRepository, BindStudentsFavouriteDisciplinesRepository>();
 builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesService, BindStudentsFavouriteDisciplinesService>();

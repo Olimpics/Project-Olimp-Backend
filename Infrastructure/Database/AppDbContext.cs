@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Models;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
-namespace OlimpBack.Infrastructure.Database;
+namespace OlimpBack.Data;
 
 public partial class AppDbContext : DbContext
 {
@@ -38,6 +38,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<BindMainDiscipline> BindMainDisciplines { get; set; }
 
     public virtual DbSet<BindRolePermission> BindRolePermissions { get; set; }
+
+    public virtual DbSet<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; }
 
     public virtual DbSet<Department> Departments { get; set; }
 
@@ -85,7 +87,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", ServerVersion.Parse("10.11.14-mariadb"));
+        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", Microsoft.EntityFrameworkCore.ServerVersion.Parse("11.8.3-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -122,11 +124,11 @@ public partial class AppDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnType("int(11)")
                 .HasColumnName("idAddDetails");
-            entity.Property(e => e.DisciplineTopics).HasMaxLength(800);
             entity.Property(e => e.DepartmentId).HasColumnType("int(11)");
-            entity.Property(e => e.Provision ).HasMaxLength(800);
+            entity.Property(e => e.DisciplineTopics).HasMaxLength(800);
             entity.Property(e => e.Language).HasMaxLength(200);
             entity.Property(e => e.Prerequisites).HasMaxLength(800);
+            entity.Property(e => e.Provision).HasMaxLength(800);
             entity.Property(e => e.Recomend).HasMaxLength(800);
             entity.Property(e => e.ResultEducation).HasMaxLength(800);
             entity.Property(e => e.Teachers).HasColumnType("json");
@@ -165,12 +167,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdAddDisciplines)
                 .HasColumnType("int(11)")
                 .HasColumnName("idAddDisciplines");
-            entity.Property(e => e.IsEven).HasColumnType("tinyint(4)");
             entity.Property(e => e.CodeAddDisciplines)
                 .HasMaxLength(200)
                 .HasColumnName("codeAddDisciplines");
             entity.Property(e => e.DegreeLevelId).HasColumnType("int(11)");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
+            entity.Property(e => e.IsEven).HasColumnType("tinyint(4)");
             entity.Property(e => e.IsFaculty).HasColumnType("tinyint(4)");
             entity.Property(e => e.IsForseChange).HasColumnType("tinyint(4)");
             entity.Property(e => e.MaxCountPeople)
@@ -461,6 +463,35 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BindRolePermission_Role");
+        });
+
+        modelBuilder.Entity<BindStudentsFavouriteDiscipline>(entity =>
+        {
+            entity.HasKey(e => e.IdBindStudentsFavouriteDisciplines).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.IdAddDiscipline, "BindStudentsFavouriteDisciplines_AddDisciplines_FK");
+
+            entity.HasIndex(e => e.IdStudent, "BindStudentsFavouriteDisciplines_Student_FK");
+
+            entity.Property(e => e.IdBindStudentsFavouriteDisciplines)
+                .HasColumnType("int(11)")
+                .HasColumnName("idBindStudentsFavouriteDisciplines");
+            entity.Property(e => e.IdAddDiscipline)
+                .HasColumnType("int(11)")
+                .HasColumnName("idAddDiscipline");
+            entity.Property(e => e.IdStudent)
+                .HasColumnType("int(11)")
+                .HasColumnName("idStudent");
+
+            entity.HasOne(d => d.IdAddDisciplineNavigation).WithMany(p => p.BindStudentsFavouriteDisciplines)
+                .HasForeignKey(d => d.IdAddDiscipline)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("BindStudentsFavouriteDisciplines_AddDisciplines_FK");
+
+            entity.HasOne(d => d.IdStudentNavigation).WithMany(p => p.BindStudentsFavouriteDisciplines)
+                .HasForeignKey(d => d.IdStudent)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("BindStudentsFavouriteDisciplines_Student_FK");
         });
 
         modelBuilder.Entity<Department>(entity =>

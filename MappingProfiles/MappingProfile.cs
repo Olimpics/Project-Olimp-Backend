@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 using OlimpBack.Models;
 
 namespace OlimpBack.MappingProfiles
@@ -80,6 +80,16 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<UpdateAddDisciplineWithDetailsDto, AddDiscipline>()
                 .IncludeBase<CreateAddDisciplineDto, AddDiscipline>();
+
+
+            // Мапінг для таблиці обраних дисциплін студента
+            CreateMap<BindStudentsFavouriteDiscipline, StudentFavouriteDisciplineDto>()
+                .ForMember(dest => dest.IdStudent, opt => opt.MapFrom(src => src.IdStudent)) // Це Id студента
+                .ForMember(dest => dest.IdBindAddDisciplines, opt => opt.MapFrom(src => src.IdBindStudentsFavouriteDisciplines))
+                .ForMember(dest => dest.IdAddDisciplines, opt => opt.MapFrom(src => src.IdAddDiscipline))
+                // Звертаємося до навігаційної властивості, щоб дістати назву і код
+                .ForMember(dest => dest.NameAddDisciplines, opt => opt.MapFrom(src => src.IdAddDisciplineNavigation!.NameAddDisciplines))
+                .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.IdAddDisciplineNavigation!.CodeAddDisciplines));
 
             // BindAddDiscipline
             CreateMap<BindAddDiscipline, BindAddDisciplineDto>()

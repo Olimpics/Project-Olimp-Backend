@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 namespace OlimpBack.Controllers
 {

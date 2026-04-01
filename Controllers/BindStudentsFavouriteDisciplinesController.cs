@@ -24,5 +24,33 @@ namespace OlimpBack.Controllers
             // Завжди повертаємо 200 OK. Якщо у студента немає дисциплін, повернеться порожній масив [] (це правильна поведінка для REST API)
             return Ok(disciplines);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<StudentFavouriteDisciplineDto>> AddFavorite([FromBody] AddFavoriteDisciplineDto dto)
+        {
+            var (success, statusCode, errorMessage, resultDto) = await _service.AddFavoriteAsync(dto);
+
+            if (!success)
+            {
+                return StatusCode(statusCode, new { message = errorMessage });
+            }
+
+            // Повертаємо статус 201 Created і саму DTOшку
+            return StatusCode(StatusCodes.Status201Created, resultDto);
+        }
+
+        // Видаляємо за ID самого зв'язку (IdBindAddDisciplines)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RemoveFavorite(int id)
+        {
+            var (success, statusCode, errorMessage) = await _service.RemoveFavoriteAsync(id);
+
+            if (!success)
+            {
+                return StatusCode(statusCode, new { message = errorMessage });
+            }
+
+            return NoContent(); // 204
+        }
     }
 }

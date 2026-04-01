@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 namespace OlimpBack.Utils
 {
