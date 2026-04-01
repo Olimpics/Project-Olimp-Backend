@@ -20,7 +20,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<IEnumerable<AddDisciplineDto>>> GetFavoriteDisciplinesByStudent(int studentId)
         {
             var disciplines = await _service.GetFavoriteDiciplinesByStudentAsync(studentId);
-
+            
             // Завжди повертаємо 200 OK. Якщо у студента немає дисциплін, повернеться порожній масив [] (це правильна поведінка для REST API)
             return Ok(disciplines);
         }

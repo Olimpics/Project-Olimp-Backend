@@ -7,6 +7,7 @@ using OlimpBack.Models;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
+
 public interface IBindStudentsFavouriteDisciplinesRepository
 {
     Task<IEnumerable<AddDisciplineDto>> GetFavoriteDiciplinesByStudentAsync(int studentId);
@@ -25,7 +26,7 @@ public class BindStudentsFavouriteDisciplinesRepository : IBindStudentsFavourite
 
     public async Task<IEnumerable<AddDisciplineDto>> GetFavoriteDiciplinesByStudentAsync(int studentId)
     {
-        return await _context.BindStudentsFavouriteDisciplines
+        /*return await _context.BindStudentsFavouriteDiscipline
             .AsNoTracking()
             .Where(s => s.StudentId == studentId) // Зверни увагу: тут назва поля з твоєї моделі (StudentId або IdStudent)
 
@@ -35,6 +36,6 @@ public class BindStudentsFavouriteDisciplinesRepository : IBindStudentsFavourite
             // 3. Блискавичний мапінг: SQL сам витягне тільки ті колонки, які є в AddDisciplineDto
             .ProjectTo<AddDisciplineDto>(_mapper.ConfigurationProvider)
 
-            .ToListAsync();
+            .ToListAsync();*/
     }
 }

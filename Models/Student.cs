@@ -45,6 +45,8 @@ public partial class Student
 
     public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 
+    public virtual ICollection<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; } = new List<BindStudentsFavouriteDiscipline>();
+
     public virtual EducationStatus EducationStatus { get; set; } = null!;
 
     public virtual EducationalDegree EducationalDegree { get; set; } = null!;

@@ -39,6 +39,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<BindRolePermission> BindRolePermissions { get; set; }
 
+    public virtual DbSet<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; }
+
     public virtual DbSet<Department> Departments { get; set; }
 
     public virtual DbSet<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; }
@@ -461,6 +463,35 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BindRolePermission_Role");
+        });
+
+        modelBuilder.Entity<BindStudentsFavouriteDiscipline>(entity =>
+        {
+            entity.HasKey(e => e.IdBindStudentsFavouriteDisciplines).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.IdAddDisciplines, "BindStudentsFavouriteDisciplines_AddDisciplines_FK");
+
+            entity.HasIndex(e => e.IdStudent, "BindStudentsFavouriteDisciplines_Student_FK");
+
+            entity.Property(e => e.IdBindStudentsFavouriteDisciplines)
+                .HasColumnType("int(11)")
+                .HasColumnName("idBindStudentsFavouriteDisciplines");
+            entity.Property(e => e.IdAddDisciplines)
+                .HasColumnType("int(11)")
+                .HasColumnName("idAddDisciplines");
+            entity.Property(e => e.IdStudent)
+                .HasColumnType("int(11)")
+                .HasColumnName("idStudent");
+
+            entity.HasOne(d => d.IdAddDisciplinesNavigation).WithMany(p => p.BindStudentsFavouriteDisciplines)
+                .HasForeignKey(d => d.IdAddDisciplines)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("BindStudentsFavouriteDisciplines_AddDisciplines_FK");
+
+            entity.HasOne(d => d.IdStudentNavigation).WithMany(p => p.BindStudentsFavouriteDisciplines)
+                .HasForeignKey(d => d.IdStudent)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("BindStudentsFavouriteDisciplines_Student_FK");
         });
 
         modelBuilder.Entity<Department>(entity =>

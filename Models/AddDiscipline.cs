@@ -37,6 +37,8 @@ public partial class AddDiscipline
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 
+    public virtual ICollection<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; } = new List<BindStudentsFavouriteDiscipline>();
+
     public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual Faculty Faculty { get; set; } = null!;
