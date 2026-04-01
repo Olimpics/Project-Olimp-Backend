@@ -263,6 +263,12 @@ builder.Services.AddScoped<IStudentPageService, StudentPageService>();
 builder.Services.AddScoped<IStudyFormRepository, StudyFormRepository>();
 builder.Services.AddScoped<IStudyFormService, StudyFormService>();
 
+// BindStudentsFavouriteDisciplines
+// BindStudentsFavouriteDisciplines
+builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesRepository, BindStudentsFavouriteDisciplinesRepository>();
+builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesService, BindStudentsFavouriteDisciplinesService>();
+
+
 // ==========================================
 // СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)
 // ==========================================
