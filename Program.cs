@@ -267,6 +267,12 @@ builder.Services.AddScoped<IStudyFormService, StudyFormService>();
 builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesRepository, BindStudentsFavouriteDisciplinesRepository>();
 builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesService, BindStudentsFavouriteDisciplinesService>();
 
+builder.Services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
+builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
+
+// Normative
+builder.Services.AddScoped<INormativeRepository, NormativeRepository>();
+builder.Services.AddScoped<INormativeService, NormativeService>();
 
 // ==========================================
 // СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)

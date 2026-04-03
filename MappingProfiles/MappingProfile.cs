@@ -108,6 +108,14 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.InProcess,
                            opt => opt.MapFrom(src => (sbyte)1));
 
+            // Normative mapping
+            CreateMap<Normative, NormativeDto>()
+                // Захищаємось від null, якщо ступінь не вказано
+                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel != null ? src.DegreeLevel.NameEducationalDegreec : null));
+
+            CreateMap<CreateNormativeDto, Normative>();
+            CreateMap<UpdateNormativeDto, Normative>();
+
             //BindMainDiscipline
             CreateMap<BindMainDiscipline, BindMainDisciplineDto>()
            .ForMember(dest => dest.EducationalProgramName,
