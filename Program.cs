@@ -54,6 +54,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.WebHost.UseUrls("http://0.0.0.0:5154");
+
 var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Database connection
