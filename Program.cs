@@ -19,7 +19,7 @@ Environment.SetEnvironmentVariable(
 );
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://0.0.0.0:5154");
+builder.WebHost.UseUrls("http://0.0.0.0:3000");
 
 
 // Add services
