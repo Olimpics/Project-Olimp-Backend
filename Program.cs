@@ -54,7 +54,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.WebHost.UseUrls("http://0.0.0.0:5154");
+builder.WebHost.UseUrls("http://0.0.0.0:3000");
 
 var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -308,7 +308,7 @@ Console.WriteLine(env);
 
 
 app.Urls.Clear();
-app.Urls.Add("http://localhost:5154");
+app.Urls.Add("http://localhost:3000");
 app.Urls.Add("https://localhost:7011");
 
 app.Logger.LogWarning($"Environment: {app.Environment.EnvironmentName}");
