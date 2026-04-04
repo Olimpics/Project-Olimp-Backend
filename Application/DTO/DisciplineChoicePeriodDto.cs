@@ -4,10 +4,10 @@ namespace OlimpBack.Application.DTO
     {
         public int Id { get; set; }
         public sbyte PeriodType { get; set; }
-        public int PeriodCourse { get; set; }
+        public sbyte PeriodCourse { get; set; }
         public int DegreeLevelId { get; set; }
-        public int isShort { get; set; }
-        public int IsClose { get; set; }
+        public sbyte isShort { get; set; }
+        public sbyte IsClose { get; set; }
         public int? FacultyId { get; set; }
         public int? DepartmentId { get; set; }
         public DateTime? StartDate { get; set; }
@@ -17,10 +17,10 @@ namespace OlimpBack.Application.DTO
     public class CreateDisciplineChoicePeriodDto
     {
         public sbyte PeriodType { get; set; }
-        public int PeriodCourse { get; set; }
+        public sbyte PeriodCourse { get; set; }
         public int DegreeLevelId { get; set; }
-        public int isShort { get; set; }
-        public int IsClose { get; set; }
+        public sbyte isShort { get; set; }
+        public sbyte IsClose { get; set; }
         public int? FacultyId { get; set; }
         public int? DepartmentId { get; set; }
         public DateTime? StartDate { get; set; }
@@ -31,10 +31,10 @@ namespace OlimpBack.Application.DTO
     {
         public int Id { get; set; }
         public sbyte PeriodType { get; set; }
-        public int PeriodCourse { get; set; }
+        public sbyte PeriodCourse { get; set; }
         public int DegreeLevelId { get; set; }
-        public int isShort { get; set; }
-        public int IsClose { get; set; }
+        public sbyte isShort { get; set; }
+        public sbyte IsClose { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }
@@ -58,9 +58,9 @@ namespace OlimpBack.Application.DTO
     {
         public int? FacultyId { get; set; }
         public int? DegreeLevelId { get; set; }
-        public int isShort { get; set; }
+        public sbyte isShort { get; set; }
         public sbyte? PeriodType { get; set; }
-        public int? IsClose { get; set; }
-        public int? PeriodCourse { get; set; }
+        public sbyte? IsClose { get; set; }
+        public sbyte? PeriodCourse { get; set; }
     }
 }
