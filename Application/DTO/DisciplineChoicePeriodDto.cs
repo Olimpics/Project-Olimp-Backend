@@ -3,7 +3,7 @@ namespace OlimpBack.Application.DTO
     public class DisciplineChoicePeriodDto
     {
         public int Id { get; set; }
-        public int PeriodType { get; set; }
+        public sbyte PeriodType { get; set; }
         public int PeriodCourse { get; set; }
         public int DegreeLevelId { get; set; }
         public int isShort { get; set; }
