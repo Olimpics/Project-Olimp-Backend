@@ -9,6 +9,9 @@ public interface IDisciplineTabAdminRepository
 {
     Task<(int TotalCount, List<FullDisciplineDto> Items)> GetAllDisciplinesPagedAsync(GetAllDisciplinesAdminQueryDto queryDto);
     Task<DateTime?> GetLastPeriodStartDateAsync(int facultyId);
+    /// <summary>End date of the most recent discipline choice period for the faculty that has already ended (null if none).</summary>
+    Task<DateTime?> GetLastCompletedPeriodEndDateAsync(int facultyId);
+    Task<List<StudentChoicesProjection>> GetStudentsChoicesForFacultyAsync(int facultyId);
     Task<List<StudentChoicesProjection>> GetStudentsChoicesDataAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto, DateTime? periodStart);
     Task<Dictionary<int, DateTime>> GetLastPeriodsByFacultyAsync();
     Task<Dictionary<(int Level, sbyte IsFaculty), int>> GetNormativesLookupAsync();
@@ -39,7 +42,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         var query = _context.AddDisciplines.AsNoTracking().AsQueryable();
 
-        // 1. Ô³ëüòðàö³ÿ ïî ïîøóêó
+        // 1. ?˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
@@ -48,13 +51,13 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
         }
 
-        // 2. Ô³ëüòðàö³ÿ ïî ôàêóëüòåòàõ
+        // 2. ?˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜˜
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
             query = query.Where(d => queryDto.Faculties.Contains(d.FacultyId));
         }
 
-        // 3. Ô³ëüòðàö³ÿ ïî êóðñàõ
+        // 3. ?˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜
         if (queryDto.Courses != null && queryDto.Courses.Any())
         {
             query = query.Where(d =>
@@ -62,7 +65,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 (!d.MaxCourse.HasValue || queryDto.Courses.Contains(d.MaxCourse.Value)));
         }
 
-        // 4. Ô³ëüòðàö³ÿ ïî ñåìåñòðó
+        // 4. ?˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜
         if (queryDto.IsEvenSemester.HasValue)
         {
             query = query.Where(d => d.IsEven.HasValue &&
@@ -70,16 +73,16 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                  (!queryDto.IsEvenSemester.Value && d.IsEven.Value % 2 == 1)));
         }
 
-        // 5. Ô³ëüòðàö³ÿ ïî ñòóïåíÿõ (Degree Levels)
+        // 5. ?˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜ (Degree Levels)
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
             query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
         }
 
-        // Ï³äðàõóíîê çàãàëüíî¿ ê³ëüêîñò³ äî ïàã³íàö³¿
+        // ?˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜
         var totalCount = await query.CountAsync();
 
-        // 6. Ñîðòóâàííÿ íà ð³âí³ ÁÄ
+        // 6. ˜˜˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜ ˜˜
         query = queryDto.SortOrder switch
         {
             1 => query.OrderBy(d => d.NameAddDisciplines),
@@ -89,7 +92,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             _ => query.OrderBy(d => d.IdAddDisciplines)
         };
 
-        // 7. Ïðîåêö³ÿ (Ìàã³ÿ: EF Core ïåðåòâîðèòü BindAddDisciplines.Count íà ï³äçàïèò SELECT COUNT(*))
+        // 7. ˜˜˜˜˜˜˜˜ (˜˜˜˜: EF Core ˜˜˜˜˜˜˜˜˜˜˜ BindAddDisciplines.Count ˜˜ ˜˜˜˜˜˜˜ SELECT COUNT(*))
         var items = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
@@ -105,8 +108,8 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 MaxCourse = d.MaxCourse,
                 IsEven = d.IsEven,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec : "",
-                CountOfPeople = d.BindAddDisciplines.Count, // Í³ÿêèõ âàæêèõ Include!
-                IsAvailable = false // Äëÿ àäì³í-ïàíåë³ öå ïîëå çàçâè÷àé íåàêòóàëüíå, àáî ìîæíà ñòàâèòè true
+                CountOfPeople = d.BindAddDisciplines.Count, // ?˜˜˜˜ ˜˜˜˜˜˜ Include!
+                IsAvailable = false // ˜˜˜ ˜˜˜˜-˜˜˜˜˜ ˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜, ˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜ true
             })
             .ToListAsync();
 
@@ -119,6 +122,44 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .OrderByDescending(p => p.StartDate)
             .Select(p => p.StartDate)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<DateTime?> GetLastCompletedPeriodEndDateAsync(int facultyId)
+    {
+        var now = DateTime.UtcNow;
+        return await _context.DisciplineChoicePeriods
+            .AsNoTracking()
+            .Where(p => p.FacultyId == facultyId && p.EndDate < now)
+            .OrderByDescending(p => p.EndDate)
+            .Select(p => p.EndDate)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<StudentChoicesProjection>> GetStudentsChoicesForFacultyAsync(int facultyId)
+    {
+        return await _context.Students
+            .AsNoTracking()
+            .Where(s => s.FacultyId == facultyId)
+            .Select(s => new StudentChoicesProjection(
+                s.IdStudent,
+                s.NameStudent ?? "",
+                s.Faculty != null ? s.Faculty.Abbreviation ?? s.Faculty.NameFaculty : "",
+                s.Group != null ? s.Group.GroupCode : "",
+                s.Course,
+                s.EducationalDegreeId,
+                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegreec : "",
+                s.EducationalProgram,
+                s.BindAddDisciplines.Select(b => new StudentSelectedDisciplineDto
+                {
+                    IdBindAddDisciplines = b.IdBindAddDisciplines,
+                    IdAddDisciplines = b.AddDisciplinesId,
+                    NameAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
+                    CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
+                    Semestr = b.Semestr,
+                    InProcess = b.InProcess
+                }).ToList()
+            ))
+            .ToListAsync();
     }
 
     public async Task<List<StudentChoicesProjection>> GetStudentsChoicesDataAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto, DateTime? periodStart)

@@ -23,54 +23,57 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
     {
         var baseQuery = _context.BindAddDisciplines
             .AsNoTracking()
-            .Include(b => b.Student)
-                .ThenInclude(s => s.EducationalDegree)
-            .Include(b => b.Student)
-                .ThenInclude(s => s.Faculty)
-            .Include(b => b.Student)
-                .ThenInclude(s => s.Group)
-                    .ThenInclude(g => g.Department)
             .Where(b => b.AddDisciplinesId == query.DisciplineId);
 
-        if (query.FacultyId.HasValue && query.FacultyId.Value > 0)
+        if (query.FacultyId is > 0)
         {
-            baseQuery = baseQuery.Where(b => b.Student.FacultyId == query.FacultyId.Value);
+            baseQuery = baseQuery.Where(b => b.Student.FacultyId == query.FacultyId);
         }
 
-        if (query.GroupId.HasValue && query.GroupId.Value > 0)
+        if (query.GroupId is > 0)
         {
-            baseQuery = baseQuery.Where(b => b.Student.GroupId == query.GroupId.Value);
+            baseQuery = baseQuery.Where(b => b.Student.GroupId == query.GroupId);
+        }
+
+        if (query.DepartmentId is > 0)
+        {
+            baseQuery = baseQuery.Where(b => b.Student.Group.DepartmentId == query.DepartmentId);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.Trim();
+
             baseQuery = baseQuery.Where(b =>
-                b.Student.NameStudent.Contains(search) ||
-                b.Student.Group.GroupCode.Contains(search) ||
-                (b.Student.Group.Department != null && b.Student.Group.Department.NameDepartment.Contains(search)) ||
-                b.Student.EducationalDegree.NameEducationalDegreec.Contains(search));
+                EF.Functions.Like(b.Student.NameStudent, $"%{search}%") ||
+                EF.Functions.Like(b.Student.Group.GroupCode, $"%{search}%") ||
+                (b.Student.Group.Department != null &&
+                 EF.Functions.Like(b.Student.Group.Department.NameDepartment, $"%{search}%")) ||
+                EF.Functions.Like(b.Student.EducationalDegree.NameEducationalDegreec, $"%{search}%"));
         }
+
+        var totalCount = await baseQuery.CountAsync();
 
         baseQuery = query.SortOrder switch
         {
+            0 => baseQuery.OrderBy(b => b.Student.NameStudent),
             1 => baseQuery.OrderByDescending(b => b.Student.NameStudent),
             2 => baseQuery.OrderBy(b => b.Student.Group.GroupCode),
             3 => baseQuery.OrderByDescending(b => b.Student.Group.GroupCode),
-            4 => baseQuery.OrderBy(b => b.Student.Group.Department != null ? b.Student.Group.Department.NameDepartment : string.Empty),
-            5 => baseQuery.OrderByDescending(b => b.Student.Group.Department != null ? b.Student.Group.Department.NameDepartment : string.Empty),
+            4 => baseQuery.OrderBy(b => b.Student.Group.Department != null
+                ? b.Student.Group.Department.NameDepartment
+                : string.Empty),
+            5 => baseQuery.OrderByDescending(b => b.Student.Group.Department != null
+                ? b.Student.Group.Department.NameDepartment
+                : string.Empty),
             6 => baseQuery.OrderBy(b => b.Student.Course),
             7 => baseQuery.OrderByDescending(b => b.Student.Course),
             8 => baseQuery.OrderBy(b => b.Student.EducationalDegree.NameEducationalDegreec),
             9 => baseQuery.OrderByDescending(b => b.Student.EducationalDegree.NameEducationalDegreec),
-            10 => baseQuery.OrderBy(b => b.Student.IsShort),
-            11 => baseQuery.OrderByDescending(b => b.Student.IsShort),
-            12 => baseQuery.OrderBy(b => b.CreatedAt),
-            13 => baseQuery.OrderByDescending(b => b.CreatedAt),
+            10 => baseQuery.OrderBy(b => b.Student.Faculty.NameFaculty),
+            11 => baseQuery.OrderByDescending(b => b.Student.Faculty.NameFaculty),
             _ => baseQuery.OrderBy(b => b.Student.NameStudent)
         };
-
-        var totalCount = await baseQuery.CountAsync();
 
         var items = await baseQuery
             .Skip((query.Page - 1) * query.PageSize)
@@ -81,11 +84,13 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 StudentName = b.Student.NameStudent,
                 GroupId = b.Student.GroupId,
                 GroupCode = b.Student.Group.GroupCode,
-                DepartmentName = b.Student.Group.Department != null ? b.Student.Group.Department.NameDepartment : string.Empty,
+                DepartmentName = b.Student.Group.Department != null
+                    ? b.Student.Group.Department.NameDepartment
+                    : string.Empty,
                 Year = b.Student.Course,
                 EducationLevel = b.Student.EducationalDegree.NameEducationalDegreec,
                 IsShort = b.Student.IsShort,
-                ChoiceDate = b.CreatedAt
+                Faculty = b.Student.Faculty.NameFaculty
             })
             .ToListAsync();
 

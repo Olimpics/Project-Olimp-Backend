@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace OlimpBack.Application.DTO
 {
@@ -41,5 +41,11 @@ namespace OlimpBack.Application.DTO
     {
         public int IdNotificationTemplates { get; set; }
         public string NotificationType { get; set; } = null!;
+    }
+
+    public class EducationalProgramFilterDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
     }
 }

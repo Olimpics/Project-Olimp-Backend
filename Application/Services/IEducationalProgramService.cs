@@ -4,6 +4,8 @@ namespace OlimpBack.Application.Services;
 
 public interface IEducationalProgramService
 {
+    Task<List<EducationalProgramFilterDto>> GetEducationalProgramsForFilterAsync(string? search);
+
     Task<PaginatedResponseDto<EducationalProgramDto>> GetEducationalProgramsAsync(EducationalProgramListQueryDto queryDto);
 
     Task<EducationalProgramDto?> GetEducationalProgramAsync(int id);

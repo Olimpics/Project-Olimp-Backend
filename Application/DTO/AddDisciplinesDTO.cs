@@ -1,4 +1,4 @@
-﻿using OlimpBack.Models;
+using OlimpBack.Models;
 
 namespace OlimpBack.Application.DTO
 {
@@ -33,6 +33,9 @@ namespace OlimpBack.Application.DTO
     public class CreateAddDisciplineWithDetailsDto : CreateAddDisciplineDto
     {
         public CreateAddDetailDto Details { get; set; } = null!;
+
+        public List<int>? RecomendationSpeciality { get; set; }
+        public List<int>? RecomendationEducationalProgram { get; set; }
     }
 
     public class UpdateAddDisciplineWithDetailsDto : CreateAddDisciplineWithDetailsDto

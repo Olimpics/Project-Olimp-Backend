@@ -7,6 +7,7 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IEducationalProgramRepository
 {
+    Task<List<EducationalProgramFilterDto>> GetForFilterAsync(string? search);
     Task<(int TotalCount, List<EducationalProgramDto> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto);
     Task<EducationalProgramDto?> GetDtoByIdAsync(int id);
     Task<EducationalProgram?> GetEntityByIdAsync(int id);
@@ -23,6 +24,29 @@ public class EducationalProgramRepository : IEducationalProgramRepository
     public EducationalProgramRepository(AppDbContext context)
     {
         _context = context;
+    }
+
+    public async Task<List<EducationalProgramFilterDto>> GetForFilterAsync(string? search)
+    {
+        var query = _context.EducationalPrograms.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var lowerSearch = search.Trim().ToLower();
+            query = query.Where(ep =>
+                EF.Functions.Like(ep.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like(ep.SpecialityCode.ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like(ep.Speciality.ToLower(), $"%{lowerSearch}%"));
+        }
+
+        return await query
+            .OrderBy(ep => ep.NameEducationalProgram)
+            .Select(ep => new EducationalProgramFilterDto
+            {
+                Id = ep.IdEducationalProgram,
+                Name = ep.NameEducationalProgram
+            })
+            .ToListAsync();
     }
 
     public async Task<(int TotalCount, List<EducationalProgramDto> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto)

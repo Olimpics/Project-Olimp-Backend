@@ -24,4 +24,7 @@ public interface IDisciplineTabAdminService
     Task<PaginatedResponseDto<AdminStudentByAddDisciplineDto>> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query);
 
     Task<PaginatedResponseDto<AdminStudentByMainDisciplineDto>> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query);
+
+    /// <summary>Students (id and name) who still lack required add-discipline selections after the last completed choice period for the faculty.</summary>
+    Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(int facultyId);
 }
