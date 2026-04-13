@@ -23,5 +23,7 @@ public interface IDisciplineTabAdminService
 
     Task<PaginatedResponseDto<AdminStudentByAddDisciplineDto>> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query);
 
+    Task<(bool success, string? errorMessage)> RepealChoiceAsync(int DisciplinId, int studentId);
+
     Task<PaginatedResponseDto<AdminStudentByMainDisciplineDto>> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query);
 }

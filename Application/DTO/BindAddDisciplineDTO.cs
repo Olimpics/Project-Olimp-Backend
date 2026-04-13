@@ -26,4 +26,5 @@ namespace OlimpBack.Application.DTO
     {
         public int IdBindAddDisciplines { get; set; }
     }
+
 }

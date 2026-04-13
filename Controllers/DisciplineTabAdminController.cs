@@ -115,15 +115,29 @@ namespace OlimpBack.Controllers
         //    }
         //    catch (DbUpdateConcurrencyException)
         //    {
-               
-                
+
+
         //            throw;
-                
+
         //    }
 
         //    return NoContent();
         //}
 
 
+
+        //
+        [HttpDelete("RepealChoice/{studentId}/{DisciplineId}")]
+        public async Task<IActionResult> RepealChoice(int DisciplineId, int studentId)
+        {
+            var (success, errorMessage) = await _service.RepealChoiceAsync(DisciplineId, studentId);
+
+            if (!success)
+            {
+                return BadRequest(new { message = errorMessage });
+            }
+
+            return Ok(new { message = "Choice rejected and student notified successfully." });
+        }
     }
 }

@@ -274,6 +274,10 @@ builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateSer
 builder.Services.AddScoped<INormativeRepository, NormativeRepository>();
 builder.Services.AddScoped<INormativeService, NormativeService>();
 
+// TypeOfDiscipline
+builder.Services.AddScoped<ITypeOfDisciplineRepository, TypeOfDisciplineRepository>();
+builder.Services.AddScoped<ITypeOfDisciplineService, TypeOfDisciplineService>();
+
 // ==========================================
 // СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)
 // ==========================================

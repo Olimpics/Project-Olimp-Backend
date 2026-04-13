@@ -24,6 +24,8 @@ public interface IDisciplineTabAdminRepository
     Task<AddDiscipline?> GetDisciplineEntityAsync(int id);
     void RemoveBind(BindAddDiscipline bind);
     void AddNotification(Notification notification);
+
+    Task<BindAddDiscipline?> GetBindByStudentAndDisciplineAsync(int studentId, int disciplineId);
     Task SaveChangesAsync();
 }
 
@@ -277,6 +279,14 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                     InProcess = b.InProcess
                 }).ToList()
             )).FirstOrDefaultAsync();
+    }
+
+    public async Task<BindAddDiscipline?> GetBindByStudentAndDisciplineAsync(int studentId, int disciplineId)
+    {
+        return await _context.BindAddDisciplines
+            .Include(b => b.Student)
+            .Include(b => b.AddDisciplines)
+            .FirstOrDefaultAsync(b => b.StudentId == studentId && b.AddDisciplinesId == disciplineId);
     }
 
     public async Task<bool> ExistsBindAsync(int studentId, int disciplineId) =>

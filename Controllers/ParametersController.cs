@@ -14,16 +14,22 @@ namespace OlimpBack.Controllers
         private readonly IEducationStatusService _educationStatusService;
         private readonly IEducationalDegreeService _educationalDegreeService;
         private readonly INotificationTemplateService _notificationTemplateService;
+        private readonly IStudyFormService _studyFormService;
+        private readonly ITypeOfDisciplineService _typeOfDisciplineService;
 
         public ParametersController(INormativeService service,
                                         IEducationalDegreeService educationalDegreeService,
                                         IEducationStatusService educationStatusService,
-                                        INotificationTemplateService notificationTemplateService)
+                                        INotificationTemplateService notificationTemplateService,
+                                        IStudyFormService studyFormService,
+                                        ITypeOfDisciplineService typeOfDisciplineService)
         {
             _normativeService = service;
             _educationStatusService = educationStatusService;
             _educationalDegreeService = educationalDegreeService;
             _notificationTemplateService = notificationTemplateService;
+            _studyFormService = studyFormService;
+            _typeOfDisciplineService = typeOfDisciplineService;
         }
 
 
@@ -202,5 +208,83 @@ namespace OlimpBack.Controllers
                 return StatusCode(statusCode, new { message = errorMessage });
             return NoContent();
         }*/
+
+        // -- StudyForm --
+        [HttpGet("StudyForms")]
+        public async Task<ActionResult<IEnumerable<StudyFormDto>>> GetStudyForms()
+        {
+            var result = await _studyFormService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("StudyForm/{id}")]
+        public async Task<ActionResult<StudyFormDto>> GetStudyForm(int id)
+        {
+            var result = await _studyFormService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateStudyForm")]
+        public async Task<ActionResult<StudyFormDto>> CreateStudyForm([FromBody] StudyFormDto dto)
+        {
+            var resultDto = await _studyFormService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetStudyForm), new { id = resultDto.IdStudyForm }, resultDto);
+        }
+
+        [HttpPut("UpdateStudyForm/{id}")]
+        public async Task<IActionResult> UpdateStudyForm(int id, [FromBody] StudyFormDto dto)
+        {
+            var (success, statusCode, errorMessage) = await _studyFormService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        [HttpDelete("DeleteStudyForm/{id}")]
+        public async Task<IActionResult> DeleteStudyForm(int id)
+        {
+            var (success, statusCode, errorMessage) = await _studyFormService.DeleteAsync(id);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+
+        // -- TypeOfDiscipline --
+
+        [HttpGet("TypeOfDisciplines")]
+        public async Task<ActionResult<IEnumerable<TypeOfDisciplineDto>>> GetTypeOfDisciplines()
+        {
+            var result = await _typeOfDisciplineService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("TypeOfDiscipline/{id}")]
+        public async Task<ActionResult<TypeOfDisciplineDto>> GetTypeOfDiscipline(int id)
+        {
+            var result = await _typeOfDisciplineService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateTypeOfDiscipline")]
+        public async Task<ActionResult<TypeOfDisciplineDto>> CreateTypeOfDiscipline(CreateTypeOfDisciplineDto dto)
+        {
+            var resultDto = await _typeOfDisciplineService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetTypeOfDiscipline), new { id = resultDto.IdTypeOfDiscipline }, resultDto);
+        }
+
+        [HttpPut("UpdateTypeOfDiscipline/{id}")]
+        public async Task<IActionResult> UpdateTypeOfDiscipline(int id, TypeOfDisciplineDto dto)
+        {
+            var (success, statusCode, errorMessage) = await _typeOfDisciplineService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
     }
 }

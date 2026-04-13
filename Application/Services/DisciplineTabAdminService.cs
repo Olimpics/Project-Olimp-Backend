@@ -1,6 +1,8 @@
+using Azure;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
+using System.Reflection;
 
 namespace OlimpBack.Application.Services;
 
@@ -161,12 +163,20 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             else if (dto.IsConfirm == 0)
             {
                 var userId = bind.Student?.UserId;
+                
                 if (userId == null || userId <= 0)
                 {
                     response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = "Student has no valid UserId for notification." });
                     continue;
                 }
 
+                var (success, errorMessage) = await RepealChoiceAsync(bind.AddDisciplinesId, (int)bind.Student?.IdStudent);
+                if (!success)
+                {
+                    response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = errorMessage ?? "Failed to repeal choice" });
+                    continue;
+                }
+                /*
                 var disciplineName = bind.AddDisciplines?.NameAddDisciplines ?? "elective";
                 _repository.RemoveBind(bind);
 
@@ -188,7 +198,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                     Message = "Choice rejected and student notified",
                     BindId = dto.BindId,
                     DisciplineName = disciplineName
-                });
+                });*/
             }
             else
             {
@@ -210,6 +220,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         if (!response.Errors.Any()) response.Errors = null!;
         return response;
     }
+
 
     public async Task<PaginatedResponseDto<AdminDisciplineListItemDto>> GetDisciplinesWithStatusAsync(GetDisciplinesWithStatusQueryDto queryDto)
     {
@@ -359,6 +370,41 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         return (bind.IdBindAddDisciplines, null);
     }
 
+    public async Task<(bool success, string? errorMessage)> RepealChoiceAsync(int disciplineId, int studentId)
+    {
+        // 1. Шукаємо зв'язок за двома ID
+        var bind = await _repository.GetBindByStudentAndDisciplineAsync(studentId, disciplineId);
+
+        if (bind == null)
+            return (false, "Choice bind not found for this student and discipline.");
+
+        var userId = bind.Student?.UserId;
+        if (userId == null || userId <= 0)
+            return (false, "Student has no valid UserId for notification.");
+
+        var disciplineName = bind.AddDisciplines?.NameAddDisciplines ?? "elective";
+
+        // 2. Видаляємо
+        _repository.RemoveBind(bind);
+
+        // 3. Відправляємо сповіщення
+        var notification = new Notification
+        {
+            UserId = userId.Value,
+            CustomTitle = "Elective discipline rejected",
+            CustomMessage = $"Your choice \"{disciplineName}\" was rejected by the administrator.",
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow,
+            NotificationType = "DisciplineRejected"
+        };
+
+        _repository.AddNotification(notification);
+
+        // 4. Зберігаємо (бо це одинична дія)
+        await _repository.SaveChangesAsync();
+
+        return (true, null);
+    }
     public async Task<bool> DeleteBindAsync(int id) =>
         await _repository.DeleteBindAsync(id) > 0;
 

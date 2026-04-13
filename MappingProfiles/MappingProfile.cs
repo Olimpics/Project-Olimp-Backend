@@ -116,6 +116,11 @@ namespace OlimpBack.MappingProfiles
             CreateMap<CreateNormativeDto, Normative>();
             CreateMap<UpdateNormativeDto, Normative>();
 
+
+            //TypeOfDiscipline
+            CreateMap<TypeOfDiscipline, TypeOfDisciplineDto>().ReverseMap();
+            CreateMap<CreateTypeOfDisciplineDto, TypeOfDiscipline>();
+
             //BindMainDiscipline
             CreateMap<BindMainDiscipline, BindMainDisciplineDto>()
            .ForMember(dest => dest.EducationalProgramName,
