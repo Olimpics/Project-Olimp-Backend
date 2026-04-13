@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Services;
 using OlimpBack.Data;
 
 namespace OlimpBack.Controllers
@@ -12,10 +13,20 @@ namespace OlimpBack.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-        public FilterController(AppDbContext context, IMapper mapper)
+        private readonly IEducationalProgramService _educationalProgramService;
+
+        public FilterController(AppDbContext context, IMapper mapper, IEducationalProgramService educationalProgramService)
         {
             _context = context;
             _mapper = mapper;
+            _educationalProgramService = educationalProgramService;
+        }
+
+        [HttpGet("educational-programs")]
+        public async Task<ActionResult<IEnumerable<EducationalProgramFilterDto>>> GetEducationalPrograms([FromQuery] string? search = null)
+        {
+            var items = await _educationalProgramService.GetEducationalProgramsForFilterAsync(search);
+            return Ok(items);
         }
         [HttpGet("departments")]
         public async Task<ActionResult<IEnumerable<FiltersDepartmentDTO>>> GetDepartmentsForFilter()

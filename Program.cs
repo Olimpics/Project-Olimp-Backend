@@ -19,6 +19,8 @@ Environment.SetEnvironmentVariable(
 );
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:5154");
+
 
 // Add services
 builder.Services.AddControllers();
@@ -54,6 +56,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
 var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Database connection
@@ -75,8 +78,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 // AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
-
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -310,8 +312,8 @@ Console.WriteLine(env);
 
 
 app.Urls.Clear();
-app.Urls.Add("http://localhost:5154");
-app.Urls.Add("https://localhost:7011");
+//app.Urls.Add("http://localhost:5154");
+//app.Urls.Add("https://localhost:7011");
 
 app.Logger.LogWarning($"Environment: {app.Environment.EnvironmentName}");
 

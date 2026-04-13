@@ -17,6 +17,9 @@ public class EducationalProgramService : IEducationalProgramService
         _mapper = mapper;
     }
 
+    public Task<List<EducationalProgramFilterDto>> GetEducationalProgramsForFilterAsync(string? search) =>
+        _repository.GetForFilterAsync(search);
+
     public async Task<PaginatedResponseDto<EducationalProgramDto>> GetEducationalProgramsAsync(EducationalProgramListQueryDto queryDto)
     {
         var (totalCount, items) = await _repository.GetPagedAsync(queryDto);

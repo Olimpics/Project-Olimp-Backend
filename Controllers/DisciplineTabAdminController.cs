@@ -97,6 +97,16 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
+        [HttpGet("GetStudentsIncompleteAfterChoicePeriod")]
+        public async Task<ActionResult<List<StudentIdNameDto>>> GetStudentsIncompleteAfterChoicePeriod([FromQuery] int facultyId)
+        {
+            if (facultyId <= 0)
+                return BadRequest(new { error = "facultyId must be a positive value" });
+
+            var result = await _service.GetStudentsIncompleteAfterChoicePeriodAsync(facultyId);
+            return Ok(result);
+        }
+
 
         //[HttpPut("{id}")]
         //public async Task<IActionResult> UpdateBindAddDiscipline(int id, UpdateBindAddDisciplineDto updateDto)

@@ -50,6 +50,19 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         };
     }
 
+    /// <summary>True when the student has selected the required number of add disciplines per semester (3–8) per educational program.</summary>
+    private static bool IsAddDisciplineSelectionComplete(EducationalProgram? program, IReadOnlyList<StudentSelectedDisciplineDto> selected)
+    {
+        if (program == null) return false;
+        for (int sem = 3; sem <= 8; sem++)
+        {
+            var required = GetRequiredCountForSemester(program, sem);
+            if (required > 0 && selected.Count(d => d.Semestr == sem) < required)
+                return false;
+        }
+        return true;
+    }
+
     public async Task<PaginatedResponseDto<StudentWithDisciplineChoicesDto>> GetStudentsWithDisciplineChoicesAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto)
     {
         DateTime? periodStart = null;
@@ -63,23 +76,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
         foreach (var s in studentsData)
         {
-            var selectionOk = true;
-            if (s.Program != null)
-            {
-                for (int sem = 3; sem <= 8; sem++)
-                {
-                    var required = GetRequiredCountForSemester(s.Program, sem);
-                    if (required > 0 && s.SelectedDisciplines.Count(d => d.Semestr == sem) < required)
-                    {
-                        selectionOk = false;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                selectionOk = false;
-            }
+            var selectionOk = IsAddDisciplineSelectionComplete(s.Program, s.SelectedDisciplines);
 
             var confirmationOk = s.SelectedDisciplines.Count == 0 || s.SelectedDisciplines.All(d => d.InProcess == 0);
 
@@ -324,20 +321,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         var studentData = await _repository.GetStudentChoicesDataAsync(studentId);
         if (studentData == null) return null;
 
-        var selectionOk = true;
-        if (studentData.Program != null)
-        {
-            for (int sem = 3; sem <= 8; sem++)
-            {
-                var required = GetRequiredCountForSemester(studentData.Program, sem);
-                if (required > 0 && studentData.SelectedDisciplines.Count(d => d.Semestr == sem) < required)
-                {
-                    selectionOk = false;
-                    break;
-                }
-            }
-        }
-        else { selectionOk = false; }
+        var selectionOk = IsAddDisciplineSelectionComplete(studentData.Program, studentData.SelectedDisciplines);
 
         var confirmationOk = studentData.SelectedDisciplines.Count == 0 || studentData.SelectedDisciplines.All(d => d.InProcess == 0);
 
@@ -436,5 +420,25 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             PageSize = query.PageSize,
             Items = items
         };
+    }
+
+    /// <summary>
+    /// After the latest completed discipline choice period for the faculty, lists students who still do not satisfy add-discipline normatives (semesters 3–8) for their program.
+    /// </summary>
+    public async Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(int facultyId)
+    {
+        if (facultyId <= 0)
+            return new List<StudentIdNameDto>();
+
+        var lastCompleted = await _repository.GetLastCompletedPeriodEndDateAsync(facultyId);
+        if (lastCompleted == null)
+            return new List<StudentIdNameDto>();
+
+        var students = await _repository.GetStudentsChoicesForFacultyAsync(facultyId);
+        return students
+            .Where(s => !IsAddDisciplineSelectionComplete(s.Program, s.SelectedDisciplines))
+            .Select(s => new StudentIdNameDto { StudentId = s.IdStudent, StudentName = s.NameStudent })
+            .OrderBy(x => x.StudentName)
+            .ToList();
     }
 }

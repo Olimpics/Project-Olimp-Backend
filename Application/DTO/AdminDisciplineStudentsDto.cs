@@ -10,7 +10,14 @@ public class AdminStudentByAddDisciplineDto
     public int Year { get; set; }
     public string EducationLevel { get; set; } = string.Empty;
     public sbyte IsShort { get; set; }
-    public DateTime ChoiceDate { get; set; }
+    public string Faculty { get; set; } = string.Empty;
+}
+
+/// <summary>Minimal student row (e.g. reports).</summary>
+public class StudentIdNameDto
+{
+    public int StudentId { get; set; }
+    public string StudentName { get; set; } = string.Empty;
 }
 
 public class AdminStudentByMainDisciplineDto
@@ -31,18 +38,16 @@ public class GetStudentsByAddDisciplineQueryDto
     public int PageSize { get; set; } = 20;
     public int? FacultyId { get; set; }
     public int? GroupId { get; set; }
+    /// <summary>When set, only students whose group belongs to this department (group.departmentId).</summary>
+    public int? DepartmentId { get; set; }
     public string? Search { get; set; }
 
     /// <summary>
-    /// 0 - student name asc, 1 - student name desc,
-    /// 2 - group asc, 3 - group desc,
-    /// 4 - department asc, 5 - department desc,
-    /// 6 - year asc, 7 - year desc,
-    /// 8 - education level asc, 9 - education level desc,
-    /// 10 - isShort asc, 11 - isShort desc,
-    /// 12 - choice date asc, 13 - choice date desc (default)
+    /// Sort by response fields (studentId excluded). Even = asc, odd = desc:
+    /// 0–1 studentName, 2–3 groupCode, 4–5 departmentName, 6–7 year (course),
+    /// 8–9 educationLevel, 10–11 faculty.
     /// </summary>
-    public int SortOrder { get; set; } = 13;
+    public int SortOrder { get; set; } = 0;
 }
 
 public class GetStudentsByMainDisciplineQueryDto
