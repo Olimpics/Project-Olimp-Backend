@@ -131,6 +131,7 @@ namespace OlimpBack.Controllers
         }
 
 
+
         [HttpGet("notification-templates")]
         public async Task<ActionResult<IEnumerable<NotificationTemplateFilterDto>>> GetNotificationTemplates([FromQuery] string? search = null)
         {
