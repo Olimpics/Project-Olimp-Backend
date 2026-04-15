@@ -27,12 +27,18 @@ namespace OlimpBack.Application.DTO
         public int? DegreeId { get; set; }
         public int? Course { get; set; }
         public int? FacultyId { get; set; }
+        public string? FacultyName { get; set; }
         public int? DepartmentId { get; set; }
+        public string? DepartmentName { get; set; }
         public int? IdEducationalProgram { get; set; }
+        public string? EducationalProgramName { get; set; }
         public int? IdSpeciality { get; set; }
+        public string? SpecialityName { get; set; }
         public int? AdmissionYear { get; set; }
         public int? IdStudyForm { get; set; }
         public int? IdSpecialization { get; set; }
+
+        public string? SpecializationName { get; set; }
         public bool IsAccelerated { get; set; }
     }
 
@@ -41,7 +47,7 @@ namespace OlimpBack.Application.DTO
         public int IdStudent { get; set; }
         public int UserId { get; set; }
         public string NameStudent { get; set; } = null!;
-        public int Course { get; set; }
-        public int GroupId { get; set; }
+        public string EmailStudent { get; set; } = null!;
+        public string EductionalStatus { get; set; } = null!;
     }
 } 
