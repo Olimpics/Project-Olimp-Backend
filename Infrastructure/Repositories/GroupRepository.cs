@@ -11,6 +11,8 @@ public interface IGroupRepository
 {
     Task<IEnumerable<GroupFilterDto>> GetFilteredGroupsAsync(GroupListQueryDto queryDto);
     Task<GroupDto?> GetDtoByIdAsync(int id);
+    Task<GroupDetailsDto?> GetDetailsByIdAsync(int id);
+    Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId);
     Task<Group?> GetEntityByIdAsync(int id);
     Task<bool> ExistsAsync(int id);
     Task AddAsync(Group group);
@@ -74,6 +76,48 @@ public class GroupRepository : IGroupRepository
             .Where(g => g.IdGroup == id)
             .ProjectTo<GroupDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<GroupDetailsDto?> GetDetailsByIdAsync(int id)
+    {
+        return await _context.Groups
+            .AsNoTracking()
+            .Where(g => g.IdGroup == id)
+            .Select(g => new GroupDetailsDto
+            {
+                IdGroup = g.IdGroup,
+                GroupCode = g.GroupCode,
+                NumberOfStudents = g.NumberOfStudents,
+                AdminId = g.AdminId,
+                DegreeId = g.DegreeId,
+                Course = g.Course,
+                FacultyId = g.FacultyId,
+                DepartmentId = g.DepartmentId,
+                IdEducationalProgram = g.IdEducationalProgram,
+                IdSpeciality = g.IdSpeciality,
+                AdmissionYear = g.AdmissionYear,
+                IdStudyForm = g.IdStudyForm,
+                IdSpecialization = g.IdSpecialization,
+                IsAccelerated = g.IsAccelerated
+            })
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId)
+    {
+        return await _context.Students
+            .AsNoTracking()
+            .Where(s => s.GroupId == groupId)
+            .OrderBy(s => s.NameStudent)
+            .Select(s => new GroupStudentDto
+            {
+                IdStudent = s.IdStudent,
+                UserId = s.UserId,
+                NameStudent = s.NameStudent,
+                Course = s.Course,
+                GroupId = s.GroupId
+            })
+            .ToListAsync();
     }
 
     public async Task<Group?> GetEntityByIdAsync(int id) =>

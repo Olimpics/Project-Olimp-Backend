@@ -33,6 +33,23 @@ namespace OlimpBack.Controllers
             return Ok(group);
         }
 
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<GroupDetailsDto>> GetGroupDetails(int id)
+        {
+            var group = await _groupService.GetGroupDetailsAsync(id);
+            if (group == null)
+                return NotFound();
+
+            return Ok(group);
+        }
+
+        [HttpGet("{groupId}/students")]
+        public async Task<ActionResult<IReadOnlyList<GroupStudentDto>>> GetStudentsByGroupId(int groupId)
+        {
+            var students = await _groupService.GetStudentsByGroupIdAsync(groupId);
+            return Ok(students);
+        }
+
         [HttpPost]
         public async Task<ActionResult<GroupDto>> CreateGroup(CreateGroupDto dto)
         {

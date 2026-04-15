@@ -23,6 +23,12 @@ public class GroupService : IGroupService
     public async Task<GroupDto?> GetGroupAsync(int id) =>
         await _repository.GetDtoByIdAsync(id);
 
+    public async Task<GroupDetailsDto?> GetGroupDetailsAsync(int id) =>
+        await _repository.GetDetailsByIdAsync(id);
+
+    public async Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId) =>
+        await _repository.GetStudentsByGroupIdAsync(groupId);
+
     public async Task<GroupDto> CreateGroupAsync(CreateGroupDto dto)
     {
         var group = _mapper.Map<Group>(dto);

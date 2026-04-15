@@ -7,6 +7,8 @@ public interface IGroupService
     Task<IEnumerable<GroupFilterDto>> GetGroupsAsync(GroupListQueryDto queryDto);
 
     Task<GroupDto?> GetGroupAsync(int id);
+    Task<GroupDetailsDto?> GetGroupDetailsAsync(int id);
+    Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId);
 
     Task<GroupDto> CreateGroupAsync(CreateGroupDto dto);
 
