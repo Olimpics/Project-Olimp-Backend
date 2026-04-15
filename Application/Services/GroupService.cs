@@ -69,4 +69,7 @@ public class GroupService : IGroupService
 
         return (true, StatusCodes.Status204NoContent, null);
     }
+
+    public async Task<GroupCurriculumDTO?> GetGroupCurriculumAsync(int groupId) =>
+        await _repository.GetCurriculumByGroupIdAsync(groupId);
 }

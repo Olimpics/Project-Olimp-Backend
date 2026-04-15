@@ -21,6 +21,11 @@ public partial class BindMainDiscipline
 
     public string? Teachers { get; set; }
 
+    /// <summary>
+    /// Години
+    /// </summary>
+    public int? Hours { get; set; }
+
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
 
     public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();

@@ -7,6 +7,24 @@ namespace OlimpBack.Application.DTO
         public int? NumberOfStudents { get; set; }
     }
 
+    public class GroupBindMainDisciplinesDTO
+    {   
+        //public int idGroup { get; set; }
+        public int idBindMainDisciplines { get; set; }
+        public string nameBindMainDisciplines { get; set; } = null!;
+        public int? Semestr { get; set; }
+        public int? Loans { get; set; }
+        public int? Hours { get; set; }
+    }
+
+    public class GroupCurriculumDTO
+    {
+        public int IdGroup { get; set; }
+        public string GroupCode { get; set; } = null!;
+        public List<GroupBindMainDisciplinesDTO> BindMainDisciplines { get; set; } = new List<GroupBindMainDisciplinesDTO>();
+    }
+
+
     public class CreateGroupDto
     {
         public string GroupCode { get; set; } = null!;
@@ -37,7 +55,6 @@ namespace OlimpBack.Application.DTO
         public int? AdmissionYear { get; set; }
         public int? IdStudyForm { get; set; }
         public int? IdSpecialization { get; set; }
-
         public string? SpecializationName { get; set; }
         public bool IsAccelerated { get; set; }
     }

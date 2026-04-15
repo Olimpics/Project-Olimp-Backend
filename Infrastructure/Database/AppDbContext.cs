@@ -429,6 +429,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("codeMainDisciplines");
             entity.Property(e => e.EducationalProgramId).HasColumnType("int(11)");
             entity.Property(e => e.FormControll).HasColumnType("enum('Залік','Екзамен','Диференційований Залік')");
+            entity.Property(e => e.Hours)
+                .HasComment("Години")
+                .HasColumnType("int(11)");
             entity.Property(e => e.Loans).HasColumnType("int(11)");
             entity.Property(e => e.NameBindMainDisciplines)
                 .HasMaxLength(45)

@@ -17,6 +17,8 @@ public interface IGroupRepository
     Task<bool> ExistsAsync(int id);
     Task AddAsync(Group group);
     Task<int> DeleteAsync(int id);
+
+    Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(int groupId);
     Task SaveChangesAsync();
 }
 
@@ -123,6 +125,33 @@ public class GroupRepository : IGroupRepository
                 EductionalStatus = s.EducationStatus.NameEducationStatus
             })
             .ToListAsync();
+    }
+
+    public async Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(int groupId)
+    {
+        return await _context.Groups
+            .AsNoTracking()
+            .Where(g => g.IdGroup == groupId)
+            .Select(g => new GroupCurriculumDTO
+            {
+                IdGroup = g.IdGroup,
+                GroupCode = g.GroupCode,
+
+                // Робимо підзапит до таблиці BindMainDisciplines напряму
+                // EF Core сам зрозуміє, як це з'єднати в SQL
+                BindMainDisciplines = _context.BindMainDisciplines
+                    .Where(bmd => bmd.EducationalProgramId == g.IdEducationalProgram)
+                    .Select(bmd => new GroupBindMainDisciplinesDTO
+                    {
+                        idBindMainDisciplines = bmd.IdBindMainDisciplines,
+                        nameBindMainDisciplines = bmd.NameBindMainDisciplines,
+                        Semestr = bmd.Semestr,
+                        Loans = bmd.Loans,
+                        Hours = bmd.Hours,
+                    })
+                    .ToList() // Перетворюємо підзапит у List, як того вимагає DTO
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Group?> GetEntityByIdAsync(int id) =>

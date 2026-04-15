@@ -15,5 +15,6 @@ public interface IGroupService
     Task<(bool success, int statusCode, string? errorMessage)> UpdateGroupAsync(int id, UpdateGroupDto dto);
 
     Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(int id);
+    Task<GroupCurriculumDTO?> GetGroupCurriculumAsync(int groupId);
 }
 

@@ -57,6 +57,18 @@ namespace OlimpBack.Controllers
             return CreatedAtAction(nameof(GetGroup), new { id = resultDto.IdGroup }, resultDto);
         }
 
+
+        [HttpGet("{id}/curriculum")]
+        public async Task<ActionResult<GroupBindMainDisciplinesDTO>> GetGroupCurriculum(int id)
+        {
+            var curriculum = await _groupService.GetGroupCurriculumAsync(id);
+            if (curriculum == null)
+                return NotFound();
+            return Ok(curriculum);
+        }
+
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateGroup(int id, UpdateGroupDto dto)
         {
