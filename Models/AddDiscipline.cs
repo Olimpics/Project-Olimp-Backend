@@ -31,6 +31,8 @@ public partial class AddDiscipline
 
     public sbyte IsForseChange { get; set; }
 
+    public int IdCatalog { get; set; }
+
     public virtual AddDetail? AddDetail { get; set; }
 
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
@@ -42,6 +44,8 @@ public partial class AddDiscipline
     public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual Faculty Faculty { get; set; } = null!;
+
+    public virtual CatalogYear IdCatalogNavigation { get; set; } = null!;
 
     public virtual TypeOfDiscipline? Type { get; set; }
 }

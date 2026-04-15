@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 

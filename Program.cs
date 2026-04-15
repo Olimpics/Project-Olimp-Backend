@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OlimpBack.Application.Services;
-using OlimpBack.Data;
+using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
@@ -224,6 +224,10 @@ builder.Services.AddScoped<IBindRolePermissionService, BindRolePermissionService
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
+// CatalogYear
+builder.Services.AddScoped<ICatalogYearRepository, CatalogYearRepository>();
+builder.Services.AddScoped<ICatalogYearService, CatalogYearService>();
+
 // DisciplineChoicePeriod
 builder.Services.AddScoped<IDisciplineChoicePeriodRepository, DisciplineChoicePeriodRepository>();
 builder.Services.AddScoped<IDisciplineChoicePeriodService, DisciplineChoicePeriodService>();
@@ -252,6 +256,10 @@ builder.Services.AddScoped<IEducationStatusService, EducationStatusService>();
 // Faculty
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<IFacultyService, FacultyService>();
+
+// Filter
+builder.Services.AddScoped<IFilterRepository, FilterRepository>();
+builder.Services.AddScoped<IFilterService, FilterService>();
 
 // Group
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();

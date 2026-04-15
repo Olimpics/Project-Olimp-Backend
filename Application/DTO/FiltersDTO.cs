@@ -48,4 +48,12 @@ namespace OlimpBack.Application.DTO
         public int Id { get; set; }
         public string Name { get; set; } = null!;
     }
+
+    public class AddDisciplineFilterQueryDto
+    {
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string? Search { get; set; }
+        public int? CatalogYearId { get; set; }
+    }
 }

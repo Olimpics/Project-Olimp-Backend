@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Models;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
-namespace OlimpBack.Data;
+namespace OlimpBack.Infrastructure.Database;
 
 public partial class AppDbContext : DbContext
 {
@@ -42,6 +42,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; }
 
     public virtual DbSet<Branch> Branches { get; set; }
+
+    public virtual DbSet<CatalogYear> CatalogYears { get; set; }
 
     public virtual DbSet<Department> Departments { get; set; }
 
@@ -93,7 +95,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", Microsoft.EntityFrameworkCore.ServerVersion.Parse("11.8.3-mariadb"));
+        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", ServerVersion.Parse("11.8.3-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -164,6 +166,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.FacultyId, "AddDisciplines_ Faculties_idx");
 
+            entity.HasIndex(e => e.IdCatalog, "AddDisciplines_CatalogYears_FK");
+
             entity.HasIndex(e => e.DegreeLevelId, "AddDisciplines_EducationalDegree_idx");
 
             entity.HasIndex(e => e.TypeId, "AddDisciplines_Type_idx");
@@ -178,6 +182,10 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("codeAddDisciplines");
             entity.Property(e => e.DegreeLevelId).HasColumnType("int(11)");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
+            entity.Property(e => e.IdCatalog)
+                .HasDefaultValueSql("'1'")
+                .HasColumnType("int(11)")
+                .HasColumnName("idCatalog");
             entity.Property(e => e.IsEven).HasColumnType("tinyint(4)");
             entity.Property(e => e.IsFaculty).HasColumnType("tinyint(4)");
             entity.Property(e => e.IsForseChange).HasColumnType("tinyint(4)");
@@ -206,6 +214,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("AddDisciplines_ Faculties");
+
+            entity.HasOne(d => d.IdCatalogNavigation).WithMany(p => p.AddDisciplines)
+                .HasForeignKey(d => d.IdCatalog)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("AddDisciplines_CatalogYears_FK");
 
             entity.HasOne(d => d.Type).WithMany(p => p.AddDisciplines)
                 .HasForeignKey(d => d.TypeId)
@@ -520,6 +533,21 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(255)
                 .HasComment("Назва галузі (наприклад, Інформаційні технології)")
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<CatalogYear>(entity =>
+        {
+            entity.HasKey(e => e.IdCatalogYear).HasName("PRIMARY");
+
+            entity.ToTable(tb => tb.HasComment("Катлог за навчальним роками."));
+
+            entity.Property(e => e.IdCatalogYear)
+                .HasColumnType("int(11)")
+                .HasColumnName("idCatalogYear");
+            entity.Property(e => e.IsFormed)
+                .HasColumnType("tinyint(4)")
+                .HasColumnName("isFormed");
+            entity.Property(e => e.NameCatalog).HasColumnType("text");
         });
 
         modelBuilder.Entity<Department>(entity =>

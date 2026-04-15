@@ -1,7 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-using OlimpBack.Data;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
 

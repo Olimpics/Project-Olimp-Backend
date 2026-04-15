@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Application.Services;
-using OlimpBack.Data;
+using OlimpBack.Infrastructure.Database;
 
 namespace OlimpBack.Controllers
 {
@@ -14,12 +14,18 @@ namespace OlimpBack.Controllers
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IEducationalProgramService _educationalProgramService;
+        private readonly IFilterService _filterService;
 
-        public FilterController(AppDbContext context, IMapper mapper, IEducationalProgramService educationalProgramService)
+        public FilterController(
+            AppDbContext context,
+            IMapper mapper,
+            IEducationalProgramService educationalProgramService,
+            IFilterService filterService)
         {
             _context = context;
             _mapper = mapper;
             _educationalProgramService = educationalProgramService;
+            _filterService = filterService;
         }
 
         [HttpGet("educational-programs")]
@@ -114,6 +120,14 @@ namespace OlimpBack.Controllers
                 .ToListAsync();
 
             return Ok(disciplines);
+        }
+
+        [HttpGet("add-disciplines-paged")]
+        public async Task<ActionResult<PaginatedResponseDto<SpecialityFilterDto>>> GetAddDisciplinesPaged(
+            [FromQuery] AddDisciplineFilterQueryDto queryDto)
+        {
+            var result = await _filterService.GetAddDisciplinesPagedAsync(queryDto);
+            return Ok(result);
         }
 
 

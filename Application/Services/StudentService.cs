@@ -3,7 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Data;
+using OlimpBack.Infrastructure.Database;
 using OlimpBack.Models;
 using OlimpBack.Utils;
 using System.Linq.Expressions;

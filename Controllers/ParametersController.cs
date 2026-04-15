@@ -16,13 +16,15 @@ namespace OlimpBack.Controllers
         private readonly INotificationTemplateService _notificationTemplateService;
         private readonly IStudyFormService _studyFormService;
         private readonly ITypeOfDisciplineService _typeOfDisciplineService;
+        private readonly ICatalogYearService _catalogYearService;
 
         public ParametersController(INormativeService service,
                                         IEducationalDegreeService educationalDegreeService,
                                         IEducationStatusService educationStatusService,
                                         INotificationTemplateService notificationTemplateService,
                                         IStudyFormService studyFormService,
-                                        ITypeOfDisciplineService typeOfDisciplineService)
+                                        ITypeOfDisciplineService typeOfDisciplineService,
+                                        ICatalogYearService catalogYearService)
         {
             _normativeService = service;
             _educationStatusService = educationStatusService;
@@ -30,6 +32,7 @@ namespace OlimpBack.Controllers
             _notificationTemplateService = notificationTemplateService;
             _studyFormService = studyFormService;
             _typeOfDisciplineService = typeOfDisciplineService;
+            _catalogYearService = catalogYearService;
         }
 
 
@@ -281,6 +284,49 @@ namespace OlimpBack.Controllers
         public async Task<IActionResult> UpdateTypeOfDiscipline(int id, TypeOfDisciplineDto dto)
         {
             var (success, statusCode, errorMessage) = await _typeOfDisciplineService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        // -- CatalogYear --
+
+        [HttpGet("CatalogYears")]
+        public async Task<ActionResult<IEnumerable<CatalogYearDto>>> GetCatalogYears()
+        {
+            var result = await _catalogYearService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("CatalogYear/{id}")]
+        public async Task<ActionResult<CatalogYearDto>> GetCatalogYear(int id)
+        {
+            var result = await _catalogYearService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateCatalogYear")]
+        public async Task<ActionResult<CatalogYearDto>> CreateCatalogYear(CreateCatalogYearDto dto)
+        {
+            var resultDto = await _catalogYearService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetCatalogYear), new { id = resultDto.IdCatalogYear }, resultDto);
+        }
+
+        [HttpPut("UpdateCatalogYear/{id}")]
+        public async Task<IActionResult> UpdateCatalogYear(int id, UpdateCatalogYearDto dto)
+        {
+            var (success, statusCode, errorMessage) = await _catalogYearService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        [HttpDelete("DeleteCatalogYear/{id}")]
+        public async Task<IActionResult> DeleteCatalogYear(int id)
+        {
+            var (success, statusCode, errorMessage) = await _catalogYearService.DeleteAsync(id);
             if (!success)
                 return StatusCode(statusCode, new { message = errorMessage });
             return NoContent();

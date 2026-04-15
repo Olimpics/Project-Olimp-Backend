@@ -2,7 +2,6 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Data; // јбо Infrastructure.Database, залежно в≥д того, де тв≥й AppDbContext
 using OlimpBack.Models;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;

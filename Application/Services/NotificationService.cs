@@ -2,7 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Data;
+using OlimpBack.Infrastructure.Database;
 using System.Text.Json;
 
 namespace OlimpBack.Application.Services;

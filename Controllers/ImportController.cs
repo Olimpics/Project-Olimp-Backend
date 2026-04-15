@@ -2,7 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
 using OlimpBack.Application.DTO;
-using OlimpBack.Data;
+using OlimpBack.Infrastructure.Database;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;

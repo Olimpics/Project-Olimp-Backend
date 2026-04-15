@@ -3,7 +3,7 @@
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using OlimpBack.Data;
+    using OlimpBack.Infrastructure.Database;
 
     public class DatabaseAvailabilityService : BackgroundService
     {
