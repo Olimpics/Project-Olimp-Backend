@@ -9,5 +9,7 @@ public partial class StudyForm
 
     public string NameStudyForm { get; set; } = null!;
 
+    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

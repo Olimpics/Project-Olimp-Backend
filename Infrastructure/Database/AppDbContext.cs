@@ -41,6 +41,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; }
 
+    public virtual DbSet<Branch> Branches { get; set; }
+
     public virtual DbSet<Department> Departments { get; set; }
 
     public virtual DbSet<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; }
@@ -75,6 +77,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<RolesInSg> RolesInSgs { get; set; }
 
+    public virtual DbSet<Speciality> Specialities { get; set; }
+
+    public virtual DbSet<Specialization> Specializations { get; set; }
+
     public virtual DbSet<Student> Students { get; set; }
 
     public virtual DbSet<StudyForm> StudyForms { get; set; }
@@ -87,7 +93,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("host=127.0.0.1;port=3306;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", Microsoft.EntityFrameworkCore.ServerVersion.Parse("11.8.3-mariadb"));
+        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", Microsoft.EntityFrameworkCore.ServerVersion.Parse("11.8.3-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -494,6 +500,25 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("BindStudentsFavouriteDisciplines_Student_FK");
         });
 
+        modelBuilder.Entity<Branch>(entity =>
+        {
+            entity.HasKey(e => e.IdBranch).HasName("PRIMARY");
+
+            entity.ToTable("Branch");
+
+            entity.Property(e => e.IdBranch)
+                .HasColumnType("int(11)")
+                .HasColumnName("idBranch");
+            entity.Property(e => e.Code)
+                .HasMaxLength(10)
+                .HasComment("Код галузі (наприклад, 12)")
+                .HasColumnName("code");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasComment("Назва галузі (наприклад, Інформаційні технології)")
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<Department>(entity =>
         {
             entity.HasKey(e => e.IdDepartment).HasName("PRIMARY");
@@ -723,6 +748,14 @@ public partial class AppDbContext : DbContext
                 .ToTable("Group")
                 .UseCollation("utf8mb4_unicode_ci");
 
+            entity.HasIndex(e => e.IdEducationalProgram, "FK_Group_EducationalProgram");
+
+            entity.HasIndex(e => e.IdSpeciality, "FK_Group_Speciality");
+
+            entity.HasIndex(e => e.IdSpecialization, "FK_Group_Specialization");
+
+            entity.HasIndex(e => e.IdStudyForm, "FK_Group_StudyForm");
+
             entity.HasIndex(e => e.AdminId, "Group_Admin_idx");
 
             entity.HasIndex(e => e.DepartmentId, "Group_Department");
@@ -735,11 +768,31 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("int(11)")
                 .HasColumnName("idGroup");
             entity.Property(e => e.AdminId).HasColumnType("int(11)");
+            entity.Property(e => e.AdmissionYear)
+                .HasComment("Рік вступу")
+                .HasColumnType("int(11)");
             entity.Property(e => e.Course).HasColumnType("int(11)");
             entity.Property(e => e.DegreeId).HasColumnType("int(11)");
             entity.Property(e => e.DepartmentId).HasColumnType("int(11)");
             entity.Property(e => e.FacultyId).HasColumnType("int(11)");
             entity.Property(e => e.GroupCode).HasMaxLength(45);
+            entity.Property(e => e.IdEducationalProgram)
+                .HasComment("Освітня програма")
+                .HasColumnType("int(11)")
+                .HasColumnName("idEducationalProgram");
+            entity.Property(e => e.IdSpeciality)
+                .HasComment("Спеціальність")
+                .HasColumnType("int(11)")
+                .HasColumnName("idSpeciality");
+            entity.Property(e => e.IdSpecialization)
+                .HasComment("Спеціалізація")
+                .HasColumnType("int(11)")
+                .HasColumnName("idSpecialization");
+            entity.Property(e => e.IdStudyForm)
+                .HasComment("Форма навчання")
+                .HasColumnType("int(11)")
+                .HasColumnName("idStudyForm");
+            entity.Property(e => e.IsAccelerated).HasComment("Чи прискорений (0 - ні, 1 - так)");
             entity.Property(e => e.NumberOfStudents).HasColumnType("int(11)");
 
             entity.HasOne(d => d.Admin).WithMany(p => p.Groups)
@@ -757,6 +810,24 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Faculty).WithMany(p => p.Groups)
                 .HasForeignKey(d => d.FacultyId)
                 .HasConstraintName("Group_Faculties");
+
+            entity.HasOne(d => d.IdEducationalProgramNavigation).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.IdEducationalProgram)
+                .HasConstraintName("FK_Group_EducationalProgram");
+
+            entity.HasOne(d => d.IdSpecialityNavigation).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.IdSpeciality)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Group_Speciality");
+
+            entity.HasOne(d => d.IdSpecializationNavigation).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.IdSpecialization)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Group_Specialization");
+
+            entity.HasOne(d => d.IdStudyFormNavigation).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.IdStudyForm)
+                .HasConstraintName("FK_Group_StudyForm");
         });
 
         modelBuilder.Entity<MainGrade>(entity =>
@@ -977,6 +1048,108 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Points)
                 .HasColumnType("int(11)")
                 .HasColumnName("points");
+        });
+
+        modelBuilder.Entity<Speciality>(entity =>
+        {
+            entity.HasKey(e => e.IdSpeciality).HasName("PRIMARY");
+
+            entity.ToTable("Speciality");
+
+            entity.HasIndex(e => e.IdBranch, "FK_Speciality_Branch");
+
+            entity.HasIndex(e => e.IdDepartment, "FK_Speciality_Department");
+
+            entity.HasIndex(e => e.IdFaculty, "FK_Speciality_Faculty");
+
+            entity.Property(e => e.IdSpeciality)
+                .HasColumnType("int(11)")
+                .HasColumnName("idSpeciality");
+            entity.Property(e => e.Accreditation)
+                .HasDefaultValueSql("'0'")
+                .HasComment("Акредитація (0 або 1)")
+                .HasColumnName("accreditation");
+            entity.Property(e => e.AccreditationType)
+                .HasMaxLength(255)
+                .HasComment("Тип акредитації (текст зі скріншоту)")
+                .HasColumnName("accreditationType");
+            entity.Property(e => e.Code)
+                .HasMaxLength(10)
+                .HasComment("Код спеціальності (наприклад, 121)")
+                .HasColumnName("code");
+            entity.Property(e => e.Description)
+                .HasComment("Опис спеціальності")
+                .HasColumnType("text")
+                .HasColumnName("description");
+            entity.Property(e => e.IdBranch)
+                .HasComment("Зовнішній ключ на Галузь")
+                .HasColumnType("int(11)")
+                .HasColumnName("idBranch");
+            entity.Property(e => e.IdDepartment)
+                .HasComment("Зовнішній ключ на Кафедру")
+                .HasColumnType("int(11)")
+                .HasColumnName("idDepartment");
+            entity.Property(e => e.IdFaculty)
+                .HasComment("Зовнішній ключ на Факультет")
+                .HasColumnType("int(11)")
+                .HasColumnName("idFaculty");
+            entity.Property(e => e.LicensedVolume)
+                .HasDefaultValueSql("'0'")
+                .HasComment("Ліцензійний обсяг (studentsAmount)")
+                .HasColumnType("int(11)")
+                .HasColumnName("licensedVolume");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasComment("Назва спеціальності")
+                .HasColumnName("name");
+
+            entity.HasOne(d => d.IdBranchNavigation).WithMany(p => p.Specialities)
+                .HasForeignKey(d => d.IdBranch)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Speciality_Branch");
+
+            entity.HasOne(d => d.IdDepartmentNavigation).WithMany(p => p.Specialities)
+                .HasForeignKey(d => d.IdDepartment)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Speciality_Department");
+
+            entity.HasOne(d => d.IdFacultyNavigation).WithMany(p => p.Specialities)
+                .HasForeignKey(d => d.IdFaculty)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Speciality_Faculty");
+        });
+
+        modelBuilder.Entity<Specialization>(entity =>
+        {
+            entity.HasKey(e => e.IdSpecialization).HasName("PRIMARY");
+
+            entity.ToTable("Specialization");
+
+            entity.HasIndex(e => e.IdSpeciality, "FK_Specialization_Speciality");
+
+            entity.Property(e => e.IdSpecialization)
+                .HasColumnType("int(11)")
+                .HasColumnName("idSpecialization");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasComment("Код спеціалізації (наприклад, 014.01)")
+                .HasColumnName("code");
+            entity.Property(e => e.Description)
+                .HasComment("Опис спеціалізації")
+                .HasColumnType("text")
+                .HasColumnName("description");
+            entity.Property(e => e.IdSpeciality)
+                .HasComment("Зовнішній ключ на Спеціальність")
+                .HasColumnType("int(11)")
+                .HasColumnName("idSpeciality");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasComment("Назва спеціалізації")
+                .HasColumnName("name");
+
+            entity.HasOne(d => d.IdSpecialityNavigation).WithMany(p => p.Specializations)
+                .HasForeignKey(d => d.IdSpeciality)
+                .HasConstraintName("FK_Specialization_Speciality");
         });
 
         modelBuilder.Entity<Student>(entity =>

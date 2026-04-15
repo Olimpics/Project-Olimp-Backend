@@ -27,5 +27,7 @@ public partial class Faculty
 
     public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
 
+    public virtual ICollection<Speciality> Specialities { get; set; } = new List<Speciality>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

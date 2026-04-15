@@ -39,5 +39,7 @@ public partial class EducationalProgram
 
     public virtual EducationalDegree Degree { get; set; } = null!;
 
+    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }
