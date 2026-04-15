@@ -92,12 +92,17 @@ public class GroupRepository : IGroupRepository
                 DegreeId = g.DegreeId,
                 Course = g.Course,
                 FacultyId = g.FacultyId,
+                FacultyName = g.Faculty != null ? g.Faculty.NameFaculty : null,
                 DepartmentId = g.DepartmentId,
+                DepartmentName = g.Department != null ? g.Department.NameDepartment : null,
                 IdEducationalProgram = g.IdEducationalProgram,
+                EducationalProgramName = g.IdEducationalProgram.HasValue ? g.IdEducationalProgramNavigation.NameEducationalProgram : null,
                 IdSpeciality = g.IdSpeciality,
+                SpecialityName = g.IdSpeciality.HasValue ? g.IdSpecialityNavigation.Name : null,
                 AdmissionYear = g.AdmissionYear,
                 IdStudyForm = g.IdStudyForm,
                 IdSpecialization = g.IdSpecialization,
+                SpecializationName = g.IdSpecialization.HasValue ? g.IdSpecializationNavigation.Name : null,
                 IsAccelerated = g.IsAccelerated
             })
             .FirstOrDefaultAsync();
@@ -114,8 +119,8 @@ public class GroupRepository : IGroupRepository
                 IdStudent = s.IdStudent,
                 UserId = s.UserId,
                 NameStudent = s.NameStudent,
-                Course = s.Course,
-                GroupId = s.GroupId
+                EmailStudent = s.User.Email,
+                EductionalStatus = s.EducationStatus.NameEducationStatus
             })
             .ToListAsync();
     }
