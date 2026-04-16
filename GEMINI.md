@@ -48,7 +48,7 @@ The project follows a typical layered architecture:
 
 ### Prerequisites
 - .NET 8.0 SDK
-- MySQL/MariaDB server (default port 3307 as per `appsettings.json`)
+- MySQL/MariaDB server (default port 3306 as per `appsettings.json`)
 - Redis server (optional, depending on active services)
 
 ### Commands
