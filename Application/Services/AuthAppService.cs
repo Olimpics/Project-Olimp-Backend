@@ -21,7 +21,7 @@ public class AuthAppService : IAuthAppService
     {
         var permissions = await _repository.GetRolePermissionsAsync(roleId);
 
-        // Á³çíåñ-ëîã³êà ãğóïóâàííÿ çàëèøàºòüñÿ â ñåğâ³ñ³
+        // ˜˜˜˜˜˜-˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜
         return permissions
             .GroupBy(p => p.TypePermission)
             .ToDictionary(
@@ -54,6 +54,7 @@ public class AuthAppService : IAuthAppService
         }
 
         var permissionsDb = await _repository.GetRolePermissionsAsync(user.RoleId);
+        var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUsers);
 
         UserLoginResponseDto dbResponse;
 
@@ -74,9 +75,11 @@ public class AuthAppService : IAuthAppService
             dbResponse = _mapper.Map<LoginResponseStudentDto>(student);
         }
 
-        // Çàâäÿêè Tracking ó ğåïîçèòîğ³¿, ìè ïğîñòî çì³íşºìî ïîëå ³ çáåğ³ãàºìî
+        // ˜˜˜˜˜˜˜ Tracking ˜ ˜˜˜˜˜˜˜˜˜, ˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜
         user.LastLoginAt = DateTime.UtcNow;
         await _repository.SaveChangesAsync();
+
+        dbResponse.PermissionsMask = permissionsMask;
 
         return (dbResponse, permissionsDb, user.Role.NameRole, null, null);
     }
@@ -89,6 +92,7 @@ public class AuthAppService : IAuthAppService
             return (null, null, StatusCodes.Status404NotFound, "User not found");
 
         var permissions = await _repository.GetRolePermissionsAsync(user.RoleId);
+        var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUsers);
 
         object? response = null;
 
@@ -98,8 +102,10 @@ public class AuthAppService : IAuthAppService
             if (admin == null)
                 return (null, null, StatusCodes.Status404NotFound, "Admin profile not found");
 
-            // ÂÈÏĞÀÂËÅÍÈÉ ÁÀÃ: Òåïåğ òóò ìàïèòüñÿ â AdminDto, à íå â StudentDto!
-            response = _mapper.Map<LoginResponseAdminDto>(admin);
+            // ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜: ˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜ ˜ AdminDto, ˜ ˜˜ ˜ StudentDto!
+            var adminResponse = _mapper.Map<LoginResponseAdminDto>(admin);
+            adminResponse.PermissionsMask = permissionsMask;
+            response = adminResponse;
         }
         else
         {
@@ -107,7 +113,9 @@ public class AuthAppService : IAuthAppService
             if (student == null)
                 return (null, null, StatusCodes.Status404NotFound, "This student doesn't exist");
 
-            response = _mapper.Map<LoginResponseStudentDto>(student);
+            var studentResponse = _mapper.Map<LoginResponseStudentDto>(student);
+            studentResponse.PermissionsMask = permissionsMask;
+            response = studentResponse;
         }
 
         return (response, permissions, null, null);

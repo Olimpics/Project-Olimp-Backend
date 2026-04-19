@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Models;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
@@ -9,6 +10,8 @@ public interface IAuthRepository
     Task<User?> GetUserByEmailTrackedAsync(string email);
     Task<User?> GetUserByIdTrackedAsync(int userId);
     Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId);
+    Task<long> GetRolePermissionsMaskAsync(int roleId);
+    Task<long> GetUserPermissionsMaskAsync(int userId);
     Task<Student?> GetStudentProfileAsync(int userId);
     Task<AdminsPersonal?> GetAdminProfileAsync(int userId);
     Task SaveChangesAsync();
@@ -17,13 +20,15 @@ public interface IAuthRepository
 public class AuthRepository : IAuthRepository
 {
     private readonly AppDbContext _context;
+    private readonly IRoleMaskService _roleMaskService;
 
-    public AuthRepository(AppDbContext context)
+    public AuthRepository(AppDbContext context, IRoleMaskService roleMaskService)
     {
         _context = context;
+        _roleMaskService = roleMaskService;
     }
 
-    // ÒÓÒ ÂÀÆËÈÂÎ: Íåìàº AsNoTracking(), áî ìè áóäåìî îíîâëşâàòè LastLoginAt òà Password
+    //  :  AsNoTracking(),     LastLoginAt  Password
     public async Task<User?> GetUserByEmailTrackedAsync(string email)
     {
         return await _context.Users
@@ -40,21 +45,33 @@ public class AuthRepository : IAuthRepository
 
     public async Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId)
     {
-        // Ïğîåêö³ÿ: Include(Permission) òóò íå ïîòğ³áåí, EF Core ñàì çğîáèòü JOIN
+        // : Include(Permission)   , EF Core   JOIN
         return await _context.BindRolePermissions
             .AsNoTracking()
             .Where(x => x.RoleId == roleId)
             .Select(x => new PermissionDto
             {
+                IdPermissions = x.Permission.IdPermissions,
                 TypePermission = x.Permission.TypePermission,
-                TableName = x.Permission.TableName
+                TableName = x.Permission.TableName,
+                BitIndex = x.Permission.BitIndex
             })
             .ToListAsync();
     }
 
+    public async Task<long> GetRolePermissionsMaskAsync(int roleId)
+    {
+        return await _roleMaskService.GetRoleMaskAsync(roleId);
+    }
+
+    public async Task<long> GetUserPermissionsMaskAsync(int userId)
+    {
+        return await _roleMaskService.GetUserPermissionsMaskAsync(userId);
+    }
+
     public async Task<Student?> GetStudentProfileAsync(int userId)
     {
-        // Ïğîô³ë³ òÿãíåìî ñóòî äëÿ ÷èòàííÿ
+        //     
         return await _context.Students
             .AsNoTracking()
             .Include(x => x.Faculty)

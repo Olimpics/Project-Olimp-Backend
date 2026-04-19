@@ -17,6 +17,7 @@ public class PermissionDto
     public int IdPermissions { get; set; }
     public string TypePermission { get; set; } = null!;
     public string TableName { get; set; } = null!;
+    public int BitIndex { get; set; }
 }
 public class UserLoginResponseDto
 {
@@ -27,6 +28,7 @@ public class UserLoginResponseDto
 
     public int UserId { get; set; }
     public int RoleId { get; set; }
+    public long PermissionsMask { get; set; }
     public string Token { get; set; }
 
 }

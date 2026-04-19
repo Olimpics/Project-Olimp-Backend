@@ -17,7 +17,7 @@ public class JwtService
         _logger = logger;
     }
 
-    public string GenerateToken(string userId, string email, string role)
+    public string GenerateToken(string userId, string email, string role, long permissionsMask)
     {
         try
         {
@@ -26,9 +26,11 @@ public class JwtService
 
             var claims = new[]
             {
+                new Claim(JwtRegisteredClaimNames.Sub, userId),
                 new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role),
+                new Claim("perm", permissionsMask.ToString())
             };
 
             var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"] ?? "60");

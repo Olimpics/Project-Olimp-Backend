@@ -235,11 +235,17 @@ public class AuthController : ControllerBase
             };
             }
 
+            for (var i = 0; i < permissions.Count; i++)
+                permissions[i].BitIndex = i;
+
+            response.PermissionsMask = PermissionMaskHelper.BuildMask(permissions.Select(p => p.BitIndex));
+
             // ====== TOKEN ======
             var token = _jwtService.GenerateToken(
                 response.UserId.ToString() ?? string.Empty,
                 model.Email,
-                response.RoleId == 2 ? "Administrator" : "Student"
+                response.RoleId == 2 ? "Administrator" : "Student",
+                response.PermissionsMask
             );
 
             response.Token = token;
@@ -265,6 +271,9 @@ public class AuthController : ControllerBase
             Response.Cookies.Append("UserPermissions",
                 JsonSerializer.Serialize(permissions),
                 cookieOptions);
+            Response.Cookies.Append("UserPermissionsMask",
+                response.PermissionsMask.ToString(),
+                cookieOptions);
 
             return Ok(response);
         }
@@ -287,7 +296,8 @@ public class AuthController : ControllerBase
         var jwt = _jwtService.GenerateToken(
             dbResponse.UserId.ToString() ?? string.Empty,
             model.Email,
-            roleName
+            roleName,
+            dbResponse.PermissionsMask
         );
 
         dbResponse.Token = jwt;
@@ -308,6 +318,9 @@ public class AuthController : ControllerBase
             cookieOpts);
         Response.Cookies.Append("UserPermissions",
             JsonSerializer.Serialize(permissionsDb),
+            cookieOpts);
+        Response.Cookies.Append("UserPermissionsMask",
+            dbResponse.PermissionsMask.ToString(),
             cookieOpts);
 
         return Ok(dbResponse);

@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
+using OlimpBack.Infrastructure.Redis;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
+using StackExchange.Redis;
 using System.Configuration;
 using System.Diagnostics;
 using System.Text;
@@ -200,6 +203,13 @@ builder.Services.AddAuthentication(options =>
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
+    return ConnectionMultiplexer.Connect(redisConnection);
+});
+builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
 // ==========================================
 // РЕПОЗИТОРІЇ ТА СЕРВІСИ (Domain Modules)
 // ==========================================
@@ -338,6 +348,7 @@ app.UseCors("AllowFrontend");
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseMiddleware<PermissionMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

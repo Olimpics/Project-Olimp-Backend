@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Utils;
 
 namespace OlimpBack.Controllers
 {
@@ -14,11 +16,13 @@ namespace OlimpBack.Controllers
     public class PermissionController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IRoleMaskService _roleMaskService;
         private readonly IMapper _mapper;
 
-        public PermissionController(AppDbContext context, IMapper mapper)
+        public PermissionController(AppDbContext context, IRoleMaskService roleMaskService, IMapper mapper)
         {
             _context = context;
+            _roleMaskService = roleMaskService;
             _mapper = mapper;
         }
 
@@ -45,6 +49,18 @@ namespace OlimpBack.Controllers
         [HttpPost]
         public async Task<ActionResult<PermissionDto>> CreatePermission(CreatePermissionDto permissionDto)
         {
+            if (permissionDto.BitIndex < PermissionMaskHelper.MinBitIndex || permissionDto.BitIndex > PermissionMaskHelper.MaxBitIndex)
+                return BadRequest($"BitIndex must be in range [{PermissionMaskHelper.MinBitIndex}, {PermissionMaskHelper.MaxBitIndex}].");
+
+            var existsByCode = await _context.Permissions.AnyAsync(x =>
+                x.TypePermission == permissionDto.TypePermission && x.TableName == permissionDto.TableName);
+            if (existsByCode)
+                return BadRequest("Permission with this TypePermission + TableName already exists.");
+
+            var bitIndexAlreadyUsed = await _context.Permissions.AnyAsync(x => x.BitIndex == permissionDto.BitIndex);
+            if (bitIndexAlreadyUsed)
+                return BadRequest("BitIndex is already used by another permission.");
+
             var permission = _mapper.Map<Permission>(permissionDto);
             _context.Permissions.Add(permission);
             await _context.SaveChangesAsync();
@@ -64,8 +80,32 @@ namespace OlimpBack.Controllers
             if (permission == null)
                 return NotFound();
 
+            if (permissionDto.BitIndex < PermissionMaskHelper.MinBitIndex || permissionDto.BitIndex > PermissionMaskHelper.MaxBitIndex)
+                return BadRequest($"BitIndex must be in range [{PermissionMaskHelper.MinBitIndex}, {PermissionMaskHelper.MaxBitIndex}].");
+
+            var existsByCode = await _context.Permissions.AnyAsync(x =>
+                x.IdPermissions != id &&
+                x.TypePermission == permissionDto.TypePermission &&
+                x.TableName == permissionDto.TableName);
+            if (existsByCode)
+                return BadRequest("Permission with this TypePermission + TableName already exists.");
+
+            var bitIndexAlreadyUsed = await _context.Permissions.AnyAsync(x =>
+                x.IdPermissions != id && x.BitIndex == permissionDto.BitIndex);
+            if (bitIndexAlreadyUsed)
+                return BadRequest("BitIndex is already used by another permission.");
+
+            var affectedRoleIds = await _context.BindRolePermissions
+                .Where(x => x.PermissionId == id)
+                .Select(x => x.RoleId)
+                .Distinct()
+                .ToListAsync();
+
             _mapper.Map(permissionDto, permission);
             await _context.SaveChangesAsync();
+
+            foreach (var roleId in affectedRoleIds)
+                await _roleMaskService.RecalculateRoleMaskAsync(roleId);
 
             return NoContent();
         }
@@ -78,8 +118,17 @@ namespace OlimpBack.Controllers
             if (permission == null)
                 return NotFound();
 
+            var affectedRoleIds = await _context.BindRolePermissions
+                .Where(x => x.PermissionId == id)
+                .Select(x => x.RoleId)
+                .Distinct()
+                .ToListAsync();
+
             _context.Permissions.Remove(permission);
             await _context.SaveChangesAsync();
+
+            foreach (var roleId in affectedRoleIds)
+                await _roleMaskService.RecalculateRoleMaskAsync(roleId);
 
             return NoContent();
         }

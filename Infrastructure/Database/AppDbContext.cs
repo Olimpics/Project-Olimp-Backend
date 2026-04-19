@@ -95,7 +95,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("host=127.0.0.1;port=3306;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", ServerVersion.Parse("11.8.3-mariadb"));
+        => optionsBuilder.UseMySql("host=127.0.0.1;port=3307;database=DNUProjectDb;username=user_dnupr;password=B25824DCABCB88B5", ServerVersion.Parse("11.8.3-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1008,6 +1008,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdPermissions)
                 .HasColumnType("int(11)")
                 .HasColumnName("idPermissions");
+            entity.Property(e => e.BitIndex)
+                .HasColumnType("int(11)")
+                .HasColumnName("bit_index");
+            // Нахуй его оставлять если при билде он перегенерируется
             entity.Property(e => e.TableName).HasMaxLength(45);
             entity.Property(e => e.TypePermission).HasMaxLength(45);
         });
@@ -1060,6 +1064,18 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameRole)
                 .HasMaxLength(45)
                 .HasColumnName("nameRole");
+            entity.Property(e => e.ParentRoleId)
+                .HasColumnType("int(11)")
+                .HasColumnName("parent_role_id");
+            entity.Property(e => e.PermissionsMask)
+                .HasColumnType("bigint(20)")
+                .HasColumnName("permissions_mask");
+
+            entity.HasOne(d => d.ParentRole)
+                .WithMany(p => p.InverseParentRole)
+                .HasForeignKey(d => d.ParentRoleId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("Role_ParentRole");
         });
 
         modelBuilder.Entity<RolesInSg>(entity =>

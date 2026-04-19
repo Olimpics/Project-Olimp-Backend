@@ -3,13 +3,17 @@ namespace OlimpBack.Application.DTO
 
     public class CreatePermissionDto
     {
-        public string NamePermission { get; set; }
+        public string TypePermission { get; set; } = null!;
+        public string TableName { get; set; } = null!;
+        public int BitIndex { get; set; }
     }
 
     public class UpdatePermissionDto
     {
         public int IdPermissions { get; set; }
-        public string NamePermission { get; set; }
+        public string TypePermission { get; set; } = null!;
+        public string TableName { get; set; } = null!;
+        public int BitIndex { get; set; }
     }
 
     public class BindRolePermissionDto

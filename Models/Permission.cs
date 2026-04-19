@@ -11,5 +11,7 @@ public partial class Permission
 
     public string TableName { get; set; } = null!;
 
+    public int BitIndex { get; set; }
+
     public virtual ICollection<BindRolePermission> BindRolePermissions { get; set; } = new List<BindRolePermission>();
 }
