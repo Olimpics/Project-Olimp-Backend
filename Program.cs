@@ -63,17 +63,17 @@ builder.Services.AddSwaggerGen(c =>
 var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Database connection
+// Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseMySql(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MariaDbServerVersion(new Version(10, 6, 12)),
-        mySqlOptions =>
+        npgsqlOptions =>
         {
-            mySqlOptions.EnableRetryOnFailure(
+            npgsqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 3,
                 maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null
+                errorCodesToAdd: null // В Npgsql це називається errorCodesToAdd, а не errorNumbersToAdd
             );
         }
     );
