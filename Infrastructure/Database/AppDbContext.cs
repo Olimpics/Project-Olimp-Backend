@@ -709,7 +709,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdGroup);
 
-            entity.ToTable("group");
+            entity.ToTable("Group");
 
             entity.HasIndex(e => e.IdEducationalProgram, "FK_Group_EducationalProgram");
 
@@ -971,7 +971,7 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdRole);
 
-            entity.ToTable("role");
+            entity.ToTable("Role");
 
             entity.HasIndex(e => e.IdRole, "idRole_UNIQUE").IsUnique();
 
