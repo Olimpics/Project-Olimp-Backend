@@ -63,21 +63,16 @@ builder.Services.AddSwaggerGen(c =>
 var cs = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Database connection
-// Database connection
 builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorCodesToAdd: null // В Npgsql це називається errorCodesToAdd, а не errorNumbersToAdd
-            );
-        }
-    );
-});
+    options.UseNpgsql(cs, npgsqlOptions =>
+    {
+        // Налаштування стійкості з'єднання (корисно для нестабільних тунелів)
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorCodesToAdd: null
+        );
+    }));
 
 
 // AutoMapper
