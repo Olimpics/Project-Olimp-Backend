@@ -79,7 +79,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             .Take(query.PageSize)
             .Select(b => new AdminStudentByAddDisciplineDto
             {
-                StudentId = b.StudentId,
+                StudentId = b.StudentId ?? 0,
                 StudentName = b.Student.NameStudent,
                 GroupId = b.Student.GroupId,
                 GroupCode = b.Student.Group.GroupCode,
@@ -88,7 +88,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                     : string.Empty,
                 Year = b.Student.Course,
                 EducationLevel = b.Student.EducationalDegree.NameEducationalDegreec,
-                IsShort = b.Student.IsShort,
+                IsShort = (sbyte)b.Student.IsShort,
                 Faculty = b.Student.Faculty.NameFaculty
             })
             .ToListAsync();
@@ -104,7 +104,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 .ThenInclude(s => s.Faculty)
             .Include(g => g.Student)
                 .ThenInclude(s => s.Group)
-            .Where(g => g.MainDisciplinesId == query.DisciplineId);
+            .Where(g => g.MainDisciplinesId == query.DisciplineId.ToString());
 
         if (query.FacultyId.HasValue && query.FacultyId.Value > 0)
         {
@@ -139,20 +139,21 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         var totalCount = await grouped.CountAsync();
 
-        var items = await grouped
+        var page = await grouped
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(g => new AdminStudentByMainDisciplineDto
-            {
-                StudentId = g.StudentId,
-                StudentName = g.Student.NameStudent,
-                FacultyId = g.Student.FacultyId,
-                FacultyName = g.Student.Faculty.NameFaculty,
-                GroupId = g.Student.GroupId,
-                GroupCode = g.Student.Group.GroupCode,
-                Course = g.Student.Course
-            })
             .ToListAsync();
+
+        var items = page.Select(g => new AdminStudentByMainDisciplineDto
+        {
+            StudentId = int.TryParse(g.StudentId, out var sid) ? sid : 0,
+            StudentName = g.Student?.NameStudent ?? "",
+            FacultyId = g.Student?.FacultyId ?? 0,
+            FacultyName = g.Student?.Faculty?.NameFaculty ?? "",
+            GroupId = g.Student?.GroupId ?? 0,
+            GroupCode = g.Student?.Group?.GroupCode ?? "",
+            Course = g.Student?.Course ?? 0
+        }).ToList();
 
         return (totalCount, items);
     }

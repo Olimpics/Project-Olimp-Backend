@@ -44,7 +44,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(d => queryDto.Faculties.Contains(d.FacultyId));
+            query = query.Where(d => d.FacultyId.HasValue && queryDto.Faculties.Contains(d.FacultyId.Value));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(d =>
@@ -72,11 +72,23 @@ public class DisciplineTabRepository : IDisciplineTabRepository
     }
     public async Task<bool> IsChoicePeriodActiveAsync(int facultyId, DateTime now)
     {
-        return await _context.DisciplineChoicePeriods
-            .AnyAsync(p =>
-                p.FacultyId == facultyId &&
-                p.StartDate <= now &&
-                p.EndDate >= now);
+        var rows = await _context.DisciplineChoicePeriods
+            .AsNoTracking()
+            .Where(p => p.FacultyId == facultyId && p.StartDate != null && p.EndDate != null)
+            .Select(p => new { p.StartDate, p.EndDate })
+            .ToListAsync();
+
+        foreach (var p in rows)
+        {
+            if (!System.DateTime.TryParse(p.StartDate, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var start))
+                continue;
+            if (!System.DateTime.TryParse(p.EndDate, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var end))
+                continue;
+            if (start <= now && end >= now)
+                return true;
+        }
+
+        return false;
     }
     public async Task<AddDiscipline?> GetDisciplineByIdAsNoTrackingAsync(int id) =>
         await _context.AddDisciplines.AsNoTracking().FirstOrDefaultAsync(d => d.IdAddDisciplines == id);
@@ -88,15 +100,15 @@ public class DisciplineTabRepository : IDisciplineTabRepository
             .Where(d => d.IdAddDisciplines == id)
             .Select(d => new FullDisciplineWithDetailsDto
             {
-                IdAddDisciplines = d.IdAddDisciplines,
-                NameAddDisciplines = d.NameAddDisciplines,
-                CodeAddDisciplines = d.CodeAddDisciplines,
+                IdAddDisciplines = d.IdAddDisciplines ?? 0,
+                NameAddDisciplines = d.NameAddDisciplines ?? "",
+                CodeAddDisciplines = d.CodeAddDisciplines ?? "",
                 FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation : null,
                 MinCountPeople = d.MinCountPeople,
                 MaxCountPeople = d.MaxCountPeople,
                 MinCourse = d.MinCourse,
                 MaxCourse = d.MaxCourse,
-                IsEven = d.IsEven,
+                IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec : "",
                 DepartmentName = d.AddDetail != null && d.AddDetail.Department != null ? d.AddDetail.Department.NameDepartment : "",
                 Teacher = d.AddDetail != null ? d.AddDetail.Teachers : null,

@@ -10,4 +10,8 @@ public partial class Bindrolepermission
     public int? RoleId { get; set; }
 
     public int? PermissionId { get; set; }
+
+    public virtual Role1? Role1 { get; set; }
+
+    public virtual Permission? Permission { get; set; }
 }

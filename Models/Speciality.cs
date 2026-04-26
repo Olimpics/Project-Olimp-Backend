@@ -13,9 +13,9 @@ public partial class Speciality
 
     public int? IdBranch { get; set; }
 
-    public string? IdFaculty { get; set; }
+    public int? IdFaculty { get; set; }
 
-    public string? IdDepartment { get; set; }
+    public int? IdDepartment { get; set; }
 
     public int? Accreditation { get; set; }
 

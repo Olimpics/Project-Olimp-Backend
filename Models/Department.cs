@@ -16,4 +16,6 @@ public partial class Department
     public string? AdminId { get; set; }
 
     public string? Metadata { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
 }

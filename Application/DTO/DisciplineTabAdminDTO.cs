@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OlimpBack.Models;
 
 namespace OlimpBack.Application.DTO
 {
@@ -91,7 +92,7 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
 
-        // Çàì³ñòü string? âèêîğèñòîâóºìî List<int> (ñêàçàâ äæåì³í³)
+        // ˜˜˜˜˜˜ string? ˜˜˜˜˜˜˜˜˜˜˜˜˜ List<int> (˜˜˜˜˜˜ ˜˜˜˜˜˜)
         public List<int>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
         public List<int>? Groups { get; set; }
@@ -143,7 +144,7 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
 
-        // Çàì³ñòü string? âèêîğèñòîâóºìî List<int>? (ñêàçàâ äæåì³í³)
+        // ˜˜˜˜˜˜ string? ˜˜˜˜˜˜˜˜˜˜˜˜˜ List<int>? (˜˜˜˜˜˜ ˜˜˜˜˜˜)
         public List<int>? Faculties { get; set; }
         public sbyte? IsFaculty { get; set; }
         public List<int>? DegreeLevelIds { get; set; }
@@ -153,7 +154,7 @@ namespace OlimpBack.Application.DTO
     }
 
 
-    // Öå äîïîì³æí³ DTO äëÿ â³äïîâ³ä³ íà ï³äòâåğäæåííÿ/â³äõèëåííÿ âèáîğó
+    // ˜˜ ˜˜˜˜˜˜˜˜ DTO ˜˜˜ ˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜/˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
     public class UpdateChoiceResponseDto
     {
         public List<ChoiceResultDto> Results { get; set; } = new();
@@ -165,7 +166,7 @@ namespace OlimpBack.Application.DTO
         public string Message { get; set; } = null!;
         public int BindId { get; set; }
         public string? DisciplineName { get; set; }
-        public int? NotificationId { get; set; } // Nullable, áî ïğè ï³äòâåğäæåíí³ éîãî íåìàº
+        public int? NotificationId { get; set; } // Nullable, ˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜
     }
 
     public class ChoiceErrorDto
@@ -182,7 +183,7 @@ namespace OlimpBack.Application.DTO
         public int IsForceChange { get; set; }
     }
 
-    // Ïğîåêö³¿ äëÿ Ğåïîçèòîğ³ş
+    // ˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜
     public record StudentChoicesProjection(int IdStudent, 
         string NameStudent, 
         string FacultyName, 
@@ -190,7 +191,7 @@ namespace OlimpBack.Application.DTO
         int Course, 
         int EducationalDegreeId, 
         string DegreeName, 
-        Models.EducationalProgram? Program, 
+        EducationalProgram? Program, 
         List<StudentSelectedDisciplineDto> SelectedDisciplines);
 
     public record DisciplineStatusProjection(int IdAddDisciplines, 
@@ -205,5 +206,5 @@ namespace OlimpBack.Application.DTO
         sbyte IsFaculty, 
         int FacultyId, 
         string? FacultyAbbreviation, 
-        List<DateTime> BindDates);
+        List<string?> BindCreatedAtRaw);
 }

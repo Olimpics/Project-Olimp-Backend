@@ -1,9 +1,9 @@
-using AutoMapper;
+using System.Globalization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
-using System.Text.Json;
 
 namespace OlimpBack.Application.Services;
 
@@ -20,28 +20,27 @@ public class NotificationService : INotificationService
     {
         var query = _context.Notifications.AsNoTracking().AsQueryable();
 
-        query = ApplyCommonFilters(query, queryDto); // Á³ëüøå í³ÿêèõ ref
+        query = ApplyCommonFilters(query, queryDto); // ˜˜˜˜˜˜ ˜˜˜˜˜˜ ref
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)queryDto.PageSize);
 
         query = ApplySorting(query, queryDto.SortOrder, forUser: false);
 
-        // ÏÐÎÅÊÖ²ß: Òÿãíåìî ëèøå ïîòð³áí³ ïîëÿ, áàçè äàíèõ ñàìà çðîáèòü LEFT JOIN äëÿ Template
+        // ˜˜˜˜˜?˜: ˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜, ˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜ LEFT JOIN ˜˜˜ Template
         var projectedData = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .Select(n => new NotificationProjection(
-                n.IdNotification,
-                n.UserId,
+                n.IdNotification ?? 0,
+                n.UserId ?? 0,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
-                n.CustomTitle,
                 n.CustomMessage,
                 n.IsRead,
                 n.CreatedAt,
-                n.NotificationType,
+                n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
             .ToListAsync();
@@ -52,8 +51,8 @@ public class NotificationService : INotificationService
             TotalPages = totalPages,
             CurrentPage = queryDto.Page,
             PageSize = queryDto.PageSize,
-            Items = projectedData.Select(MapProjectedToDto).ToList(), // Ìàïèìî â ïàì'ÿò³
-            Filters = queryDto // Â³ääàºìî DTO ÿê º, áåç çàéâèõ Split-³â
+            Items = projectedData.Select(MapProjectedToDto).ToList(), // ˜˜˜˜˜˜ ˜ ˜˜˜'˜˜
+            Filters = queryDto // ?˜˜˜˜˜ DTO ˜˜ ˜, ˜˜˜ ˜˜˜˜˜˜ Split-˜˜
         };
     }
 
@@ -75,16 +74,15 @@ public class NotificationService : INotificationService
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .Select(n => new NotificationProjection(
-                n.IdNotification,
-                n.UserId,
+                n.IdNotification ?? 0,
+                n.UserId ?? 0,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
-                n.CustomTitle,
                 n.CustomMessage,
                 n.IsRead,
                 n.CreatedAt,
-                n.NotificationType,
+                n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
             .ToListAsync();
@@ -105,16 +103,15 @@ public class NotificationService : INotificationService
             .AsNoTracking()
             .Where(n => n.IdNotification == id)
             .Select(n => new NotificationProjection(
-                n.IdNotification,
-                n.UserId,
+                n.IdNotification ?? 0,
+                n.UserId ?? 0,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
-                n.CustomTitle,
                 n.CustomMessage,
                 n.IsRead,
                 n.CreatedAt,
-                n.NotificationType,
+                n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
             .FirstOrDefaultAsync();
@@ -128,83 +125,77 @@ public class NotificationService : INotificationService
         {
             UserId = dto.UserId,
             TemplateId = dto.TemplateId,
-            CustomTitle = dto.Title,
-            CustomMessage = dto.Message,
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow,
-            NotificationType = dto.NotificationType,
-            Metadata = dto.Metadata?.ToString()
+            CustomMessage = string.IsNullOrWhiteSpace(dto.Message) ? dto.Title : dto.Message,
+            IsRead = 0,
+            CreatedAt = DateTime.UtcNow.ToString("o"),
+            Metadata = dto.Metadata?.RootElement.GetRawText()
         };
 
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
-        // Îïòèì³çàö³ÿ: áåðåìî øàáëîí ÷åðåç AsNoTracking, áî â³í íàì ïîòð³áåí ò³ëüêè äëÿ ÷èòàííÿ Title/Message
+        // ˜˜˜˜˜˜˜˜˜˜: ˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜ AsNoTracking, ˜˜ ˜˜ ˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜ Title/Message
         var template = await _context.NotificationTemplates
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.IdNotificationTemplates == dto.TemplateId);
 
         return new NotificationDto
         {
-            IdNotification = notification.IdNotification,
-            UserId = notification.UserId,
+            IdNotification = notification.IdNotification ?? 0,
+            UserId = notification.UserId ?? 0,
             TemplateId = notification.TemplateId ?? 0,
-            Title = notification.CustomTitle ?? template?.Title ?? string.Empty,
+            Title = template?.Title ?? dto.Title ?? string.Empty,
             Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
-            IsRead = notification.IsRead,
-            CreatedAt = notification.CreatedAt,
-            NotificationType = notification.NotificationType,
+            IsRead = (notification.IsRead ?? 0) != 0,
+            CreatedAt = DateTime.TryParse(notification.CreatedAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var ca) ? ca : default,
+            NotificationType = template?.NotificationType ?? dto.NotificationType,
             Metadata = dto.Metadata
         };
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> MarkAsReadAsync(int id)
     {
-        // ÑÓÏÅÐ-ÎÏÒÈÌ²ÇÀÖ²ß: Îíîâëþºìî áåç çàâàíòàæåííÿ â ïàì'ÿòü! (Ïðàöþº íà EF Core 7.0+)
+        // ˜˜˜˜˜-˜˜˜˜?˜˜?˜: ˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜'˜˜˜! (˜˜˜˜˜˜ ˜˜ EF Core 7.0+)
         var updatedRows = await _context.Notifications
-            .Where(n => n.IdNotification == id && !n.IsRead) // Îíîâëþºìî ò³ëüêè ÿêùî âîíî ùå íå ïðî÷èòàíå
-            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+            .Where(n => n.IdNotification == id && (n.IsRead ?? 0) == 0) // ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜ ˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, 1));
 
         if (updatedRows > 0)
             return (true, StatusCodes.Status204NoContent, null);
 
-        // ßêùî îíîâëåíî 0 ðÿäê³â, öå îçíà÷àº àáî ùî çàïèñó íåìàº, àáî ùî IsRead âæå áóëî true.
+        // ˜˜˜˜ ˜˜˜˜˜˜˜˜ 0 ˜˜˜˜˜, ˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜ ˜˜˜˜˜˜ ˜˜˜˜, ˜˜˜ ˜˜ IsRead ˜˜˜ ˜˜˜˜ true.
         var exists = await _context.Notifications.AnyAsync(n => n.IdNotification == id);
         if (!exists)
             return (false, StatusCodes.Status404NotFound, "Notification not found");
 
-        return (true, StatusCodes.Status204NoContent, null); // Ñïîâ³ùåííÿ âæå ïðî÷èòàíå
+        return (true, StatusCodes.Status204NoContent, null); // ˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜
     }
 
-    // Çì³íåíî ç ref IQueryable íà ïîâåðíåííÿ IQueryable (öå ïðàâèëüíèé ïàòåðí äëÿ LINQ)
+    // ˜˜˜˜˜˜ ˜ ref IQueryable ˜˜ ˜˜˜˜˜˜˜˜˜˜ IQueryable (˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ LINQ)
     private static IQueryable<Models.Notification> ApplyCommonFilters(IQueryable<Models.Notification> query, NotificationQueryDto queryDto)
     {
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(n =>
-                EF.Functions.Like(n.CustomTitle.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(n.CustomMessage.ToLower(), $"%{lowerSearch}%") ||
-                n.Template != null &&
-                 (EF.Functions.Like(n.Template.Title.ToLower(), $"%{lowerSearch}%") ||
-                  EF.Functions.Like(n.Template.Message.ToLower(), $"%{lowerSearch}%")));
+                (n.CustomMessage != null && EF.Functions.Like(n.CustomMessage.ToLower(), $"%{lowerSearch}%")) ||
+                (n.Template != null &&
+                 ((n.Template.Title != null && EF.Functions.Like(n.Template.Title.ToLower(), $"%{lowerSearch}%")) ||
+                  (n.Template.Message != null && EF.Functions.Like(n.Template.Message.ToLower(), $"%{lowerSearch}%")))));
         }
-
-        if (queryDto.DateFrom.HasValue)
-            query = query.Where(n => n.CreatedAt >= queryDto.DateFrom.Value);
-
-        if (queryDto.DateTo.HasValue)
-            query = query.Where(n => n.CreatedAt <= queryDto.DateTo.Value);
 
         if (queryDto.NotificationTypes != null && queryDto.NotificationTypes.Any())
         {
-            // Çâåðíè óâàãó: ÿêùî òèï çáåð³ãàºòüñÿ â ñàìîìó Notification, êðàùå ô³ëüòðóâàòè ïî n.NotificationType, 
-            // ùîá óíèêíóòè JOIN òàáëèö³ Template. Àëå ÿ çàëèøèâ òâîþ ëîã³êó.
-            query = query.Where(n => n.Template != null && queryDto.NotificationTypes.Contains(n.Template.NotificationType));
+            // ˜˜˜˜˜˜ ˜˜˜˜˜: ˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜ Notification, ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜˜ n.NotificationType, 
+            // ˜˜˜ ˜˜˜˜˜˜˜˜ JOIN ˜˜˜˜˜˜˜ Template. ˜˜˜ ˜ ˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜.
+            query = query.Where(n => n.Template != null && n.Template.NotificationType != null && queryDto.NotificationTypes.Contains(n.Template.NotificationType));
         }
 
         if (queryDto.IsRead.HasValue)
-            query = query.Where(n => n.IsRead == queryDto.IsRead.Value);
+        {
+            var wantRead = queryDto.IsRead.Value ? 1 : 0;
+            query = query.Where(n => (n.IsRead ?? 0) == wantRead);
+        }
 
         return query;
     }
@@ -231,33 +222,42 @@ public class NotificationService : INotificationService
         };
     }
 
-    // Ñïåö³àëüíèé record äëÿ ëåãêî¿ âèá³ðêè ç ÁÄ áåç òÿãàííÿ âàæêèõ ñóòíîñòåé
+    // ˜˜˜˜˜˜˜˜˜˜˜ record ˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜ ˜ ˜˜ ˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
     private record NotificationProjection(
         int IdNotification,
         int UserId,
         int? TemplateId,
         string? TemplateTitle,
         string? TemplateMessage,
-        string? CustomTitle,
         string? CustomMessage,
-        bool IsRead,
-        DateTime CreatedAt,
+        int? IsRead,
+        string? CreatedAt,
         string NotificationType,
         string? Metadata
     );
 
-    // Ìàïåð ç íàøî¿ ëåãêî¿ ïðîåêö³¿ â DTO
-    private static NotificationDto MapProjectedToDto(NotificationProjection p) =>
-        new()
+    // ˜˜˜˜˜ ˜ ˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜ DTO
+    private static NotificationDto MapProjectedToDto(NotificationProjection p)
+    {
+        var createdAt = DateTime.TryParse(
+            p.CreatedAt,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind,
+            out var dt)
+            ? dt
+            : default;
+
+        return new NotificationDto
         {
             IdNotification = p.IdNotification,
             UserId = p.UserId,
             TemplateId = p.TemplateId ?? 0,
-            Title = p.CustomTitle ?? p.TemplateTitle ?? string.Empty,
-            Message = p.CustomMessage ?? p.TemplateMessage ?? string.Empty,
-            IsRead = p.IsRead,
-            CreatedAt = p.CreatedAt,
-            NotificationType = p.NotificationType,
+            Title = p.TemplateTitle ?? string.Empty,
+            Message = p.TemplateMessage ?? p.CustomMessage ?? string.Empty,
+            IsRead = (p.IsRead ?? 0) != 0,
+            CreatedAt = createdAt,
+            NotificationType = p.NotificationType ?? string.Empty,
             Metadata = !string.IsNullOrWhiteSpace(p.Metadata) ? JsonDocument.Parse(p.Metadata) : null
         };
+    }
 }

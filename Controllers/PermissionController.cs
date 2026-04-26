@@ -52,8 +52,8 @@ namespace OlimpBack.Controllers
             if (permissionDto.BitIndex < PermissionMaskHelper.MinBitIndex || permissionDto.BitIndex > PermissionMaskHelper.MaxBitIndex)
                 return BadRequest($"BitIndex must be in range [{PermissionMaskHelper.MinBitIndex}, {PermissionMaskHelper.MaxBitIndex}].");
 
-            var existsByCode = await _context.Permissions.AnyAsync(x =>
-                x.TypePermission == permissionDto.TypePermission && x.TableName == permissionDto.TableName);
+            var code = $"{permissionDto.TypePermission}:{permissionDto.TableName}";
+            var existsByCode = await _context.Permissions.AnyAsync(x => x.Code == code);
             if (existsByCode)
                 return BadRequest("Permission with this TypePermission + TableName already exists.");
 
@@ -66,7 +66,7 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             var resultDto = _mapper.Map<PermissionDto>(permission);
-            return CreatedAtAction(nameof(GetPermission), new { id = permission.IdPermissions }, resultDto);
+            return CreatedAtAction(nameof(GetPermission), new { id = permission.Id }, resultDto);
         }
 
         // PUT: api/Permission/5
@@ -83,15 +83,14 @@ namespace OlimpBack.Controllers
             if (permissionDto.BitIndex < PermissionMaskHelper.MinBitIndex || permissionDto.BitIndex > PermissionMaskHelper.MaxBitIndex)
                 return BadRequest($"BitIndex must be in range [{PermissionMaskHelper.MinBitIndex}, {PermissionMaskHelper.MaxBitIndex}].");
 
+            var newCode = $"{permissionDto.TypePermission}:{permissionDto.TableName}";
             var existsByCode = await _context.Permissions.AnyAsync(x =>
-                x.IdPermissions != id &&
-                x.TypePermission == permissionDto.TypePermission &&
-                x.TableName == permissionDto.TableName);
+                x.Id != id && x.Code == newCode);
             if (existsByCode)
                 return BadRequest("Permission with this TypePermission + TableName already exists.");
 
             var bitIndexAlreadyUsed = await _context.Permissions.AnyAsync(x =>
-                x.IdPermissions != id && x.BitIndex == permissionDto.BitIndex);
+                x.Id != id && x.BitIndex == permissionDto.BitIndex);
             if (bitIndexAlreadyUsed)
                 return BadRequest("BitIndex is already used by another permission.");
 
@@ -105,7 +104,10 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             foreach (var roleId in affectedRoleIds)
-                await _roleMaskService.RecalculateRoleMaskAsync(roleId);
+            {
+                if (roleId.HasValue)
+                    await _roleMaskService.RecalculateRoleMaskAsync(roleId.Value);
+            }
 
             return NoContent();
         }
@@ -128,7 +130,10 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             foreach (var roleId in affectedRoleIds)
-                await _roleMaskService.RecalculateRoleMaskAsync(roleId);
+            {
+                if (roleId.HasValue)
+                    await _roleMaskService.RecalculateRoleMaskAsync(roleId.Value);
+            }
 
             return NoContent();
         }

@@ -30,4 +30,6 @@ public partial class Adddetail
     public string? TypesOfTraining { get; set; }
 
     public string? TypeOfControll { get; set; }
+
+    public virtual Department? Department { get; set; }
 }

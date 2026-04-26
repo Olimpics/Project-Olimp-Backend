@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Models;
 
-namespace OlimpBack.Data;
+namespace OlimpBack.Infrastructure.Database;
 
 public partial class AppDbContext : DbContext
 {
-    public AppDbContext()
+    public AppDbContext()   
     {
     }
 
@@ -16,39 +16,39 @@ public partial class AppDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Adddetail> Adddetails { get; set; }
+    public virtual DbSet<AddDetail> AddDetails { get; set; }
 
-    public virtual DbSet<Adddiscipline> Adddisciplines { get; set; }
+    public virtual DbSet<AddDiscipline> AddDisciplines { get; set; }
 
-    public virtual DbSet<Adminlog> Adminlogs { get; set; }
+    public virtual DbSet<AdminLog> AdminLogs { get; set; }
 
-    public virtual DbSet<Adminspersonal> Adminspersonals { get; set; }
+    public virtual DbSet<AdminsPersonal> AdminsPersonals { get; set; }
 
-    public virtual DbSet<Bindadddiscipline> Bindadddisciplines { get; set; }
+    public virtual DbSet<BindAddDiscipline> BindAddDisciplines { get; set; }
 
-    public virtual DbSet<Bindevent> Bindevents { get; set; }
+    public virtual DbSet<BindEvent> BindEvents { get; set; }
 
-    public virtual DbSet<Bindextraactivity> Bindextraactivities { get; set; }
+    public virtual DbSet<BindExtraActivity> BindExtraActivities { get; set; }
 
-    public virtual DbSet<Bindloansmain> Bindloansmains { get; set; }
+    public virtual DbSet<BindLoansMain> BindLoansMains { get; set; }
 
-    public virtual DbSet<Bindrolepermission> Bindrolepermissions { get; set; }
+    public virtual DbSet<BindRolePermission> BindRolePermissions { get; set; }
 
-    public virtual DbSet<Bindstudentsfavouritediscipline> Bindstudentsfavouritedisciplines { get; set; }
+    public virtual DbSet<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; }
 
     public virtual DbSet<Branch> Branches { get; set; }
 
-    public virtual DbSet<Catalogyear> Catalogyears { get; set; }
+    public virtual DbSet<CatalogYear> CatalogYears { get; set; }
 
     public virtual DbSet<Department> Departments { get; set; }
 
-    public virtual DbSet<Disciplinechoiceperiod> Disciplinechoiceperiods { get; set; }
+    public virtual DbSet<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; }
 
-    public virtual DbSet<Educationaldegree> Educationaldegrees { get; set; }
+    public virtual DbSet<EducationalDegree> EducationalDegrees { get; set; }
 
-    public virtual DbSet<Educationalprogram> Educationalprograms { get; set; }
+    public virtual DbSet<EducationalProgram> EducationalPrograms { get; set; }
 
-    public virtual DbSet<Educationstatus> Educationstatuses { get; set; }
+    public virtual DbSet<EducationStatus> EducationStatuses { get; set; }
 
     public virtual DbSet<Event> Events { get; set; }
 
@@ -56,9 +56,9 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Group> Groups { get; set; }
 
-    public virtual DbSet<Maindiscipline> Maindisciplines { get; set; }
+    public virtual DbSet<BindMainDiscipline> BindMainDisciplines { get; set; }
 
-    public virtual DbSet<Maingrade> Maingrades { get; set; }
+    public virtual DbSet<MainGrade> MainGrades { get; set; }
 
     public virtual DbSet<Member> Members { get; set; }
 
@@ -66,19 +66,19 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
-    public virtual DbSet<Notificationtemplate> Notificationtemplates { get; set; }
+    public virtual DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<Prerequisite> Prerequisites { get; set; }
 
-    public virtual DbSet<Regulationonaddpoint> Regulationonaddpoints { get; set; }
+    public virtual DbSet<RegulationOnAddPoint> RegulationOnAddPoints { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Role1> Roles1 { get; set; }
 
-    public virtual DbSet<Rolesinsg> Rolesinsgs { get; set; }
+    public virtual DbSet<RolesInSg> RolesInSgs { get; set; }
 
     public virtual DbSet<Speciality> Specialities { get; set; }
 
@@ -86,25 +86,30 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Student> Students { get; set; }
 
-    public virtual DbSet<Studyform> Studyforms { get; set; }
+    public virtual DbSet<StudyForm> StudyForms { get; set; }
 
-    public virtual DbSet<Subdivisionssg> Subdivisionssgs { get; set; }
+    public virtual DbSet<SubDivisionsSg> SubDivisionsSgs { get; set; }
 
-    public virtual DbSet<Typeofdiscipline> Typeofdisciplines { get; set; }
+    public virtual DbSet<TypeOfDiscipline> TypeOfDisciplines { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=5432;Database=project_olymp_db;Username=postgres;Password=B25824DCABCB88B5;");
+    {
+        // Connection is configured via AddDbContext in Program.cs; avoid overriding when already configured.
+        if (!optionsBuilder.IsConfigured)
+        {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code.
+            optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=5432;Database=project_olymp_db;Username=postgres;Password=B25824DCABCB88B5;");
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Adddetail>(entity =>
+        modelBuilder.Entity<AddDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("adddetails");
+            entity.HasKey(e => e.IdAddDetails);
+            entity.ToTable("adddetails");
 
             entity.Property(e => e.DisciplineTopics).HasMaxLength(1024);
             entity.Property(e => e.IdAddDetails).HasColumnName("idAddDetails");
@@ -120,13 +125,21 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("UsingIRL");
             entity.Property(e => e.WhyInterestingDetermination).HasMaxLength(50);
+
+            entity.HasOne(d => d.Department)
+                .WithMany()
+                .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<AddDiscipline>()
+                .WithOne(ad => ad.AddDetail)
+                .HasForeignKey<AddDetail>(d => d.IdAddDetails);
         });
 
-        modelBuilder.Entity<Adddiscipline>(entity =>
+        modelBuilder.Entity<AddDiscipline>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("adddisciplines");
+            entity.HasKey(e => e.IdAddDisciplines);
+            entity.ToTable("adddisciplines");
 
             entity.Property(e => e.CodeAddDisciplines)
                 .HasMaxLength(50)
@@ -140,9 +153,25 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameAddDisciplines)
                 .HasMaxLength(300)
                 .HasColumnName("nameAddDisciplines");
+
+            entity.HasOne(d => d.Faculty)
+                .WithMany()
+                .HasForeignKey(d => d.FacultyId);
+
+            entity.HasOne(d => d.DegreeLevel)
+                .WithMany()
+                .HasForeignKey(d => d.DegreeLevelId);
+
+            entity.HasOne(d => d.Type)
+                .WithMany()
+                .HasForeignKey(d => d.TypeId);
+
+            entity.HasMany(d => d.BindAddDisciplines)
+                .WithOne(b => b.AddDisciplines)
+                .HasForeignKey(b => b.AddDisciplinesId);
         });
 
-        modelBuilder.Entity<Adminlog>(entity =>
+        modelBuilder.Entity<AdminLog>(entity =>
         {
             entity
                 .HasNoKey()
@@ -155,7 +184,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.TableName).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Adminspersonal>(entity =>
+        modelBuilder.Entity<AdminsPersonal>(entity =>
         {
             entity
                 .HasNoKey()
@@ -168,19 +197,26 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Photo).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Bindadddiscipline>(entity =>
+        modelBuilder.Entity<BindAddDiscipline>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("bindadddisciplines");
+            entity.HasKey(e => e.IdBindAddDisciplines);
+            entity.ToTable("bindadddisciplines");
 
             entity.Property(e => e.CreatedAt).HasMaxLength(50);
             entity.Property(e => e.Grade).HasMaxLength(50);
             entity.Property(e => e.IdBindAddDisciplines).HasColumnName("idBindAddDisciplines");
             entity.Property(e => e.InProcess).HasColumnName("inProcess");
+
+            entity.HasOne(b => b.AddDisciplines)
+                .WithMany(d => d.BindAddDisciplines)
+                .HasForeignKey(b => b.AddDisciplinesId);
+
+            entity.HasOne(b => b.Student)
+                .WithMany(s => s.BindAddDisciplines)
+                .HasForeignKey(b => b.StudentId);
         });
 
-        modelBuilder.Entity<Bindevent>(entity =>
+        modelBuilder.Entity<BindEvent>(entity =>
         {
             entity
                 .HasNoKey()
@@ -198,7 +234,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StudentId).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Bindextraactivity>(entity =>
+        modelBuilder.Entity<BindExtraActivity>(entity =>
         {
             entity
                 .HasNoKey()
@@ -214,7 +250,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StudentId).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Bindloansmain>(entity =>
+        modelBuilder.Entity<BindLoansMain>(entity =>
         {
             entity
                 .HasNoKey()
@@ -223,7 +259,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdBindLoan).HasColumnName("idBindLoan");
         });
 
-        modelBuilder.Entity<Bindrolepermission>(entity =>
+        modelBuilder.Entity<BindRolePermission>(entity =>
         {
             entity
                 .HasNoKey()
@@ -232,7 +268,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdBindRolePermission).HasColumnName("idBindRolePermission");
         });
 
-        modelBuilder.Entity<Bindstudentsfavouritediscipline>(entity =>
+        modelBuilder.Entity<BindStudentsFavouriteDiscipline>(entity =>
         {
             entity
                 .HasNoKey()
@@ -256,7 +292,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("name");
         });
 
-        modelBuilder.Entity<Catalogyear>(entity =>
+        modelBuilder.Entity<CatalogYear>(entity =>
         {
             entity
                 .HasNoKey()
@@ -269,9 +305,8 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Department>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("department");
+            entity.HasKey(e => e.IdDepartment);
+            entity.ToTable("department");
 
             entity.Property(e => e.Abbreviation).HasMaxLength(50);
             entity.Property(e => e.AdminId).HasMaxLength(50);
@@ -280,9 +315,13 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameDepartment)
                 .HasMaxLength(64)
                 .HasColumnName("nameDepartment");
+
+            entity.HasOne(d => d.Faculty)
+                .WithMany()
+                .HasForeignKey(d => d.FacultyId);
         });
 
-        modelBuilder.Entity<Disciplinechoiceperiod>(entity =>
+        modelBuilder.Entity<DisciplineChoicePeriod>(entity =>
         {
             entity
                 .HasNoKey()
@@ -293,11 +332,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StartDate).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Educationaldegree>(entity =>
+        modelBuilder.Entity<EducationalDegree>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("educationaldegree");
+            entity.HasKey(e => e.IdEducationalDegree);
+            entity.ToTable("educationaldegree");
 
             entity.Property(e => e.IdEducationalDegree).HasColumnName("idEducationalDegree");
             entity.Property(e => e.NameEducationalDegreec)
@@ -305,11 +343,10 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("nameEducationalDegreec");
         });
 
-        modelBuilder.Entity<Educationalprogram>(entity =>
+        modelBuilder.Entity<EducationalProgram>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("educationalprogram");
+            entity.HasKey(e => e.IdEducationalProgram);
+            entity.ToTable("educationalprogram");
 
             entity.Property(e => e.Accreditation).HasColumnName("accreditation");
             entity.Property(e => e.AccreditationType)
@@ -333,13 +370,20 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("specialityCode");
             entity.Property(e => e.StudentsAmount).HasColumnName("studentsAmount");
+
+            entity.HasOne(ep => ep.Degree)
+                .WithMany()
+                .HasForeignKey(ep => ep.DegreeId);
+
+            entity.HasMany(ep => ep.BindMainDisciplines)
+                .WithOne(b => b.EducationalProgram)
+                .HasForeignKey(b => b.EducationalProgramId);
         });
 
-        modelBuilder.Entity<Educationstatus>(entity =>
+        modelBuilder.Entity<EducationStatus>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("educationstatus");
+            entity.HasKey(e => e.IdEducationStatus);
+            entity.ToTable("educationstatus");
 
             entity.Property(e => e.IdEducationStatus).HasColumnName("idEducationStatus");
             entity.Property(e => e.NameEducationStatus)
@@ -369,9 +413,8 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Faculty>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("faculties");
+            entity.HasKey(e => e.IdFaculty);
+            entity.ToTable("faculties");
 
             entity.Property(e => e.Abbreviation).HasMaxLength(50);
             entity.Property(e => e.IdFaculty).HasColumnName("idFaculty");
@@ -383,9 +426,8 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Group>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Group");
+            entity.HasKey(e => e.IdGroup);
+            entity.ToTable("Group");
 
             entity.Property(e => e.GroupCode).HasMaxLength(45);
             entity.Property(e => e.IdEducationalProgram).HasColumnName("idEducationalProgram");
@@ -393,27 +435,59 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdSpeciality).HasColumnName("idSpeciality");
             entity.Property(e => e.IdSpecialization).HasColumnName("idSpecialization");
             entity.Property(e => e.IdStudyForm).HasColumnName("idStudyForm");
+
+            entity.HasOne(g => g.Department)
+                .WithMany()
+                .HasForeignKey(g => g.DepartmentId);
+
+            entity.HasOne(g => g.Faculty)
+                .WithMany()
+                .HasForeignKey(g => g.FacultyId);
+
+            entity.HasOne(g => g.Degree)
+                .WithMany()
+                .HasForeignKey(g => g.DegreeId);
+
+            entity.HasOne(g => g.IdEducationalProgramNavigation)
+                .WithMany()
+                .HasForeignKey(g => g.IdEducationalProgram);
+
+            entity.HasOne(g => g.IdSpecialityNavigation)
+                .WithMany()
+                .HasForeignKey(g => g.IdSpeciality);
+
+            entity.HasOne(g => g.IdSpecializationNavigation)
+                .WithMany()
+                .HasForeignKey(g => g.IdSpecialization);
+
+            entity.HasOne<StudyForm>()
+                .WithMany()
+                .HasForeignKey(g => g.IdStudyForm);
         });
 
-        modelBuilder.Entity<Maindiscipline>(entity =>
+        modelBuilder.Entity<BindMainDiscipline>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("maindisciplines");
+            entity.HasKey(e => e.IdBindMainDisciplines);
+            entity.ToTable("maindisciplines");
 
             entity.Property(e => e.CodeMainDisciplines)
                 .HasMaxLength(50)
                 .HasColumnName("codeMainDisciplines");
             entity.Property(e => e.FormControll).HasMaxLength(50);
             entity.Property(e => e.IdBindMainDisciplines).HasColumnName("idBindMainDisciplines");
-            entity.Property(e => e.Idcataloog).HasColumnName("idcataloog");
             entity.Property(e => e.NameBindMainDisciplines)
                 .HasMaxLength(50)
                 .HasColumnName("nameBindMainDisciplines");
             entity.Property(e => e.Teachers).HasMaxLength(50);
+
+            entity.Ignore(e => e.MainGrades);
+
+            entity.HasOne(b => b.EducationalProgram)
+                .WithMany(ep => ep.BindMainDisciplines)
+                .HasForeignKey(b => b.EducationalProgramId);
         });
 
-        modelBuilder.Entity<Maingrade>(entity =>
+        modelBuilder.Entity<MainGrade>(entity =>
         {
             entity
                 .HasNoKey()
@@ -456,21 +530,28 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("notifications");
+            entity.HasKey(e => e.IdNotification);
+            entity.ToTable("notifications");
 
             entity.Property(e => e.CreatedAt).HasMaxLength(50);
             entity.Property(e => e.CustomMessage).HasMaxLength(128);
             entity.Property(e => e.IdNotification).HasColumnName("idNotification");
             entity.Property(e => e.Metadata).HasColumnType("jsonb");
+
+            entity.HasOne(n => n.Template)
+                .WithMany(t => t.Notifications)
+                .HasForeignKey(n => n.TemplateId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(n => n.UserId);
         });
 
-        modelBuilder.Entity<Notificationtemplate>(entity =>
+        modelBuilder.Entity<NotificationTemplate>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("notificationtemplates");
+            entity.HasKey(e => e.IdNotificationTemplates);
+            entity.ToTable("notificationtemplates");
 
             entity.Property(e => e.IdNotificationTemplates).HasColumnName("idNotificationTemplates");
             entity.Property(e => e.Message).HasMaxLength(128);
@@ -504,7 +585,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Educationalprogramid).HasColumnName("educationalprogramid");
         });
 
-        modelBuilder.Entity<Regulationonaddpoint>(entity =>
+        modelBuilder.Entity<RegulationOnAddPoint>(entity =>
         {
             entity
                 .HasNoKey()
@@ -576,7 +657,7 @@ public partial class AppDbContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<Rolesinsg>(entity =>
+        modelBuilder.Entity<RolesInSg>(entity =>
         {
             entity
                 .HasNoKey()
@@ -595,9 +676,8 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Speciality>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("speciality");
+            entity.HasKey(e => e.IdSpeciality);
+            entity.ToTable("speciality");
 
             entity.Property(e => e.Accreditation).HasColumnName("accreditation");
             entity.Property(e => e.AccreditationType)
@@ -608,12 +688,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("description");
             entity.Property(e => e.IdBranch).HasColumnName("idBranch");
-            entity.Property(e => e.IdDepartment)
-                .HasMaxLength(50)
-                .HasColumnName("idDepartment");
-            entity.Property(e => e.IdFaculty)
-                .HasMaxLength(50)
-                .HasColumnName("idFaculty");
+            entity.Property(e => e.IdDepartment).HasColumnName("idDepartment");
+            entity.Property(e => e.IdFaculty).HasColumnName("idFaculty");
             entity.Property(e => e.IdSpeciality).HasColumnName("idSpeciality");
             entity.Property(e => e.LicensedVolume).HasColumnName("licensedVolume");
             entity.Property(e => e.Name)
@@ -623,9 +699,8 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Specialization>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("specialization");
+            entity.HasKey(e => e.IdSpecialization);
+            entity.ToTable("specialization");
 
             entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Description)
@@ -636,26 +711,56 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+
+            entity.HasOne<Speciality>()
+                .WithMany()
+                .HasForeignKey(s => s.IdSpeciality);
         });
 
         modelBuilder.Entity<Student>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("student");
+            entity.HasKey(e => e.IdStudent);
+            entity.ToTable("student");
 
             entity.Property(e => e.IdStudent).HasColumnName("idStudent");
             entity.Property(e => e.IsInSg).HasColumnName("IsInSG");
             entity.Property(e => e.NameStudent)
                 .HasMaxLength(200)
                 .HasColumnName("nameStudent");
+
+            entity.HasOne(s => s.Faculty)
+                .WithMany()
+                .HasForeignKey(s => s.FacultyId);
+
+            entity.HasOne(s => s.EducationalDegree)
+                .WithMany(ed => ed.Students)
+                .HasForeignKey(s => s.EducationalDegreeId);
+
+            entity.HasOne(s => s.EducationalProgram)
+                .WithMany(ep => ep.Students)
+                .HasForeignKey(s => s.EducationalProgramId);
+
+            entity.HasOne(s => s.EducationStatus)
+                .WithMany()
+                .HasForeignKey(s => s.EducationStatusId);
+
+            entity.HasOne(s => s.Group)
+                .WithMany(g => g.Students)
+                .HasForeignKey(s => s.GroupId);
+
+            entity.HasOne(s => s.StudyForm)
+                .WithMany()
+                .HasForeignKey(s => s.StudyFormId);
+
+            entity.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId);
         });
 
-        modelBuilder.Entity<Studyform>(entity =>
+        modelBuilder.Entity<StudyForm>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("studyform");
+            entity.HasKey(e => e.IdStudyForm);
+            entity.ToTable("studyform");
 
             entity.Property(e => e.IdStudyForm).HasColumnName("idStudyForm");
             entity.Property(e => e.NameStudyForm)
@@ -663,7 +768,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("nameStudyForm");
         });
 
-        modelBuilder.Entity<Subdivisionssg>(entity =>
+        modelBuilder.Entity<SubDivisionsSg>(entity =>
         {
             entity
                 .HasNoKey()
@@ -675,11 +780,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameDivision).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Typeofdiscipline>(entity =>
+        modelBuilder.Entity<TypeOfDiscipline>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("typeofdiscipline");
+            entity.HasKey(e => e.IdTypeOfDiscipline);
+            entity.ToTable("typeofdiscipline");
 
             entity.Property(e => e.IdTypeOfDiscipline).HasColumnName("idTypeOfDiscipline");
             entity.Property(e => e.TypeName).HasMaxLength(50);
@@ -712,6 +816,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Passwordhash).HasColumnName("passwordhash");
             entity.Property(e => e.Passwordsalt).HasColumnName("passwordsalt");
             entity.Property(e => e.Roleid).HasColumnName("roleid");
+
+            entity.HasOne(d => d.PrimaryRole)
+                .WithMany()
+                .HasForeignKey(d => d.Roleid)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasMany(d => d.Roles).WithMany(p => p.Users)
                 .UsingEntity<Dictionary<string, object>>(

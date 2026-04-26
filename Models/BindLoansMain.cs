@@ -10,4 +10,8 @@ public partial class Bindloansmain
     public int? AddDisciplinesId { get; set; }
 
     public int? EducationalProgramId { get; set; }
+
+    public virtual Adddiscipline? AddDisciplines { get; set; }
+
+    public virtual Educationalprogram? EducationalProgram { get; set; }
 }

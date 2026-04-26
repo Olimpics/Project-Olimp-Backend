@@ -16,4 +16,8 @@ public partial class Adminspersonal
     public int? DepartmentId { get; set; }
 
     public string? Photo { get; set; }
+
+    public virtual User? User { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
 }

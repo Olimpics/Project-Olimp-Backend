@@ -18,4 +18,6 @@ public partial class Notification
     public string? CreatedAt { get; set; }
 
     public string? Metadata { get; set; }
+
+    public virtual Notificationtemplate? Template { get; set; }
 }

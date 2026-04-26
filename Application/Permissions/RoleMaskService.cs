@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Redis;
+using OlimpBack.Models;
 using OlimpBack.Utils;
 
 namespace OlimpBack.Application.Permissions;
@@ -12,34 +13,27 @@ public class RoleMaskService : IRoleMaskService
 
     private readonly AppDbContext _context;
     private readonly IRbacCacheService _cache;
-    private readonly ILogger<RoleMaskService> _logger;
-
-    public RoleMaskService(AppDbContext context, IRbacCacheService cache, ILogger<RoleMaskService> logger)
+    public RoleMaskService(AppDbContext context, IRbacCacheService cache)
     {
         _context = context;
         _cache = cache;
-        _logger = logger;
     }
 
     public async Task<long> RecalculateRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
     {
-        var bitIndexes = await _context.BindRolePermissions
-            .AsNoTracking()
-            .Where(x => x.RoleId == roleId)
-            .Select(x => x.Permission.BitIndex)
-            .ToListAsync(cancellationToken);
+        var role = await _context.Set<Role1>()
+            .Include(r => r.Permissions)
+            .FirstOrDefaultAsync(r => r.Id == roleId, cancellationToken);
 
-        var newMask = PermissionMaskHelper.BuildMask(bitIndexes);
-
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.IdRole == roleId, cancellationToken);
         if (role == null)
             return 0;
 
+        var newMask = PermissionMaskHelper.BuildMask(role.Permissions.Select(p => p.BitIndex));
         role.PermissionsMask = newMask;
+
         await _context.SaveChangesAsync(cancellationToken);
 
         await _cache.SetLongAsync(GetRoleMaskKey(roleId), newMask, RoleMaskTtl, cancellationToken);
-
         await InvalidateUserMaskCacheByRoleAsync(roleId, cancellationToken);
 
         return newMask;
@@ -52,10 +46,10 @@ public class RoleMaskService : IRoleMaskService
         if (cached.HasValue)
             return cached.Value;
 
-        var roleMask = await _context.Roles
+        var roleMask = await _context.Set<Role1>()
             .AsNoTracking()
-            .Where(r => r.IdRole == roleId)
-            .Select(r => r.PermissionsMask)
+            .Where(r => r.Id == roleId)
+            .Select(r => r.PermissionsMask ?? 0L)
             .FirstOrDefaultAsync(cancellationToken);
 
         await _cache.SetLongAsync(cacheKey, roleMask, RoleMaskTtl, cancellationToken);
@@ -69,46 +63,45 @@ public class RoleMaskService : IRoleMaskService
         if (cached.HasValue)
             return cached.Value;
 
-        long mask;
-        try
-        {
-            // Primary path: supports many roles via user_roles and role inheritance via parent_role_id.
-            mask = await _context.Database.SqlQuery<long>($$"""
-                WITH RECURSIVE role_tree AS (
-                    SELECT r.idRole, r.parent_role_id, r.permissions_mask
-                    FROM Role r
-                    WHERE r.idRole IN (
-                        SELECT ur.role_id FROM user_roles ur WHERE ur.user_id = {{userId}}
-                        UNION
-                        SELECT u.RoleId FROM Users u WHERE u.IdUsers = {{userId}}
-                    )
-                    UNION ALL
-                    SELECT r2.idRole, r2.parent_role_id, r2.permissions_mask
-                    FROM Role r2
-                    JOIN role_tree rt ON r2.idRole = rt.parent_role_id
-                )
-                SELECT COALESCE(BIT_OR(COALESCE(permissions_mask, 0)), 0) AS Value
-                FROM role_tree;
-                """)
-                .SingleAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex,
-                "Falling back to single-role permission mask query for user {UserId}. Check user_roles/parent_role_id schema.",
-                userId);
+        var user = await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.IdUser == userId, cancellationToken);
+        if (user == null)
+            return 0;
 
-            mask = await _context.Database.SqlQuery<long>($$"""
-                SELECT COALESCE(r.permissions_mask, 0) AS Value
-                FROM Users u
-                JOIN Role r ON r.idRole = u.RoleId
-                WHERE u.IdUsers = {{userId}}
-                LIMIT 1;
-                """)
-                .SingleAsync(cancellationToken);
+        var roleIds = new HashSet<int> { user.Roleid };
+        foreach (var r in user.Roles)
+            roleIds.Add(r.Id);
+
+        long combined = 0;
+        foreach (var rid in roleIds)
+            combined |= await GetRoleMaskWithAncestorsAsync(rid, cancellationToken);
+
+        await _cache.SetLongAsync(cacheKey, combined, UserMaskTtl, cancellationToken);
+        return combined;
+    }
+
+    private async Task<long> GetRoleMaskWithAncestorsAsync(int roleId, CancellationToken cancellationToken)
+    {
+        long mask = 0;
+        var current = roleId;
+        var guard = 0;
+        while (guard++ < 32)
+        {
+            mask |= await GetRoleMaskAsync(current, cancellationToken);
+            var parentId = await _context.Set<Role1>()
+                .AsNoTracking()
+                .Where(r => r.Id == current)
+                .Select(r => r.ParentRoleId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (!parentId.HasValue || parentId.Value == current)
+                break;
+
+            current = parentId.Value;
         }
 
-        await _cache.SetLongAsync(cacheKey, mask, UserMaskTtl, cancellationToken);
         return mask;
     }
 
@@ -116,8 +109,8 @@ public class RoleMaskService : IRoleMaskService
     {
         var userIds = await _context.Users
             .AsNoTracking()
-            .Where(u => u.RoleId == roleId)
-            .Select(u => u.IdUsers)
+            .Where(u => u.Roleid == roleId)
+            .Select(u => u.IdUser)
             .ToListAsync(cancellationToken);
 
         foreach (var userId in userIds)

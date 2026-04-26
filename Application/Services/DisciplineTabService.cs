@@ -3,7 +3,7 @@ using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
-using OlimpBack.Utils; // Äëÿ DisciplineAvailabilityService
+using OlimpBack.Utils; // ˜˜˜ DisciplineAvailabilityService
 
 namespace OlimpBack.Application.Services;
 
@@ -11,7 +11,7 @@ public class DisciplineTabService : IDisciplineTabService
 {
     private readonly IDisciplineTabRepository _repository;
     private readonly IMapper _mapper;
-    private readonly AppDbContext _context; // Òèì÷àñîâî äëÿ BuildAvailabilityContext, ÿêùî éîãî ùå íå â³äðåôàêòîðèëè
+    private readonly AppDbContext _context; // ˜˜˜˜˜˜˜˜˜ ˜˜˜ BuildAvailabilityContext, ˜˜˜˜ ˜˜˜˜ ˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜
 
     public DisciplineTabService(IDisciplineTabRepository repository, IMapper mapper, AppDbContext context)
     {
@@ -30,7 +30,7 @@ public class DisciplineTabService : IDisciplineTabService
         var fullList = allDisciplines.Select(discipline =>
         {
             var dto = _mapper.Map<FullDisciplineDto>(discipline);
-            dto.CountOfPeople = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c) ? c : 0;
+            dto.CountOfPeople = discipline.IdAddDisciplines.HasValue && context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines.Value, out var c) ? c : 0;
             dto.IsAvailable = DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context);
             return dto;
         });
@@ -79,9 +79,9 @@ public class DisciplineTabService : IDisciplineTabService
             .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
             .Select(d => new SimpleDisciplineDto
             {
-                IdAddDisciplines = d.IdAddDisciplines,
-                NameAddDisciplines = d.NameAddDisciplines,
-                CodeAddDisciplines = d.CodeAddDisciplines
+                IdAddDisciplines = d.IdAddDisciplines ?? 0,
+                NameAddDisciplines = d.NameAddDisciplines ?? "",
+                CodeAddDisciplines = d.CodeAddDisciplines ?? ""
             })
             .ToList();
 
@@ -158,7 +158,7 @@ public class DisciplineTabService : IDisciplineTabService
         if (discipline.AddDetail == null)
         {
             discipline.AddDetail = new AddDetail { IdAddDetails = discipline.IdAddDisciplines };
-            // EF Core track-àòèìå ñòâîðåííÿ àâòîìàòè÷íî ÷åðåç íàâ³ãàö³éíó âëàñòèâ³ñòü
+            // EF Core track-˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜
         }
 
         _mapper.Map(dto, discipline, opts => opts.Items["DbContext"] = _context);

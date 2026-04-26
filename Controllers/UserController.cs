@@ -38,7 +38,7 @@ namespace OlimpBack.Controllers
         public async Task<ActionResult<UserRoleDto>> GetUser(int id)
         {
             var dto = await _context.Users
-                .Where(u => u.IdUsers == id)
+                .Where(u => u.IdUser == id)
                 .ProjectTo<UserRoleDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 

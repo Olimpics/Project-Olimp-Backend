@@ -10,4 +10,6 @@ public partial class Bindstudentsfavouritediscipline
     public int? IdStudent { get; set; }
 
     public int? IdAddDiscipline { get; set; }
+
+    public virtual Adddiscipline? IdAddDisciplineNavigation { get; set; }
 }

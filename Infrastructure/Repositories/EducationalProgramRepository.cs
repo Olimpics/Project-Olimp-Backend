@@ -42,8 +42,8 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .OrderBy(ep => ep.NameEducationalProgram)
             .Select(ep => new EducationalProgramFilterDto
             {
-                Id = ep.IdEducationalProgram,
-                Name = ep.NameEducationalProgram
+                Id = ep.IdEducationalProgram ?? 0,
+                Name = ep.NameEducationalProgram ?? ""
             })
             .ToListAsync();
     }
@@ -62,7 +62,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
-            query = query.Where(ep => queryDto.DegreeLevelIds.Contains(ep.DegreeId));
+            query = query.Where(ep => ep.DegreeId.HasValue && queryDto.DegreeLevelIds.Contains(ep.DegreeId.Value));
         }
 
         var totalCount = await query.CountAsync();
@@ -82,13 +82,13 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .Take(queryDto.PageSize)
             .Select(ep => new EducationalProgramDto
             {
-                IdEducationalProgram = ep.IdEducationalProgram,
-                NameEducationalProgram = ep.NameEducationalProgram,
-                DegreeId = ep.DegreeId,
-                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec : "",
-                SpecialityCode = ep.SpecialityCode,
-                Speciality = ep.Speciality,
-                StudentsAmount = ep.StudentsAmount,
+                IdEducationalProgram = ep.IdEducationalProgram ?? 0,
+                NameEducationalProgram = ep.NameEducationalProgram ?? "",
+                DegreeId = ep.DegreeId ?? 0,
+                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
+                SpecialityCode = ep.SpecialityCode ?? "",
+                Speciality = ep.Speciality ?? "",
+                StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
                 DisciplinesCount = ep.BindMainDisciplines.Count()
             })
@@ -104,13 +104,13 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .Where(ep => ep.IdEducationalProgram == id)
             .Select(ep => new EducationalProgramDto
             {
-                IdEducationalProgram = ep.IdEducationalProgram,
-                NameEducationalProgram = ep.NameEducationalProgram,
-                DegreeId = ep.DegreeId,
-                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec : "",
-                SpecialityCode = ep.SpecialityCode,
-                Speciality = ep.Speciality,
-                StudentsAmount = ep.StudentsAmount,
+                IdEducationalProgram = ep.IdEducationalProgram ?? 0,
+                NameEducationalProgram = ep.NameEducationalProgram ?? "",
+                DegreeId = ep.DegreeId ?? 0,
+                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
+                SpecialityCode = ep.SpecialityCode ?? "",
+                Speciality = ep.Speciality ?? "",
+                StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
                 DisciplinesCount = ep.BindMainDisciplines.Count()
             })

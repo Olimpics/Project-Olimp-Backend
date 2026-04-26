@@ -29,7 +29,7 @@ public class DepartmentRepository : IDepartmentRepository
         var query = _context.Departments.AsNoTracking().AsQueryable();
 
         if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
-            query = query.Where(d => queryDto.FacultyIds.Contains(d.FacultyId));
+            query = query.Where(d => d.FacultyId.HasValue && queryDto.FacultyIds.Contains(d.FacultyId.Value));
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
@@ -58,11 +58,11 @@ public class DepartmentRepository : IDepartmentRepository
             .Take(queryDto.PageSize)
             .Select(d => new DepartmentDto
             {
-                IdDepartment = d.IdDepartment,
-                FacultyId = d.FacultyId,
-                NameDepartment = d.NameDepartment,
-                Abbreviation = d.Abbreviation,
-                FacultyName = d.Faculty != null ? d.Faculty.NameFaculty : ""
+                IdDepartment = d.IdDepartment ?? 0,
+                FacultyId = d.FacultyId ?? 0,
+                NameDepartment = d.NameDepartment ?? "",
+                Abbreviation = d.Abbreviation ?? "",
+                FacultyName = d.Faculty != null ? d.Faculty.NameFaculty ?? "" : ""
             })
             .ToListAsync();
 
@@ -76,11 +76,11 @@ public class DepartmentRepository : IDepartmentRepository
             .Where(d => d.IdDepartment == id)
             .Select(d => new DepartmentDto
             {
-                IdDepartment = d.IdDepartment,
-                FacultyId = d.FacultyId,
-                NameDepartment = d.NameDepartment,
-                Abbreviation = d.Abbreviation,
-                FacultyName = d.Faculty != null ? d.Faculty.NameFaculty : ""
+                IdDepartment = d.IdDepartment ?? 0,
+                FacultyId = d.FacultyId ?? 0,
+                NameDepartment = d.NameDepartment ?? "",
+                Abbreviation = d.Abbreviation ?? "",
+                FacultyName = d.Faculty != null ? d.Faculty.NameFaculty ?? "" : ""
             })
             .FirstOrDefaultAsync();
     }

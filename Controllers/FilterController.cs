@@ -51,9 +51,9 @@ namespace OlimpBack.Controllers
                 .GroupBy(ep => ep.Speciality)
                 .Select(g => new SpecialityFilterDto
                 {
-                    Id = g.First().IdEducationalProgram,
-                    Code = g.First().SpecialityCode,
-                    Name = g.Key
+                    Id = g.First().IdEducationalProgram ?? 0,
+                    Code = g.First().SpecialityCode ?? "",
+                    Name = g.Key ?? ""
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -102,9 +102,9 @@ namespace OlimpBack.Controllers
             var query = _context.AddDisciplines
                 .Select(ad => new SpecialityFilterDto
                 {
-                    Id = ad.IdAddDisciplines,
-                    Code = ad.CodeAddDisciplines,
-                    Name = ad.NameAddDisciplines
+                    Id = ad.IdAddDisciplines ?? 0,
+                    Code = ad.CodeAddDisciplines ?? "",
+                    Name = ad.NameAddDisciplines ?? ""
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -138,8 +138,8 @@ namespace OlimpBack.Controllers
             var query = _context.NotificationTemplates
                 .Select(t => new NotificationTemplateFilterDto
                 {
-                    IdNotificationTemplates = t.IdNotificationTemplates,
-                    NotificationType = t.NotificationType
+                    IdNotificationTemplates = t.IdNotificationTemplates ?? 0,
+                    NotificationType = t.NotificationType ?? ""
                 });
 
             if (!string.IsNullOrWhiteSpace(search))

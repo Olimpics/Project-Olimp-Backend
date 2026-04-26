@@ -12,4 +12,6 @@ public partial class Normative
     public int? IsFaculty { get; set; }
 
     public int? DegreeLevelId { get; set; }
+
+    public virtual Educationaldegree? DegreeLevel { get; set; }
 }

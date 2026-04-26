@@ -44,7 +44,7 @@ public class CatalogYearService : ICatalogYearService
         await _repository.AddAsync(entity);
         await _repository.SaveChangesAsync();
 
-        var resultDto = await _repository.GetDtoByIdAsync(entity.IdCatalogYear);
+        var resultDto = await _repository.GetDtoByIdAsync(entity.IdCatalogYear.GetValueOrDefault());
         return resultDto ?? _mapper.Map<CatalogYearDto>(entity);
     }
 

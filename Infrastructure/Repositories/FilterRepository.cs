@@ -45,9 +45,9 @@ public class FilterRepository : IFilterRepository
             .Take(queryDto.PageSize)
             .Select(ad => new SpecialityFilterDto
             {
-                Id = ad.IdAddDisciplines,
-                Code = ad.CodeAddDisciplines,
-                Name = ad.NameAddDisciplines
+                Id = ad.IdAddDisciplines ?? 0,
+                Code = ad.CodeAddDisciplines ?? "",
+                Name = ad.NameAddDisciplines ?? ""
             })
             .ToListAsync();
 

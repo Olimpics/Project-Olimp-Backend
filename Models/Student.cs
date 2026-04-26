@@ -34,4 +34,20 @@ public partial class Student
     public int GroupId { get; set; }
 
     public int IsInSg { get; set; }
+
+    public virtual EducationStatus? EducationStatus { get; set; }
+
+    public virtual User? User { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
+
+    public virtual EducationalProgram? EducationalProgram { get; set; }
+
+    public virtual EducationalDegree? EducationalDegree { get; set; }
+
+    public virtual StudyForm? StudyForm { get; set; }
+
+    public virtual Group? Group { get; set; }
+
+    public virtual ICollection<Bindadddiscipline> BindAddDisciplines { get; set; } = new List<Bindadddiscipline>();
 }

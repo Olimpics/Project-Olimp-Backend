@@ -32,4 +32,14 @@ public partial class Adddiscipline
     public int? IsForseChange { get; set; }
 
     public int? IdCatalog { get; set; }
+
+    public virtual EducationalDegree? DegreeLevel { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
+
+    public virtual ICollection<Bindadddiscipline> BindAddDisciplines { get; set; } = new List<Bindadddiscipline>();
+
+    public virtual Adddetail? AddDetail { get; set; }
+
+    public virtual Typeofdiscipline? Type { get; set; }
 }

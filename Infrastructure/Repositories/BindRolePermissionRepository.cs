@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Infrastructure.Database;
 using OlimpBack.Models;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
@@ -54,12 +55,12 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
 
     public async Task<bool> ExistsRoleAsync(int roleId)
     {
-        return await _context.Roles.AnyAsync(r => r.IdRole == roleId);
+        return await _context.Roles1.AnyAsync(r => r.Id == roleId);
     }
 
     public async Task<bool> ExistsPermissionAsync(int permissionId)
     {
-        return await _context.Permissions.AnyAsync(p => p.IdPermissions == permissionId);
+        return await _context.Permissions.AnyAsync(p => p.Id == permissionId);
     }
 
     public async Task<bool> BindingExistsAsync(int roleId, int permissionId, int? excludeId = null)

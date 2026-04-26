@@ -12,4 +12,6 @@ public partial class Maingrade
     public string? MainDisciplinesId { get; set; }
 
     public string? MainGrade1 { get; set; }
+
+    public virtual Student? Student { get; set; }
 }

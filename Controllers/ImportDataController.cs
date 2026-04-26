@@ -204,7 +204,7 @@ namespace OlimpBack.Controllers
                     if (!string.IsNullOrWhiteSpace(dto.Speciality)) program.Speciality = dto.Speciality;
                     if (dto.Accreditation != 0) program.Accreditation = dto.Accreditation;
                     if (!string.IsNullOrWhiteSpace(dto.AccreditationType)) program.AccreditationType = dto.AccreditationType;
-                    if (dto.StudentsAmount != 0) program.StudentsAmount = dto.StudentsAmount;
+                    if (dto.StudentsAmount != 0) program.StudentsAmount = (int?)dto.StudentsAmount;
                 }
                 await _context.SaveChangesAsync();
                 results.Add(_mapper.Map<EducationalProgramDto>(program));

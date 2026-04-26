@@ -42,10 +42,10 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         }
 
         if (queryDto.AddDisciplinesIds != null && queryDto.AddDisciplinesIds.Any())
-            query = query.Where(b => queryDto.AddDisciplinesIds.Contains(b.AddDisciplinesId));
+            query = query.Where(b => b.AddDisciplinesId.HasValue && queryDto.AddDisciplinesIds.Contains(b.AddDisciplinesId.Value));
 
         if (queryDto.EducationalProgramIds != null && queryDto.EducationalProgramIds.Any())
-            query = query.Where(b => queryDto.EducationalProgramIds.Contains(b.EducationalProgramId));
+            query = query.Where(b => b.EducationalProgramId.HasValue && queryDto.EducationalProgramIds.Contains(b.EducationalProgramId.Value));
 
         // 2. ПІДРАХУНОК (до пагінації)
         var totalCount = await query.CountAsync();
@@ -65,9 +65,9 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Take(queryDto.PageSize)
             .Select(b => new BindLoansMainDto
             {
-                IdBindLoan = b.IdBindLoan,
-                AddDisciplinesId = b.AddDisciplinesId,
-                EducationalProgramId = b.EducationalProgramId,
+                IdBindLoan = b.IdBindLoan ?? 0,
+                AddDisciplinesId = b.AddDisciplinesId ?? 0,
+                EducationalProgramId = b.EducationalProgramId ?? 0,
                 CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
                 AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
                 SpecialityCode = b.EducationalProgram != null ? b.EducationalProgram.SpecialityCode : "",
@@ -85,9 +85,9 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Where(b => b.IdBindLoan == id)
             .Select(b => new BindLoansMainDto
             {
-                IdBindLoan = b.IdBindLoan,
-                AddDisciplinesId = b.AddDisciplinesId,
-                EducationalProgramId = b.EducationalProgramId,
+                IdBindLoan = b.IdBindLoan ?? 0,
+                AddDisciplinesId = b.AddDisciplinesId ?? 0,
+                EducationalProgramId = b.EducationalProgramId ?? 0,
                 CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
                 AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
                 SpecialityCode = b.EducationalProgram != null ? b.EducationalProgram.SpecialityCode : "",

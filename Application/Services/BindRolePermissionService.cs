@@ -54,9 +54,12 @@ public class BindRolePermissionService : IBindRolePermissionService
 
         await _repository.AddAsync(binding);
         await _repository.SaveChangesAsync();
-        await _roleMaskService.RecalculateRoleMaskAsync(binding.RoleId);
+        if (binding.RoleId.HasValue)
+            await _roleMaskService.RecalculateRoleMaskAsync(binding.RoleId.Value);
 
-        var resultDto = await _repository.GetDtoByIdAsync(binding.IdBindRolePermission);
+        var resultDto = binding.IdBindRolePermission.HasValue
+            ? await _repository.GetDtoByIdAsync(binding.IdBindRolePermission.Value)
+            : null;
         return (resultDto, null, null);
     }
 
@@ -83,8 +86,8 @@ public class BindRolePermissionService : IBindRolePermissionService
         _mapper.Map(dto, binding);
         await _repository.SaveChangesAsync();
         await _roleMaskService.RecalculateRoleMaskAsync(dto.RoleId);
-        if (oldRoleId != dto.RoleId)
-            await _roleMaskService.RecalculateRoleMaskAsync(oldRoleId);
+        if (oldRoleId.HasValue && oldRoleId.Value != dto.RoleId)
+            await _roleMaskService.RecalculateRoleMaskAsync(oldRoleId.Value);
 
         return (true, StatusCodes.Status204NoContent, null);
     }
@@ -100,7 +103,8 @@ public class BindRolePermissionService : IBindRolePermissionService
         if (deletedRows == 0)
             return (false, StatusCodes.Status404NotFound, "Binding not found");
 
-        await _roleMaskService.RecalculateRoleMaskAsync(binding.RoleId);
+        if (binding.RoleId.HasValue)
+            await _roleMaskService.RecalculateRoleMaskAsync(binding.RoleId.Value);
 
         return (true, StatusCodes.Status204NoContent, null);
     }

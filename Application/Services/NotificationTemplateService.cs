@@ -43,7 +43,7 @@ public class NotificationTemplateService : INotificationTemplateService
         await _repository.AddAsync(template);
         await _repository.SaveChangesAsync();
 
-        var resultDto = await _repository.GetDtoByIdAsync(template.IdNotificationTemplates);
+        var resultDto = await _repository.GetDtoByIdAsync(template.IdNotificationTemplates.GetValueOrDefault());
         return resultDto ?? _mapper.Map<NotificationTemplateDto>(template);
     }
 

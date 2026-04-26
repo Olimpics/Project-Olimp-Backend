@@ -20,4 +20,8 @@ public partial class Bindadddiscipline
     public string? Grade { get; set; }
 
     public string? CreatedAt { get; set; }
+
+    public virtual Student? Student { get; set; }
+
+    public virtual Adddiscipline? AddDisciplines { get; set; }
 }

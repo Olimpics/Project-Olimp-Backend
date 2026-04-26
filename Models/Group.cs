@@ -32,4 +32,18 @@ public partial class Group
     public int? IdSpecialization { get; set; }
 
     public int IsAccelerated { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
+
+    public virtual Department? Department { get; set; }
+
+    public virtual EducationalProgram? IdEducationalProgramNavigation { get; set; }
+
+    public virtual Speciality? IdSpecialityNavigation { get; set; }
+
+    public virtual Specialization? IdSpecializationNavigation { get; set; }
+
+    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+
+    public virtual Educationaldegree? Degree { get; set; }
 }

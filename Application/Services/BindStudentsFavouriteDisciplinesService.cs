@@ -46,7 +46,7 @@ public class BindStudentsFavouriteDisciplinesService : IBindStudentsFavouriteDis
         await _repository.SaveChangesAsync();
 
         // 4. Витягуємо свіжостворений запис через ProjectTo, щоб повернути його на фронтенд
-        var resultDto = await _repository.GetFavoriteByIdAsync(entity.IdBindStudentsFavouriteDisciplines);
+        var resultDto = await _repository.GetFavoriteByIdAsync(entity.IdBindStudentsFavouriteDisciplines.GetValueOrDefault());
 
         return (true, StatusCodes.Status201Created, null, resultDto);
     }

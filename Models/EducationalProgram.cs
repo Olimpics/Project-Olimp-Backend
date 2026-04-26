@@ -32,4 +32,10 @@ public partial class Educationalprogram
     public string? AccreditationType { get; set; }
 
     public int? StudentsAmount { get; set; }
+
+    public virtual Educationaldegree? Degree { get; set; }
+
+    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+
+    public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
 }

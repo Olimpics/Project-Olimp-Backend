@@ -50,7 +50,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         };
     }
 
-    /// <summary>True when the student has selected the required number of add disciplines per semester (3â€“8) per educational program.</summary>
+    /// <summary>True when the student has selected the required number of add disciplines per semester (38) per educational program.</summary>
     private static bool IsAddDisciplineSelectionComplete(EducationalProgram? program, IReadOnlyList<StudentSelectedDisciplineDto> selected)
     {
         if (program == null) return false;
@@ -153,7 +153,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 successfulConfirms.Add(new ChoiceResultDto
                 {
                     Message = "Choice confirmed",
-                    BindId = bind.IdBindAddDisciplines,
+                    BindId = bind.IdBindAddDisciplines ?? 0,
                     DisciplineName = bind.AddDisciplines?.NameAddDisciplines
                 });
             }
@@ -167,7 +167,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                     continue;
                 }
 
-                var (success, errorMessage) = await RepealChoiceAsync(bind.AddDisciplinesId, (int)bind.Student?.IdStudent);
+                var (success, errorMessage) = await RepealChoiceAsync(bind.AddDisciplinesId ?? 0, bind.Student!.IdStudent);
                 if (!success)
                 {
                     response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = errorMessage ?? "Failed to repeal choice" });
@@ -230,7 +230,10 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         foreach (var d in disciplinesData)
         {
             var periodStart = lastPeriodByFaculty.TryGetValue(d.FacultyId, out var start) ? start : DateTime.MinValue;
-            var currentCount = d.BindDates.Count(date => date >= periodStart);
+            var currentCount = d.BindCreatedAtRaw.Count(s =>
+                !string.IsNullOrWhiteSpace(s) &&
+                DateTime.TryParse(s, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var dt) &&
+                dt >= periodStart);
 
             var normativeCount = d.DegreeLevelId.HasValue && normativeLookup.TryGetValue((d.DegreeLevelId.Value, d.IsFaculty), out var norm) ? norm : (int?)null;
 
@@ -310,7 +313,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         discipline.TypeId = dto.Status;
         await _repository.SaveChangesAsync();
 
-        return new UpdateDisciplineStatusResponseDto { Message = "Discipline status updated", DisciplineId = discipline.IdAddDisciplines, Status = statusName, IsForceChange = 1 };
+        return new UpdateDisciplineStatusResponseDto { Message = "Discipline status updated", DisciplineId = discipline.IdAddDisciplines ?? 0, Status = statusName, IsForceChange = 1 };
     }
 
     public async Task<BindAddDisciplineDto?> GetBindAsync(int id) =>
@@ -351,12 +354,12 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
 
-        return (bind.IdBindAddDisciplines, null);
+        return (bind.IdBindAddDisciplines ?? 0, null);
     }
 
     public async Task<(bool success, string? errorMessage)> RepealChoiceAsync(int disciplineId, int studentId)
     {
-        // 1. Øóêàºìî çâ'ÿçîê çà äâîìà ID
+        // 1.  '   ID
         var bind = await _repository.GetBindByStudentAndDisciplineAsync(studentId, disciplineId);
 
         if (bind == null)
@@ -368,23 +371,21 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
         var disciplineName = bind.AddDisciplines?.NameAddDisciplines ?? "elective";
 
-        // 2. Âèäàëÿºìî
+        // 2. 
         _repository.RemoveBind(bind);
 
-        // 3. Â³äïğàâëÿºìî ñïîâ³ùåííÿ
+        // 3.  
         var notification = new Notification
         {
             UserId = userId.Value,
-            CustomTitle = "Elective discipline rejected",
             CustomMessage = $"Your choice \"{disciplineName}\" was rejected by the administrator.",
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow,
-            NotificationType = "DisciplineRejected"
+            IsRead = 0,
+            CreatedAt = DateTime.UtcNow.ToString("o")
         };
 
         _repository.AddNotification(notification);
 
-        // 4. Çáåğ³ãàºìî (áî öå îäèíè÷íà ä³ÿ)
+        // 4.  (   )
         await _repository.SaveChangesAsync();
 
         return (true, null);
@@ -423,7 +424,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
     }
 
     /// <summary>
-    /// After the latest completed discipline choice period for the faculty, lists students who still do not satisfy add-discipline normatives (semesters 3â€“8) for their program.
+    /// After the latest completed discipline choice period for the faculty, lists students who still do not satisfy add-discipline normatives (semesters 38) for their program.
     /// </summary>
     public async Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(int facultyId)
     {

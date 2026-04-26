@@ -21,7 +21,6 @@ public class AuthAppService : IAuthAppService
     {
         var permissions = await _repository.GetRolePermissionsAsync(roleId);
 
-        // ˜˜˜˜˜˜-˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜
         return permissions
             .GroupBy(p => p.TypePermission)
             .ToDictionary(
@@ -36,31 +35,35 @@ public class AuthAppService : IAuthAppService
 
         if (user == null)
             return (null, null, null, StatusCodes.Status404NotFound, "This user doesn't exist");
-        
-        if (user.PasswordHash == null || user.PasswordHash.Length == 0 ||
-            user.PasswordSalt == null || user.PasswordSalt.Length == 0)
+
+        if (user.PrimaryRole == null)
+            return (null, null, null, StatusCodes.Status404NotFound, "User has no primary role assigned.");
+
+        if (user.Passwordhash == null || user.Passwordhash.Length == 0 ||
+            user.Passwordsalt == null || user.Passwordsalt.Length == 0)
         {
             return (null, null, null, StatusCodes.Status400BadRequest, "User has no password set. Please reset password.");
         }
-        var isPasswordValid = PasswordHelper.VerifyPassword(model.Password, user.PasswordHash, user.PasswordSalt);
+
+        var isPasswordValid = PasswordHelper.VerifyPassword(model.Password, user.Passwordhash, user.Passwordsalt);
 
         if (!isPasswordValid)
             return (null, null, null, StatusCodes.Status400BadRequest, "Incorrect password");
 
-        if (user.IsFirstLogin == true)
+        if (user.Isfirstlogin != 0)
         {
             return (null, null, null, StatusCodes.Status403Forbidden,
                 new { Message = "Password change required", RequirePasswordChange = true });
         }
 
-        var permissionsDb = await _repository.GetRolePermissionsAsync(user.RoleId);
-        var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUsers);
+        var permissionsDb = await _repository.GetRolePermissionsAsync(user.Roleid);
+        var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUser);
 
         UserLoginResponseDto dbResponse;
 
-        if (user.Role.IdRole > 1)
+        if (user.PrimaryRole != null && user.PrimaryRole.Id > 1)
         {
-            var admin = await _repository.GetAdminProfileAsync(user.IdUsers);
+            var admin = await _repository.GetAdminProfileAsync(user.IdUser);
             if (admin == null)
                 return (null, null, null, StatusCodes.Status404NotFound, "Admin profile not found");
 
@@ -68,20 +71,19 @@ public class AuthAppService : IAuthAppService
         }
         else
         {
-            var student = await _repository.GetStudentProfileAsync(user.IdUsers);
+            var student = await _repository.GetStudentProfileAsync(user.IdUser);
             if (student == null)
                 return (null, null, null, StatusCodes.Status404NotFound, "Student not found");
 
             dbResponse = _mapper.Map<LoginResponseStudentDto>(student);
         }
 
-        // ˜˜˜˜˜˜˜ Tracking ˜ ˜˜˜˜˜˜˜˜˜, ˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜
-        user.LastLoginAt = DateTime.UtcNow;
+        user.Lastloginat = DateTime.UtcNow;
         await _repository.SaveChangesAsync();
 
         dbResponse.PermissionsMask = permissionsMask;
 
-        return (dbResponse, permissionsDb, user.Role.NameRole, null, null);
+        return (dbResponse, permissionsDb, user.PrimaryRole?.Name ?? string.Empty, null, null);
     }
 
     public async Task<(object? response, List<PermissionDto>? permissions, int? statusCode, string? errorPayload)> GetCurrentUserAsync(int userId)
@@ -91,25 +93,27 @@ public class AuthAppService : IAuthAppService
         if (user == null)
             return (null, null, StatusCodes.Status404NotFound, "User not found");
 
-        var permissions = await _repository.GetRolePermissionsAsync(user.RoleId);
-        var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUsers);
+        if (user.PrimaryRole == null)
+            return (null, null, StatusCodes.Status404NotFound, "User has no primary role assigned.");
+
+        var permissions = await _repository.GetRolePermissionsAsync(user.Roleid);
+        var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUser);
 
         object? response = null;
 
-        if (user.Role.IdRole > 1)
+        if (user.PrimaryRole != null && user.PrimaryRole.Id > 1)
         {
-            var admin = await _repository.GetAdminProfileAsync(user.IdUsers);
+            var admin = await _repository.GetAdminProfileAsync(user.IdUser);
             if (admin == null)
                 return (null, null, StatusCodes.Status404NotFound, "Admin profile not found");
 
-            // ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜: ˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜ ˜ AdminDto, ˜ ˜˜ ˜ StudentDto!
             var adminResponse = _mapper.Map<LoginResponseAdminDto>(admin);
             adminResponse.PermissionsMask = permissionsMask;
             response = adminResponse;
         }
         else
         {
-            var student = await _repository.GetStudentProfileAsync(user.IdUsers);
+            var student = await _repository.GetStudentProfileAsync(user.IdUser);
             if (student == null)
                 return (null, null, StatusCodes.Status404NotFound, "This student doesn't exist");
 
@@ -130,18 +134,18 @@ public class AuthAppService : IAuthAppService
         if (user == null)
             return (false, StatusCodes.Status404NotFound, "User not found.");
 
-        if (user.IsFirstLogin == false)
+        if (user.Isfirstlogin == 0)
         {
             if (string.IsNullOrEmpty(dto.OldPassword))
                 return (false, StatusCodes.Status400BadRequest, "Old password is required.");
 
-            if (user.PasswordHash == null || user.PasswordHash.Length == 0 ||
-                user.PasswordSalt == null || user.PasswordSalt.Length == 0)
+            if (user.Passwordhash == null || user.Passwordhash.Length == 0 ||
+                user.Passwordsalt == null || user.Passwordsalt.Length == 0)
             {
                 return (false, StatusCodes.Status400BadRequest, "User has no password set.");
             }
 
-            if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.PasswordHash, user.PasswordSalt))
+            if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.Passwordhash, user.Passwordsalt))
                 return (false, StatusCodes.Status400BadRequest, "Old password incorrect.");
         }
 
@@ -151,10 +155,10 @@ public class AuthAppService : IAuthAppService
 
         PasswordHelper.CreatePasswordHash(dto.NewPassword, out var newHash, out var newSalt);
 
-        user.PasswordHash = newHash;
-        user.PasswordSalt = newSalt;
-        user.IsFirstLogin = false;
-        user.PasswordChangedAt = DateTime.UtcNow;
+        user.Passwordhash = newHash;
+        user.Passwordsalt = newSalt;
+        user.Isfirstlogin = 0;
+        user.Passwordchangedat = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync();
 

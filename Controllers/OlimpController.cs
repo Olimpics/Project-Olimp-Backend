@@ -16,7 +16,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("Check-connection")]
         public async Task<IActionResult> CheckConnection()
-        {
+        {   
             try
             {
                 using var connection = new MySqlConnection(_connectionString);

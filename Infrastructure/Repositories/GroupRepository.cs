@@ -104,7 +104,7 @@ public class GroupRepository : IGroupRepository
                 IdStudyForm = g.IdStudyForm,
                 IdSpecialization = g.IdSpecialization,
                 SpecializationName = g.IdSpecialization.HasValue ? g.IdSpecializationNavigation.Name : null,
-                IsAccelerated = g.IsAccelerated
+                IsAccelerated = g.IsAccelerated != 0
             })
             .FirstOrDefaultAsync();
     }

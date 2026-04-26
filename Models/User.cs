@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OlimpBack.Models;
 
@@ -22,6 +23,10 @@ public partial class User
     public DateTime Createdat { get; set; }
 
     public DateTime Lastloginat { get; set; }
+
+    /// <summary>Primary role from users.roleid (roles.id).</summary>
+    [ForeignKey(nameof(Roleid))]
+    public virtual Role1? PrimaryRole { get; set; }
 
     public virtual ICollection<Role1> Roles { get; set; } = new List<Role1>();
 }

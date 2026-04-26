@@ -23,11 +23,13 @@ namespace OlimpBack.Utils
 
             var boundDisciplineIds = student.BindAddDisciplines
                 .Select(b => b.AddDisciplinesId)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
                 .ToHashSet();
 
             var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess == 1)
-                .GroupBy(b => b.AddDisciplinesId)
+                .Where(b => b.InProcess == 1 && b.AddDisciplinesId != null)
+                .GroupBy(b => b.AddDisciplinesId!.Value)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
 
@@ -42,7 +44,7 @@ namespace OlimpBack.Utils
         }
         public static bool IsDisciplineAvailable(AddDiscipline discipline, DisciplineAvailabilityContext context)
         {
-            if (context.BoundDisciplineIds.Contains(discipline.IdAddDisciplines))
+            if (!discipline.IdAddDisciplines.HasValue || context.BoundDisciplineIds.Contains(discipline.IdAddDisciplines.Value))
                 return false;
 
             if (discipline.DegreeLevel != null &&
@@ -60,14 +62,14 @@ namespace OlimpBack.Utils
 
             if (discipline.MinCountPeople.HasValue)
             {
-                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var count) ? count : 0;
+                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines!.Value, out var count) ? count : 0;
                 if (currentCount < discipline.MinCountPeople.Value)
                     return false;
             }
 
             if (discipline.MaxCountPeople.HasValue)
             {
-                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var count) ? count : 0;
+                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines!.Value, out var count) ? count : 0;
                 if (currentCount >= discipline.MaxCountPeople.Value)
                     return false;
             }
