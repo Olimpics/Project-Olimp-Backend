@@ -3,11 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class EducationStatus
+public partial class Educationstatus
 {
-    public int IdEducationStatus { get; set; }
+    public int? IdEducationStatus { get; set; }
 
-    public string NameEducationStatus { get; set; } = null!;
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+    public string? NameEducationStatus { get; set; }
 }

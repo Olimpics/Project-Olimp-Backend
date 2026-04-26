@@ -3,15 +3,13 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class NotificationTemplate
+public partial class Notificationtemplate
 {
-    public int IdNotificationTemplates { get; set; }
+    public int? IdNotificationTemplates { get; set; }
 
-    public string NotificationType { get; set; } = null!;
+    public string? NotificationType { get; set; }
 
-    public string Title { get; set; } = null!;
+    public string? Title { get; set; }
 
-    public string Message { get; set; } = null!;
-
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public string? Message { get; set; }
 }

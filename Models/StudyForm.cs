@@ -3,13 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class StudyForm
+public partial class Studyform
 {
-    public int IdStudyForm { get; set; }
+    public int? IdStudyForm { get; set; }
 
-    public string NameStudyForm { get; set; } = null!;
-
-    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+    public string? NameStudyForm { get; set; }
 }

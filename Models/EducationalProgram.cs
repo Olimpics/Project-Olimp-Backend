@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class EducationalProgram
+public partial class Educationalprogram
 {
-    public int IdEducationalProgram { get; set; }
+    public int? IdEducationalProgram { get; set; }
 
-    public string NameEducationalProgram { get; set; } = null!;
+    public string? NameEducationalProgram { get; set; }
 
     public int? CountAddSemestr3 { get; set; }
 
@@ -21,25 +21,15 @@ public partial class EducationalProgram
 
     public int? CountAddSemestr8 { get; set; }
 
-    public int DegreeId { get; set; }
+    public int? DegreeId { get; set; }
 
-    public string SpecialityCode { get; set; } = null!;
+    public string? SpecialityCode { get; set; }
 
-    public string Speciality { get; set; } = null!;
+    public string? Speciality { get; set; }
 
-    public sbyte Accreditation { get; set; }
+    public int? Accreditation { get; set; }
 
-    public string AccreditationType { get; set; } = null!;
+    public string? AccreditationType { get; set; }
 
-    public uint StudentsAmount { get; set; }
-
-    public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
-
-    public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
-
-    public virtual EducationalDegree Degree { get; set; } = null!;
-
-    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+    public int? StudentsAmount { get; set; }
 }

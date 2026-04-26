@@ -3,16 +3,11 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-/// <summary>
-/// Катлог за навчальним роками.
-/// </summary>
-public partial class CatalogYear
+public partial class Catalogyear
 {
-    public int IdCatalogYear { get; set; }
+    public int? IdCatalogYear { get; set; }
 
-    public string NameCatalog { get; set; } = null!;
+    public string? NameCatalog { get; set; }
 
-    public sbyte IsFormed { get; set; }
-
-    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
+    public int? IsFormed { get; set; }
 }

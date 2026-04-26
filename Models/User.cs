@@ -5,29 +5,23 @@ namespace OlimpBack.Models;
 
 public partial class User
 {
-    public int IdUsers { get; set; }
+    public int IdUser { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
-    public byte[]? PasswordHash { get; set; }
+    public byte[]? Passwordhash { get; set; }
 
-    public byte[]? PasswordSalt { get; set; }
+    public byte[]? Passwordsalt { get; set; }
 
-    public int RoleId { get; set; }
+    public int Roleid { get; set; }
 
-    public bool? IsFirstLogin { get; set; }
+    public int Isfirstlogin { get; set; }
 
-    public DateTime? PasswordChangedAt { get; set; }
+    public DateTime? Passwordchangedat { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime Createdat { get; set; }
 
-    public DateTime LastLoginAt { get; set; }
+    public DateTime Lastloginat { get; set; }
 
-    public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
-
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-
-    public virtual Role Role { get; set; } = null!;
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+    public virtual ICollection<Role1> Roles { get; set; } = new List<Role1>();
 }

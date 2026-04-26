@@ -3,25 +3,19 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class AdminLog
+public partial class Adminlog
 {
-    public long LogId { get; set; }
+    public int? LogId { get; set; }
 
-    /// <summary>
-    /// idUsers who performed action
-    /// </summary>
-    public int AdminId { get; set; }
+    public int? AdminId { get; set; }
 
-    public DateTime ChangeTime { get; set; }
+    public string? ChangeTime { get; set; }
 
-    public string TableName { get; set; } = null!;
+    public string? TableName { get; set; }
 
-    public string Action { get; set; } = null!;
+    public string? Action { get; set; }
 
-    /// <summary>
-    /// Primary key of affected row
-    /// </summary>
-    public string KeyValue { get; set; } = null!;
+    public int? KeyValue { get; set; }
 
     public string? OldData { get; set; }
 

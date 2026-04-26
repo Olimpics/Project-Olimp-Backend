@@ -3,15 +3,11 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class BindLoansMain
+public partial class Bindloansmain
 {
-    public int IdBindLoan { get; set; }
+    public int? IdBindLoan { get; set; }
 
-    public int AddDisciplinesId { get; set; }
+    public int? AddDisciplinesId { get; set; }
 
-    public int EducationalProgramId { get; set; }
-
-    public virtual AddDiscipline AddDisciplines { get; set; } = null!;
-
-    public virtual EducationalProgram EducationalProgram { get; set; } = null!;
+    public int? EducationalProgramId { get; set; }
 }

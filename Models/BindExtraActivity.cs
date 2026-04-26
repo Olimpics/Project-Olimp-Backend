@@ -3,17 +3,13 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class BindExtraActivity
+public partial class Bindextraactivity
 {
-    public int IdBindExtraActivity { get; set; }
+    public string? IdBindExtraActivity { get; set; }
 
-    public int StudentId { get; set; }
+    public string? StudentId { get; set; }
 
-    public int RefulationId { get; set; }
+    public string? RefulationId { get; set; }
 
-    public int Points { get; set; }
-
-    public virtual RegulationOnAddPoint Refulation { get; set; } = null!;
-
-    public virtual Student Student { get; set; } = null!;
+    public string? Points { get; set; }
 }

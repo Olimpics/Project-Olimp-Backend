@@ -3,25 +3,21 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class BindAddDiscipline
+public partial class Bindadddiscipline
 {
-    public int IdBindAddDisciplines { get; set; }
+    public int? IdBindAddDisciplines { get; set; }
 
-    public int StudentId { get; set; }
+    public int? StudentId { get; set; }
 
-    public int AddDisciplinesId { get; set; }
+    public int? AddDisciplinesId { get; set; }
 
-    public int Semestr { get; set; }
+    public int? Semestr { get; set; }
 
-    public int Loans { get; set; }
+    public int? Loans { get; set; }
 
-    public sbyte InProcess { get; set; }
+    public int? InProcess { get; set; }
 
-    public int? Grade { get; set; }
+    public string? Grade { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public virtual AddDiscipline AddDisciplines { get; set; } = null!;
-
-    public virtual Student Student { get; set; } = null!;
+    public string? CreatedAt { get; set; }
 }

@@ -3,21 +3,17 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class RegulationOnAddPoint
+public partial class Regulationonaddpoint
 {
-    public int IdRegulationOnAddPoints { get; set; }
+    public string? IdRegulationOnAddPoints { get; set; }
 
-    public string CodeRegulationOnAddPoints { get; set; } = null!;
+    public string? CodeRegulationOnAddPoints { get; set; }
 
-    public string TypeOfActivitys { get; set; } = null!;
+    public string? TypeOfActivitys { get; set; }
 
-    public int? AmountMin { get; set; }
+    public string? AmountMin { get; set; }
 
-    public int AmountMax { get; set; }
+    public string? AmountMax { get; set; }
 
     public string? Notes { get; set; }
-
-    public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
-
-    public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 }

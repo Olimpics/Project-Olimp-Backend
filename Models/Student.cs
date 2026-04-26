@@ -9,7 +9,7 @@ public partial class Student
 
     public int UserId { get; set; }
 
-    public string NameStudent { get; set; } = null!;
+    public string? NameStudent { get; set; }
 
     public int EducationStatusId { get; set; }
 
@@ -23,7 +23,7 @@ public partial class Student
 
     public int StudyFormId { get; set; }
 
-    public sbyte IsShort { get; set; }
+    public int IsShort { get; set; }
 
     public int EducationalProgramId { get; set; }
 
@@ -33,35 +33,5 @@ public partial class Student
 
     public int GroupId { get; set; }
 
-    public byte[]? Photo { get; set; }
-
-    public bool IsInSg { get; set; }
-
-    public string? Achievement { get; set; }
-
-    public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
-
-    public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
-
-    public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
-
-    public virtual ICollection<BindStudentsFavouriteDiscipline> BindStudentsFavouriteDisciplines { get; set; } = new List<BindStudentsFavouriteDiscipline>();
-
-    public virtual EducationStatus EducationStatus { get; set; } = null!;
-
-    public virtual EducationalDegree EducationalDegree { get; set; } = null!;
-
-    public virtual EducationalProgram EducationalProgram { get; set; } = null!;
-
-    public virtual Faculty Faculty { get; set; } = null!;
-
-    public virtual Group Group { get; set; } = null!;
-
-    public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
-
-    public virtual ICollection<Member> Members { get; set; } = new List<Member>();
-
-    public virtual StudyForm StudyForm { get; set; } = null!;
-
-    public virtual User User { get; set; } = null!;
+    public int IsInSg { get; set; }
 }

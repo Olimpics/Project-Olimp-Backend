@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class AddDetail
+public partial class Adddetail
 {
-    public int IdAddDetails { get; set; }
+    public int? IdAddDetails { get; set; }
 
     public string? Recomend { get; set; }
 
@@ -27,11 +27,7 @@ public partial class AddDetail
 
     public string? DisciplineTopics { get; set; }
 
-    public string TypesOfTraining { get; set; } = null!;
+    public string? TypesOfTraining { get; set; }
 
-    public string TypeOfControll { get; set; } = null!;
-
-    public virtual Department? Department { get; set; }
-
-    public virtual AddDiscipline IdAddDetailsNavigation { get; set; } = null!;
+    public string? TypeOfControll { get; set; }
 }

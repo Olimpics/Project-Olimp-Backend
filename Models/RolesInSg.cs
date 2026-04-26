@@ -3,13 +3,11 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class RolesInSg
+public partial class Rolesinsg
 {
-    public int IdRoleSg { get; set; }
+    public string? IdRoleSg { get; set; }
 
-    public string NameRole { get; set; } = null!;
+    public string? NameRole { get; set; }
 
-    public int Points { get; set; }
-
-    public virtual ICollection<Member> Members { get; set; } = new List<Member>();
+    public string? Points { get; set; }
 }
