@@ -10,6 +10,6 @@ namespace OlimpBack.Application.DTO
     }
     public class StudentEducationalProgramDto : StudentAddDisciplinesDto
     {
-        public List<BindMainDisciplineDto> MainDisciplines { get; set; } = new List<BindMainDisciplineDto>();
+        public List<MainDisciplineDto> MainDisciplines { get; set; } = new List<MainDisciplineDto>();
     }
 } 

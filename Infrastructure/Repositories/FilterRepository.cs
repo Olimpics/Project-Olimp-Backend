@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -45,7 +46,7 @@ public class FilterRepository : IFilterRepository
             .Take(queryDto.PageSize)
             .Select(ad => new SpecialityFilterDto
             {
-                Id = ad.IdAddDisciplines ?? 0,
+                Id = ad.IdAddDisciplines,
                 Code = ad.CodeAddDisciplines ?? "",
                 Name = ad.NameAddDisciplines ?? ""
             })

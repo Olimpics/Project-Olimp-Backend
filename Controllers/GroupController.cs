@@ -59,7 +59,7 @@ namespace OlimpBack.Controllers
 
 
         [HttpGet("{id}/curriculum")]
-        public async Task<ActionResult<GroupBindMainDisciplinesDTO>> GetGroupCurriculum(int id)
+        public async Task<ActionResult<GroupMainDisciplineDto>> GetGroupCurriculum(int id)
         {
             var curriculum = await _groupService.GetGroupCurriculumAsync(id);
             if (curriculum == null)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 namespace OlimpBack.Utils
 {
@@ -23,8 +24,7 @@ namespace OlimpBack.Utils
                 Email = email,
                 Passwordhash = hash,
                 Passwordsalt = salt,
-                Roleid = roleId,
-                Isfirstlogin = 1,
+                Isfirstlogin = new System.Collections.BitArray(1, true),
                 Createdat = DateTime.UtcNow,
                 Lastloginat = DateTime.UtcNow
             };

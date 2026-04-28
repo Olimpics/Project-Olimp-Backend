@@ -1,19 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Disciplinechoiceperiod
+public partial class DisciplineChoicePeriod
 {
-    public int? IdDisciplineChoicePeriod { get; set; }
+    public int IdDisciplineChoicePeriod { get; set; }
 
-    public int? PeriodType { get; set; }
+    public BitArray? PeriodType { get; set; }
 
     public int? PeriodCourse { get; set; }
 
     public int? DegreeLevelId { get; set; }
 
-    public int? IsClose { get; set; }
+    public BitArray? IsClose { get; set; }
 
     public int? FacultyId { get; set; }
 
@@ -22,4 +23,8 @@ public partial class Disciplinechoiceperiod
     public string? StartDate { get; set; }
 
     public string? EndDate { get; set; }
+
+    public virtual Department? Department { get; set; }
+
+    public virtual Faculty? Faculty { get; set; }
 }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Regulationonaddpoint
+public partial class RegulationOnAddPoint
 {
-    public string? IdRegulationOnAddPoints { get; set; }
+    public int IdRegulationOnAddPoints { get; set; }
 
     public string? CodeRegulationOnAddPoints { get; set; }
 
@@ -16,4 +16,8 @@ public partial class Regulationonaddpoint
     public string? AmountMax { get; set; }
 
     public string? Notes { get; set; }
+
+    public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
+
+    public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 }

@@ -6,17 +6,17 @@ namespace OlimpBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BindMainDisciplineController : ControllerBase
+    public class MainDisciplineController : ControllerBase
     {
-        private readonly IBindMainDisciplineService _service;
+        private readonly IMainDisciplineService _service;
 
-        public BindMainDisciplineController(IBindMainDisciplineService service)
+        public MainDisciplineController(IMainDisciplineService service)
         {
             _service = service;
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<BindMainDisciplineDto>> GetBindMainDiscipline(int id)
+        public async Task<ActionResult<MainDisciplineDto>> GetMainDiscipline(int id)
         {
             var result = await _service.GetByIdAsync(id);
 
@@ -27,15 +27,15 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<BindMainDisciplineDto>> CreateBindMainDiscipline(CreateBindMainDisciplineDto dto)
+        public async Task<ActionResult<MainDisciplineDto>> CreateMainDiscipline(CreateMainDisciplineDto dto)
         {
             var resultDto = await _service.CreateAsync(dto);
 
-            return CreatedAtAction(nameof(GetBindMainDiscipline), new { id = resultDto.IdBindMainDisciplines }, resultDto);
+            return CreatedAtAction(nameof(GetMainDiscipline), new { id = resultDto.IdMainDisciplines }, resultDto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBindMainDiscipline(int id, UpdateBindMainDisciplineDto dto)
+        public async Task<IActionResult> UpdateMainDiscipline(int id, UpdateMainDisciplineDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
 
@@ -46,7 +46,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBindMainDiscipline(int id)
+        public async Task<IActionResult> DeleteMainDiscipline(int id)
         {
             var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);
 

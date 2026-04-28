@@ -3,9 +3,11 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Subdivisionssg
+public partial class SubDivisionsSg
 {
-    public string? IdSubDivision { get; set; }
+    public int IdSubDivision { get; set; }
 
     public string? NameDivision { get; set; }
+
+    public virtual ICollection<MembersOfSg> MembersOfSgs { get; set; } = new List<MembersOfSg>();
 }

@@ -10,6 +10,4 @@ public partial class Permission
     public string Code { get; set; } = null!;
 
     public int BitIndex { get; set; }
-
-    public virtual ICollection<Role1> Roles { get; set; } = new List<Role1>();
 }

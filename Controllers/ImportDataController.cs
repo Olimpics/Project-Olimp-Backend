@@ -6,6 +6,7 @@ using OlimpBack.Infrastructure.Database;
 using OlimpBack.Models;
 using OlimpBack.Utils;
 using System.Text.Json;
+using OlimpBack.Data;
 
 namespace OlimpBack.Controllers
 {
@@ -153,7 +154,7 @@ namespace OlimpBack.Controllers
                         if (!string.IsNullOrWhiteSpace(det.Content.UsingIrl)) discipline.AddDetail.UsingIrl = det.Content.UsingIrl;
                         if (!string.IsNullOrWhiteSpace(det.Content.DisciplineTopics)) discipline.AddDetail.DisciplineTopics = det.Content.DisciplineTopics;
                         if (!string.IsNullOrWhiteSpace(det.Content.TypesOfTraining)) discipline.AddDetail.TypesOfTraining = det.Content.TypesOfTraining;
-                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.AddDetail.TypeOfControll = det.Content.TypeOfControll;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.AddDetail.TypeOfControlNavigation.Type= det.Content.TypeOfControll;
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -235,12 +236,12 @@ namespace OlimpBack.Controllers
             {
                 if (string.IsNullOrWhiteSpace(dto.GroupCode))
                     continue;
-                var group = await _context.Groups
+                var group = await _context.StudentGroups
                     .FirstOrDefaultAsync(g => g.GroupCode == dto.GroupCode);
                 if (group == null)
                 {
-                    group = _mapper.Map<Group>(dto);
-                    _context.Groups.Add(group);
+                    group = _mapper.Map<StudentGroup>(dto);
+                    _context.StudentGroups.Add(group);
                 }
                 else
                 {

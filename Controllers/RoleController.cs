@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 namespace OlimpBack.Controllers
 {
@@ -50,7 +51,7 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             var resultDto = _mapper.Map<RoleDto>(role);
-            return CreatedAtAction(nameof(GetRole), new { id = role.IdRole }, resultDto);
+            return CreatedAtAction(nameof(GetRole), new { id = role.Id }, resultDto);
         }
 
         // PUT: api/Role/5

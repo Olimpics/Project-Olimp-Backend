@@ -23,31 +23,43 @@ public partial class Student
 
     public int StudyFormId { get; set; }
 
-    public int IsShort { get; set; }
+    public short IsShort { get; set; }
 
     public int EducationalProgramId { get; set; }
 
     public int Course { get; set; }
 
-    public int? DepartmentId { get; set; }
-
     public int GroupId { get; set; }
 
     public int IsInSg { get; set; }
 
-    public virtual EducationStatus? EducationStatus { get; set; }
+    public List<int>? Idfav { get; set; }
 
-    public virtual User? User { get; set; }
+    public int? Departmentid { get; set; }
 
-    public virtual Faculty? Faculty { get; set; }
+    public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
 
-    public virtual EducationalProgram? EducationalProgram { get; set; }
+    public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
 
-    public virtual EducationalDegree? EducationalDegree { get; set; }
+    public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 
-    public virtual StudyForm? StudyForm { get; set; }
+    public virtual Department? Department { get; set; }
 
-    public virtual Group? Group { get; set; }
+    public virtual EducationStatus EducationStatus { get; set; } = null!;
 
-    public virtual ICollection<Bindadddiscipline> BindAddDisciplines { get; set; } = new List<Bindadddiscipline>();
+    public virtual EducationalDegree EducationalDegree { get; set; } = null!;
+
+    public virtual EducationalProgram EducationalProgram { get; set; } = null!;
+
+    public virtual Faculty Faculty { get; set; } = null!;
+
+    public virtual StudentGroup Group { get; set; } = null!;
+
+    public virtual MembersOfSg IsInSgNavigation { get; set; } = null!;
+
+    public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
+
+    public virtual StudyForm StudyForm { get; set; } = null!;
+
+    public virtual User User { get; set; } = null!;
 }

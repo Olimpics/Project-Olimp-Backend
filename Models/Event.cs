@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class Event
 {
-    public string? IdEvent { get; set; }
+    public int IdEvent { get; set; }
 
     public string? NameEvent { get; set; }
 
-    public string? Date { get; set; }
+    public DateOnly? Date { get; set; }
 
     public string? Location { get; set; }
 
@@ -19,5 +19,9 @@ public partial class Event
 
     public string? AmountPeople { get; set; }
 
-    public string? RegulationId { get; set; }
+    public int? RegulationId { get; set; }
+
+    public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
+
+    public virtual RegulationOnAddPoint? Regulation { get; set; }
 }

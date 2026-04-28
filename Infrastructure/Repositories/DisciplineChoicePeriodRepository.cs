@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -39,10 +40,10 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
             query = query.Where(p => p.DegreeLevelId == queryDto.DegreeLevelId.Value);
 
         if (queryDto.PeriodType.HasValue)
-            query = query.Where(p => p.PeriodType == queryDto.PeriodType.Value);
+            query = query.Where(p => p.PeriodType != null && p.PeriodType.Length > 0 && p.PeriodType[0] == (queryDto.PeriodType.Value != 0));
 
         if (queryDto.IsClose.HasValue)
-            query = query.Where(p => p.IsClose == queryDto.IsClose.Value);
+            query = query.Where(p => p.IsClose != null && p.IsClose.Length > 0 && p.IsClose[0] == (queryDto.IsClose.Value != 0));
 
         if (queryDto.PeriodCourse.HasValue)
             query = query.Where(p => p.PeriodCourse == queryDto.PeriodCourse.Value);

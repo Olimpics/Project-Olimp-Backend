@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Adminspersonal
+public partial class AdminsPersonal
 {
-    public int? IdAdmins { get; set; }
+    public int IdAdmins { get; set; }
 
     public int? UserId { get; set; }
 
@@ -15,9 +15,13 @@ public partial class Adminspersonal
 
     public int? DepartmentId { get; set; }
 
-    public string? Photo { get; set; }
+    public virtual ICollection<AdminLog> AdminLogs { get; set; } = new List<AdminLog>();
 
-    public virtual User? User { get; set; }
+    public virtual Department? Department { get; set; }
 
     public virtual Faculty? Faculty { get; set; }
+
+    public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
+
+    public virtual User? User { get; set; }
 }

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
+
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -100,7 +102,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
             .Where(d => d.IdAddDisciplines == id)
             .Select(d => new FullDisciplineWithDetailsDto
             {
-                IdAddDisciplines = d.IdAddDisciplines ?? 0,
+                IdAddDisciplines = d.IdAddDisciplines,
                 NameAddDisciplines = d.NameAddDisciplines ?? "",
                 CodeAddDisciplines = d.CodeAddDisciplines ?? "",
                 FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation : null,
@@ -121,7 +123,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 UsingIrl = d.AddDetail != null ? d.AddDetail.UsingIrl : null,
                 DisciplineTopics = d.AddDetail != null ? d.AddDetail.DisciplineTopics : null,
                 TypesOfTraining = d.AddDetail != null ? d.AddDetail.TypesOfTraining : "",
-                TypeOfControll = d.AddDetail != null ? d.AddDetail.TypeOfControll : ""
+                TypeOfControll = d.AddDetail != null ? d.AddDetail.TypeOfControlNavigation.Type : ""
             })
             .FirstOrDefaultAsync();
     }

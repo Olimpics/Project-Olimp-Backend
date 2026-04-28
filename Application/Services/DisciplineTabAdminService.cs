@@ -149,11 +149,11 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
             if (dto.IsConfirm == 1)
             {
-                bind.InProcess = 0;
+                bind.InProcess = new System.Collections.BitArray(1, false); // false = 0, true = 1
                 successfulConfirms.Add(new ChoiceResultDto
                 {
                     Message = "Choice confirmed",
-                    BindId = bind.IdBindAddDisciplines ?? 0,
+                    BindId = bind.IdBindAddDisciplines,
                     DisciplineName = bind.AddDisciplines?.NameAddDisciplines
                 });
             }
@@ -313,7 +313,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         discipline.TypeId = dto.Status;
         await _repository.SaveChangesAsync();
 
-        return new UpdateDisciplineStatusResponseDto { Message = "Discipline status updated", DisciplineId = discipline.IdAddDisciplines ?? 0, Status = statusName, IsForceChange = 1 };
+        return new UpdateDisciplineStatusResponseDto { Message = "Discipline status updated", DisciplineId = discipline.IdAddDisciplines, Status = statusName, IsForceChange = 1 };
     }
 
     public async Task<BindAddDisciplineDto?> GetBindAsync(int id) =>
@@ -350,11 +350,19 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         if (!await _repository.ExistsStudentAsync(dto.StudentId)) return (null, "Student not found");
         if (!await _repository.ExistsDisciplineAsync(dto.DisciplineId)) return (null, "Discipline not found");
 
-        var bind = new BindAddDiscipline { StudentId = dto.StudentId, AddDisciplinesId = dto.DisciplineId, Semestr = dto.Semestr, Loans = dto.Loans, InProcess = 1 };
+        // Исправлено создание BindAddDiscipline: свойство InProcess ожидает BitArray, а не int
+        var bind = new BindAddDiscipline
+        {
+            StudentId = dto.StudentId,
+            AddDisciplinesId = dto.DisciplineId,
+            Semestr = dto.Semestr,
+            Loans = dto.Loans,
+            InProcess = new System.Collections.BitArray(1, true) // true = 1, false = 0
+        };
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
 
-        return (bind.IdBindAddDisciplines ?? 0, null);
+        return (bind.IdBindAddDisciplines, null);
     }
 
     public async Task<(bool success, string? errorMessage)> RepealChoiceAsync(int disciplineId, int studentId)
@@ -379,8 +387,8 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         {
             UserId = userId.Value,
             CustomMessage = $"Your choice \"{disciplineName}\" was rejected by the administrator.",
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.ToString("o")
+            IsRead = new System.Collections.BitArray(0, true),
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         _repository.AddNotification(notification);

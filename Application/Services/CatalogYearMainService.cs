@@ -7,48 +7,48 @@ using OlimpBack.Models;
 
 namespace OlimpBack.Application.Services;
 
-public interface ICatalogYearService
+public interface ICatalogYearMainService
 {
-    Task<IEnumerable<CatalogYearDto>> GetAllAsync();
-    Task<CatalogYearDto?> GetByIdAsync(int id);
-    Task<CatalogYearDto> CreateAsync(CreateCatalogYearDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearDto dto);
+    Task<IEnumerable<CatalogYearMainDto>> GetAllAsync();
+    Task<CatalogYearMainDto?> GetByIdAsync(int id);
+    Task<CatalogYearMainDto> CreateAsync(CreateCatalogYearMainDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearMainDto dto);
     Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
 }
 
-public class CatalogYearService : ICatalogYearService
+public class CatalogYearMainService : ICatalogYearMainService
 {
-    private readonly ICatalogYearRepository _repository;
+    private readonly ICatalogYearMainRepository _repository;
     private readonly IMapper _mapper;
 
-    public CatalogYearService(ICatalogYearRepository repository, IMapper mapper)
+    public CatalogYearMainService(ICatalogYearMainRepository repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<CatalogYearDto>> GetAllAsync()
+    public async Task<IEnumerable<CatalogYearMainDto>> GetAllAsync()
     {
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<CatalogYearDto?> GetByIdAsync(int id)
+    public async Task<CatalogYearMainDto?> GetByIdAsync(int id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
 
-    public async Task<CatalogYearDto> CreateAsync(CreateCatalogYearDto dto)
+    public async Task<CatalogYearMainDto> CreateAsync(CreateCatalogYearMainDto dto)
     {
-        var entity = _mapper.Map<CatalogYear>(dto);
+        var entity = _mapper.Map<CatalogYearsMain>(dto);
 
         await _repository.AddAsync(entity);
         await _repository.SaveChangesAsync();
 
-        var resultDto = await _repository.GetDtoByIdAsync(entity.IdCatalogYear.GetValueOrDefault());
-        return resultDto ?? _mapper.Map<CatalogYearDto>(entity);
+        var resultDto = await _repository.GetDtoByIdAsync(entity.IdCatalogYear);
+        return resultDto ?? _mapper.Map<CatalogYearMainDto>(entity);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearMainDto dto)
     {
         if (id != dto.IdCatalogYear)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");

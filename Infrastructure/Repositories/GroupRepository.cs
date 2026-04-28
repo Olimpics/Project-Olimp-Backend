@@ -3,6 +3,8 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
+
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -12,9 +14,9 @@ public interface IGroupRepository
     Task<GroupDto?> GetDtoByIdAsync(int id);
     Task<GroupDetailsDto?> GetDetailsByIdAsync(int id);
     Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId);
-    Task<Group?> GetEntityByIdAsync(int id);
+    Task<StudentGroup?> GetEntityByIdAsync(int id);
     Task<bool> ExistsAsync(int id);
-    Task AddAsync(Group group);
+    Task AddAsync(StudentGroup group);
     Task<int> DeleteAsync(int id);
 
     Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(int groupId);
@@ -34,7 +36,7 @@ public class GroupRepository : IGroupRepository
 
     public async Task<IEnumerable<GroupFilterDto>> GetFilteredGroupsAsync(GroupListQueryDto queryDto)
     {
-        var query = _context.Groups.AsNoTracking().AsQueryable();
+        var query = _context.StudentGroups.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
@@ -43,10 +45,17 @@ public class GroupRepository : IGroupRepository
         }
 
         if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
-            query = query.Where(g => g.FacultyId.HasValue && queryDto.FacultyIds.Contains(g.FacultyId.Value));
+            query = query.Where(g => g.EducationalProgram != null && 
+                                     g.EducationalProgram.SpecialityEntity != null && 
+                                     g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null &&
+                                     g.EducationalProgram.SpecialityEntity.DepartmentNavigation.FacultyId.HasValue &&
+                                     queryDto.FacultyIds.Contains(g.EducationalProgram.SpecialityEntity.DepartmentNavigation.FacultyId.Value));
 
         if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
-            query = query.Where(g => g.DepartmentId.HasValue && queryDto.DepartmentIds.Contains(g.DepartmentId.Value));
+            query = query.Where(g => g.EducationalProgram != null && 
+                                     g.EducationalProgram.SpecialityEntity != null && 
+                                     g.EducationalProgram.SpecialityEntity.IdDepartment.HasValue &&
+                                     queryDto.DepartmentIds.Contains(g.EducationalProgram.SpecialityEntity.IdDepartment.Value));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
@@ -58,8 +67,8 @@ public class GroupRepository : IGroupRepository
         {
             1 => query.OrderBy(d => d.GroupCode),
             2 => query.OrderByDescending(d => d.GroupCode),
-            3 => query.OrderBy(d => d.Faculty.Abbreviation),
-            4 => query.OrderByDescending(d => d.Faculty.Abbreviation),
+            3 => query.OrderBy(d => d.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty.Abbreviation),
+            4 => query.OrderByDescending(d => d.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty.Abbreviation),
             5 => query.OrderBy(d => d.Course),
             6 => query.OrderByDescending(d => d.Course),
             _ => query.OrderBy(d => d.GroupCode)
@@ -72,7 +81,7 @@ public class GroupRepository : IGroupRepository
 
     public async Task<GroupDto?> GetDtoByIdAsync(int id)
     {
-        return await _context.Groups
+        return await _context.StudentGroups
             .AsNoTracking()
             .Where(g => g.IdGroup == id)
             .ProjectTo<GroupDto>(_mapper.ConfigurationProvider)
@@ -81,7 +90,7 @@ public class GroupRepository : IGroupRepository
 
     public async Task<GroupDetailsDto?> GetDetailsByIdAsync(int id)
     {
-        return await _context.Groups
+        return await _context.StudentGroups
             .AsNoTracking()
             .Where(g => g.IdGroup == id)
             .Select(g => new GroupDetailsDto
@@ -92,19 +101,22 @@ public class GroupRepository : IGroupRepository
                 AdminId = g.AdminId,
                 DegreeId = g.DegreeId,
                 Course = g.Course,
-                FacultyId = g.FacultyId,
-                FacultyName = g.Faculty != null ? g.Faculty.NameFaculty : null,
-                DepartmentId = g.DepartmentId,
-                DepartmentName = g.Department != null ? g.Department.NameDepartment : null,
+                FacultyId = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null 
+                            ? g.EducationalProgram.SpecialityEntity.DepartmentNavigation.FacultyId : null,
+                FacultyName = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty != null
+                            ? g.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty.NameFaculty : null,
+                DepartmentId = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null 
+                             ? g.EducationalProgram.SpecialityEntity.IdDepartment : null,
+                DepartmentName = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null
+                             ? g.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment : null,
                 IdEducationalProgram = g.IdEducationalProgram,
-                EducationalProgramName = g.IdEducationalProgram.HasValue ? g.IdEducationalProgramNavigation.NameEducationalProgram : null,
-                IdSpeciality = g.IdSpeciality,
-                SpecialityName = g.IdSpeciality.HasValue ? g.IdSpecialityNavigation.Name : null,
-                AdmissionYear = g.AdmissionYear,
+                EducationalProgramName = g.EducationalProgram != null ? g.EducationalProgram.NameEducationalProgram : null,
+                IdSpeciality = g.EducationalProgram != null ? g.EducationalProgram.SpecialityId : null,
+                SpecialityName = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null 
+                               ? g.EducationalProgram.SpecialityEntity.Name : null,
+                AdmissionYear = g.Admissionyear.HasValue ? g.Admissionyear.Value.Year : null,
                 IdStudyForm = g.IdStudyForm,
-                IdSpecialization = g.IdSpecialization,
-                SpecializationName = g.IdSpecialization.HasValue ? g.IdSpecializationNavigation.Name : null,
-                IsAccelerated = g.IsAccelerated != 0
+                IsAccelerated = g.IsAccelerated.Cast<bool>().FirstOrDefault()
             })
             .FirstOrDefaultAsync();
     }
@@ -128,42 +140,39 @@ public class GroupRepository : IGroupRepository
 
     public async Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(int groupId)
     {
-        return await _context.Groups
+        return await _context.StudentGroups
             .AsNoTracking()
             .Where(g => g.IdGroup == groupId)
             .Select(g => new GroupCurriculumDTO
             {
                 IdGroup = g.IdGroup,
                 GroupCode = g.GroupCode,
-
-                // Робимо підзапит до таблиці BindMainDisciplines напряму
-                // EF Core сам зрозуміє, як це з'єднати в SQL
-                BindMainDisciplines = _context.BindMainDisciplines
+                MainDisciplines = _context.MainDisciplines
                     .Where(bmd => bmd.EducationalProgramId == g.IdEducationalProgram)
-                    .Select(bmd => new GroupBindMainDisciplinesDTO
+                    .Select(bmd => new GroupMainDisciplineDto
                     {
-                        idBindMainDisciplines = bmd.IdBindMainDisciplines,
-                        nameBindMainDisciplines = bmd.NameBindMainDisciplines,
+                        idMainDisciplines = bmd.IdMainDisciplines,
+                        nameMainDisciplines = bmd.NameMainDisciplines,
                         Semestr = bmd.Semestr,
                         Loans = bmd.Loans,
                         Hours = bmd.Hours,
                     })
-                    .ToList() // Перетворюємо підзапит у List, як того вимагає DTO
+                    .ToList()
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Group?> GetEntityByIdAsync(int id) =>
-        await _context.Groups.FindAsync(id);
+    public async Task<StudentGroup?> GetEntityByIdAsync(int id) =>
+        await _context.StudentGroups.FindAsync(id);
 
     public async Task<bool> ExistsAsync(int id) =>
-        await _context.Groups.AnyAsync(g => g.IdGroup == id);
+        await _context.StudentGroups.AnyAsync(g => g.IdGroup == id);
 
-    public async Task AddAsync(Group group) =>
-        await _context.Groups.AddAsync(group);
+    public async Task AddAsync(StudentGroup group) =>
+        await _context.StudentGroups.AddAsync(group);
 
     public async Task<int> DeleteAsync(int id) =>
-        await _context.Groups.Where(g => g.IdGroup == id).ExecuteDeleteAsync();
+        await _context.StudentGroups.Where(g => g.IdGroup == id).ExecuteDeleteAsync();
 
     public async Task SaveChangesAsync() =>
         await _context.SaveChangesAsync();

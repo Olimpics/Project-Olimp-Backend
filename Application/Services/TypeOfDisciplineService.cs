@@ -45,7 +45,7 @@ namespace OlimpBack.Application.Services
             await _repository.AddAsync(entity);
             await _repository.SaveChangesAsync();
 
-            var resultDto = await _repository.GetDtoByIdAsync(entity.IdTypeOfDiscipline.GetValueOrDefault());
+            var resultDto = await _repository.GetDtoByIdAsync(entity.IdTypeOfDiscipline);
             return resultDto ?? _mapper.Map<TypeOfDisciplineDto>(entity);
         }
         public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, TypeOfDisciplineDto dto)

@@ -14,6 +14,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using OlimpBack.Data;
 
 
 Environment.SetEnvironmentVariable(
@@ -217,9 +218,9 @@ builder.Services.AddScoped<IAuthAppService, AuthAppService>();
 builder.Services.AddScoped<IBindLoansMainRepository, BindLoansMainRepository>();
 builder.Services.AddScoped<IBindLoansMainService, BindLoansMainService>();
 
-// BindMainDiscipline
-builder.Services.AddScoped<IBindMainDisciplineRepository, BindMainDisciplineRepository>();
-builder.Services.AddScoped<IBindMainDisciplineService, BindMainDisciplineService>();
+// MainDiscipline
+builder.Services.AddScoped<IMainDisciplineRepository, MainDisciplineRepository>();
+builder.Services.AddScoped<IMainDisciplineService, MainDisciplineService>();
 
 // BindRolePermission
 builder.Services.AddScoped<IBindRolePermissionRepository, BindRolePermissionRepository>();
@@ -229,9 +230,13 @@ builder.Services.AddScoped<IBindRolePermissionService, BindRolePermissionService
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
-// CatalogYear
-builder.Services.AddScoped<ICatalogYearRepository, CatalogYearRepository>();
-builder.Services.AddScoped<ICatalogYearService, CatalogYearService>();
+// CatalogYearMain
+builder.Services.AddScoped<ICatalogYearMainRepository, CatalogYearMainRepository>();
+builder.Services.AddScoped<ICatalogYearMainService, CatalogYearMainService>();
+
+// CatalogYearSelective
+builder.Services.AddScoped<ICatalogYearSelectiveRepository, CatalogYearSelectiveRepository>();
+builder.Services.AddScoped<ICatalogYearSelectiveService, CatalogYearSelectiveService>();
 
 // DisciplineChoicePeriod
 builder.Services.AddScoped<IDisciplineChoicePeriodRepository, DisciplineChoicePeriodRepository>();
@@ -278,9 +283,6 @@ builder.Services.AddScoped<IStudentPageService, StudentPageService>();
 builder.Services.AddScoped<IStudyFormRepository, StudyFormRepository>();
 builder.Services.AddScoped<IStudyFormService, StudyFormService>();
 
-// BindStudentsFavouriteDisciplines
-builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesRepository, BindStudentsFavouriteDisciplinesRepository>();
-builder.Services.AddScoped<IBindStudentsFavouriteDisciplinesService, BindStudentsFavouriteDisciplinesService>();
 
 builder.Services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();

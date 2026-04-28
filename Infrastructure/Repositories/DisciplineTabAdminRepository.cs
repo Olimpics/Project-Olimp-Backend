@@ -1,7 +1,8 @@
-using System.Globalization;
+ï»¿using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -44,7 +45,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         var query = _context.AddDisciplines.AsNoTracking().AsQueryable();
 
-        // 1. ?  
+        // 1. ?ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœÑœÑœ
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
@@ -53,13 +54,13 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 EF.Functions.Like(d.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"));
         }
 
-        // 2. ?  
+        // 2. ?ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœ
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
             query = query.Where(d => d.FacultyId.HasValue && queryDto.Faculties.Contains(d.FacultyId.Value));
         }
 
-        // 3. ?  
+        // 3. ?ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœ
         if (queryDto.Courses != null && queryDto.Courses.Any())
         {
             query = query.Where(d =>
@@ -67,7 +68,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 (!d.MaxCourse.HasValue || queryDto.Courses.Contains(d.MaxCourse.Value)));
         }
 
-        // 4. ?  
+        // 4. ?ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœ
         if (queryDto.IsEvenSemester.HasValue)
         {
             query = query.Where(d => d.IsEven.HasValue &&
@@ -75,16 +76,16 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                  (!queryDto.IsEvenSemester.Value && d.IsEven.Value % 2 == 1)));
         }
 
-        // 5. ?   (Degree Levels)
+        // 5. ?ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœ
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
             query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
         }
 
-        // ?    
+        // ?ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœÑœÑœÒ¡ÐšÑœÑœ ÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœ
         var totalCount = await query.CountAsync();
 
-        // 6.    
+        // 6. ÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœ ÑœÑœ
         query = queryDto.SortOrder switch
         {
             1 => query.OrderBy(d => d.NameAddDisciplines),
@@ -94,13 +95,13 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             _ => query.OrderBy(d => d.IdAddDisciplines)
         };
 
-        // 7.  (: EF Core  BindAddDisciplines.Count   SELECT COUNT(*))
+        // 7. ÑœÑœÑœÑœÑœÑœÑœÑœ (ÑœÑœÑœÑœ: EF Core ÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœ BindAddDisciplines.Count ÑœÑœ ÑœÑœÑœÑœÑœÑœÑœ SELECT COUNT(*))
         var items = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .Select(d => new FullDisciplineDto
             {
-                IdAddDisciplines = d.IdAddDisciplines ?? 0,
+                IdAddDisciplines = d.IdAddDisciplines,
                 NameAddDisciplines = d.NameAddDisciplines ?? "",
                 CodeAddDisciplines = d.CodeAddDisciplines ?? "",
                 FacultyId = d.FacultyId ?? 0,
@@ -110,8 +111,8 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 MaxCourse = d.MaxCourse,
                 IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec ?? "" : "",
-                CountOfPeople = d.BindAddDisciplines.Count, // ?  Include!
-                IsAvailable = false //  -    ,    true
+                CountOfPeople = d.BindAddDisciplines.Count, // ?ÑœÑœÑœÑœ ÑœÑœÑœÑœÑœÑœ Include!
+                IsAvailable = false // ÑœÑœÑœ ÑœÑœÑœÑœ-ÑœÑœÑœÑœÑœ ÑœÑœ ÑœÑœÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœ ÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœÑœ, ÑœÑœÑœ ÑœÑœÑœÑœÑœ ÑœÑœÑœÑœÑœÑœÑœ true
             })
             .ToListAsync();
 
@@ -169,12 +170,12 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.EducationalProgram,
                 s.BindAddDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
-                    IdBindAddDisciplines = b.IdBindAddDisciplines ?? 0,
+                    IdBindAddDisciplines = b.IdBindAddDisciplines,
                     IdAddDisciplines = b.AddDisciplinesId ?? 0,
                     NameAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines ?? "" : "",
                     CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines ?? "" : "",
                     Semestr = b.Semestr ?? 0,
-                    InProcess = (sbyte)(b.InProcess ?? 0)
+                    InProcess = (sbyte)(b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] ? (sbyte)1 : (sbyte)0)
                 }).ToList()
             ))
             .ToListAsync();
@@ -199,8 +200,8 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
 
-        if (queryDto.Groups != null && queryDto.Groups.Any())
-            query = query.Where(s => queryDto.Groups.Contains(s.GroupId));
+        if (queryDto.StudentGroups != null && queryDto.StudentGroups.Any())
+            query = query.Where(s => queryDto.StudentGroups.Contains(s.GroupId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
             query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.EducationalDegreeId));
@@ -221,12 +222,12 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 .Where(b => queryDto.IsNew == 0 || periodStart == null)
                 .Select(b => new StudentSelectedDisciplineDto
                 {
-                    IdBindAddDisciplines = b.IdBindAddDisciplines ?? 0,
+                    IdBindAddDisciplines = b.IdBindAddDisciplines,
                     IdAddDisciplines = b.AddDisciplinesId ?? 0,
                     NameAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines ?? "" : "",
                     CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines ?? "" : "",
                     Semestr = b.Semestr ?? 0,
-                    InProcess = (sbyte)(b.InProcess ?? 0)
+                    InProcess = (sbyte)(b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] ? (sbyte)1 : (sbyte)0)
                 }).ToList()
         )).ToListAsync();
     }
@@ -260,8 +261,11 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         return await _context.Normatives
             .Where(n => n.DegreeLevelId != null && n.IsFaculty != null)
-            .GroupBy(n => new { Level = n.DegreeLevelId!.Value, IsFaculty = n.IsFaculty!.Value })
-            .ToDictionaryAsync(g => (g.Key.Level, (sbyte)g.Key.IsFaculty), g => g.First().Count.GetValueOrDefault());
+            .GroupBy(n => new { Level = n.DegreeLevelId!.Value, IsFaculty = (sbyte)((n.IsFaculty != null && n.IsFaculty.Length > 0 && n.IsFaculty[0]) ? 1 : 0) })
+            .ToDictionaryAsync(
+                g => (g.Key.Level, g.Key.IsFaculty),
+                g => g.First().Count.GetValueOrDefault()
+            );
     }
 
     public async Task<List<DisciplineStatusProjection>> GetDisciplinesStatusDataAsync(GetDisciplinesWithStatusQueryDto queryDto)
@@ -284,7 +288,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
 
         return await query.Select(d => new DisciplineStatusProjection(
-            d.IdAddDisciplines ?? 0,
+            d.IdAddDisciplines,
             d.NameAddDisciplines ?? "",
             d.AddDetail != null ? d.AddDetail.Teachers : null,
             d.AddDetail != null && d.AddDetail.Department != null ? d.AddDetail.Department.NameDepartment : null,
@@ -305,8 +309,8 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         return await _context.BindAddDisciplines
             .Include(b => b.Student)
             .Include(b => b.AddDisciplines)
-            .Where(b => b.IdBindAddDisciplines.HasValue && bindIds.Contains(b.IdBindAddDisciplines.Value))
-            .ToDictionaryAsync(b => b.IdBindAddDisciplines!.Value);
+            .Where(b => b.IdBindAddDisciplines != null && bindIds.Contains(b.IdBindAddDisciplines))
+            .ToDictionaryAsync(b => b.IdBindAddDisciplines!);
     }
 
     public async Task<BindAddDisciplineDto?> GetBindDtoAsync(int id)
@@ -316,14 +320,14 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .Where(b => b.IdBindAddDisciplines == id)
             .Select(b => new BindAddDisciplineDto
             {
-                IdBindAddDisciplines = b.IdBindAddDisciplines ?? 0,
+                IdBindAddDisciplines = b.IdBindAddDisciplines,
                 StudentId = b.StudentId ?? 0,
                 StudentFullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
                 AddDisciplinesId = b.AddDisciplinesId ?? 0,
                 AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines ?? "" : "",
                 Semestr = b.Semestr ?? 0,
                 Loans = b.Loans ?? 0,
-                InProcess = (b.InProcess ?? 0) == 1
+                InProcess = b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0]
             })
             .FirstOrDefaultAsync();
     }
@@ -344,12 +348,12 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.EducationalProgram,
                 s.BindAddDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
-                    IdBindAddDisciplines = b.IdBindAddDisciplines ?? 0,
+                    IdBindAddDisciplines = b.IdBindAddDisciplines,
                     IdAddDisciplines = b.AddDisciplinesId ?? 0,
                     NameAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines ?? "" : "",
                     CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines ?? "" : "",
                     Semestr = b.Semestr ?? 0,
-                    InProcess = (sbyte)(b.InProcess ?? 0)
+                    InProcess = (sbyte)(b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] ? (sbyte)1 : (sbyte)0)
                 }).ToList()
             )).FirstOrDefaultAsync();
     }

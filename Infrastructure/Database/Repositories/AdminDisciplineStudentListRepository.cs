@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -36,7 +37,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         if (query.DepartmentId is > 0)
         {
-            baseQuery = baseQuery.Where(b => b.Student.Group.DepartmentId == query.DepartmentId);
+            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.IdDepartment == query.DepartmentId);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -46,8 +47,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             baseQuery = baseQuery.Where(b =>
                 EF.Functions.Like(b.Student.NameStudent, $"%{search}%") ||
                 EF.Functions.Like(b.Student.Group.GroupCode, $"%{search}%") ||
-                (b.Student.Group.Department != null &&
-                 EF.Functions.Like(b.Student.Group.Department.NameDepartment, $"%{search}%")) ||
+                (b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation != null &&
+                 EF.Functions.Like(b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment, $"%{search}%")) ||
                 EF.Functions.Like(b.Student.EducationalDegree.NameEducationalDegreec, $"%{search}%"));
         }
 
@@ -59,11 +60,11 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             1 => baseQuery.OrderByDescending(b => b.Student.NameStudent),
             2 => baseQuery.OrderBy(b => b.Student.Group.GroupCode),
             3 => baseQuery.OrderByDescending(b => b.Student.Group.GroupCode),
-            4 => baseQuery.OrderBy(b => b.Student.Group.Department != null
-                ? b.Student.Group.Department.NameDepartment
+            4 => baseQuery.OrderBy(b => b.Student.Group != null
+                ? b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment
                 : string.Empty),
-            5 => baseQuery.OrderByDescending(b => b.Student.Group.Department != null
-                ? b.Student.Group.Department.NameDepartment
+            5 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment != null
+                ? b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment
                 : string.Empty),
             6 => baseQuery.OrderBy(b => b.Student.Course),
             7 => baseQuery.OrderByDescending(b => b.Student.Course),
@@ -83,8 +84,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 StudentName = b.Student.NameStudent,
                 GroupId = b.Student.GroupId,
                 GroupCode = b.Student.Group.GroupCode,
-                DepartmentName = b.Student.Group.Department != null
-                    ? b.Student.Group.Department.NameDepartment
+                DepartmentName = b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation != null
+                    ? b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment
                     : string.Empty,
                 Year = b.Student.Course,
                 EducationLevel = b.Student.EducationalDegree.NameEducationalDegreec,
@@ -104,7 +105,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 .ThenInclude(s => s.Faculty)
             .Include(g => g.Student)
                 .ThenInclude(s => s.Group)
-            .Where(g => g.MainDisciplinesId == query.DisciplineId.ToString());
+            .Where(g => g.MainDisciplinesId == query.DisciplineId);
 
         if (query.FacultyId.HasValue && query.FacultyId.Value > 0)
         {
@@ -146,7 +147,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         var items = page.Select(g => new AdminStudentByMainDisciplineDto
         {
-            StudentId = int.TryParse(g.StudentId, out var sid) ? sid : 0,
+            StudentId = g.StudentId ?? 0,
             StudentName = g.Student?.NameStudent ?? "",
             FacultyId = g.Student?.FacultyId ?? 0,
             FacultyName = g.Student?.Faculty?.NameFaculty ?? "",

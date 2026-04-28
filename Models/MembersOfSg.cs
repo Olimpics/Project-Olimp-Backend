@@ -11,9 +11,9 @@ public partial class MembersOfSg
 
     public int? RoleInSgid { get; set; }
 
-    public virtual Rolesinsg? RoleInSg { get; set; }
+    public virtual RolesInSg? RoleInSg { get; set; }
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 
-    public virtual Subdivisionssg? SubDivision { get; set; }
+    public virtual SubDivisionsSg? SubDivision { get; set; }
 }

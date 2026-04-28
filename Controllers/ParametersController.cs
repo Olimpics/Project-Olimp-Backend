@@ -16,7 +16,8 @@ namespace OlimpBack.Controllers
         private readonly INotificationTemplateService _notificationTemplateService;
         private readonly IStudyFormService _studyFormService;
         private readonly ITypeOfDisciplineService _typeOfDisciplineService;
-        private readonly ICatalogYearService _catalogYearService;
+        private readonly ICatalogYearMainService _catalogYearMainService;
+        private readonly ICatalogYearSelectiveService _catalogYearSelectiveService;
 
         public ParametersController(INormativeService service,
                                         IEducationalDegreeService educationalDegreeService,
@@ -24,7 +25,8 @@ namespace OlimpBack.Controllers
                                         INotificationTemplateService notificationTemplateService,
                                         IStudyFormService studyFormService,
                                         ITypeOfDisciplineService typeOfDisciplineService,
-                                        ICatalogYearService catalogYearService)
+                                        ICatalogYearMainService catalogYearMainService,
+                                        ICatalogYearSelectiveService catalogYearSelectiveService)
         {
             _normativeService = service;
             _educationStatusService = educationStatusService;
@@ -32,7 +34,8 @@ namespace OlimpBack.Controllers
             _notificationTemplateService = notificationTemplateService;
             _studyFormService = studyFormService;
             _typeOfDisciplineService = typeOfDisciplineService;
-            _catalogYearService = catalogYearService;
+            _catalogYearMainService = catalogYearMainService;
+            _catalogYearSelectiveService = catalogYearSelectiveService;
         }
 
 
@@ -289,44 +292,87 @@ namespace OlimpBack.Controllers
             return NoContent();
         }
 
-        // -- CatalogYear --
+        // -- CatalogYearMain --
 
-        [HttpGet("CatalogYears")]
-        public async Task<ActionResult<IEnumerable<CatalogYearDto>>> GetCatalogYears()
+        [HttpGet("CatalogYearsMain")]
+        public async Task<ActionResult<IEnumerable<CatalogYearMainDto>>> GetCatalogYearsMain()
         {
-            var result = await _catalogYearService.GetAllAsync();
+            var result = await _catalogYearMainService.GetAllAsync();
             return Ok(result);
         }
 
-        [HttpGet("CatalogYear/{id}")]
-        public async Task<ActionResult<CatalogYearDto>> GetCatalogYear(int id)
+        [HttpGet("CatalogYearMain/{id}")]
+        public async Task<ActionResult<CatalogYearMainDto>> GetCatalogYearMain(int id)
         {
-            var result = await _catalogYearService.GetByIdAsync(id);
+            var result = await _catalogYearMainService.GetByIdAsync(id);
             if (result == null)
                 return NotFound();
             return Ok(result);
         }
 
-        [HttpPost("CreateCatalogYear")]
-        public async Task<ActionResult<CatalogYearDto>> CreateCatalogYear(CreateCatalogYearDto dto)
+        [HttpPost("CreateCatalogYearMain")]
+        public async Task<ActionResult<CatalogYearMainDto>> CreateCatalogYearMain(CreateCatalogYearMainDto dto)
         {
-            var resultDto = await _catalogYearService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetCatalogYear), new { id = resultDto.IdCatalogYear }, resultDto);
+            var resultDto = await _catalogYearMainService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetCatalogYearMain), new { id = resultDto.IdCatalogYear }, resultDto);
         }
 
-        [HttpPut("UpdateCatalogYear/{id}")]
-        public async Task<IActionResult> UpdateCatalogYear(int id, UpdateCatalogYearDto dto)
+        [HttpPut("UpdateCatalogYearMain/{id}")]
+        public async Task<IActionResult> UpdateCatalogYearMain(int id, UpdateCatalogYearMainDto dto)
         {
-            var (success, statusCode, errorMessage) = await _catalogYearService.UpdateAsync(id, dto);
+            var (success, statusCode, errorMessage) = await _catalogYearMainService.UpdateAsync(id, dto);
             if (!success)
                 return StatusCode(statusCode, new { message = errorMessage });
             return NoContent();
         }
 
-        [HttpDelete("DeleteCatalogYear/{id}")]
-        public async Task<IActionResult> DeleteCatalogYear(int id)
+        [HttpDelete("DeleteCatalogYearMain/{id}")]
+        public async Task<IActionResult> DeleteCatalogYearMain(int id)
         {
-            var (success, statusCode, errorMessage) = await _catalogYearService.DeleteAsync(id);
+            var (success, statusCode, errorMessage) = await _catalogYearMainService.DeleteAsync(id);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        // -- CatalogYearSelective --
+
+        [HttpGet("CatalogYearsSelective")]
+        public async Task<ActionResult<IEnumerable<CatalogYearSelectiveDto>>> GetCatalogYearsSelective()
+        {
+            var result = await _catalogYearSelectiveService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("CatalogYearSelective/{id}")]
+        public async Task<ActionResult<CatalogYearSelectiveDto>> GetCatalogYearSelective(int id)
+        {
+            var result = await _catalogYearSelectiveService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateCatalogYearSelective")]
+        public async Task<ActionResult<CatalogYearSelectiveDto>> CreateCatalogYearSelective(CreateCatalogYearSelectiveDto dto)
+        {
+            var resultDto = await _catalogYearSelectiveService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetCatalogYearSelective), new { id = resultDto.IdCatalogYear }, resultDto);
+        }
+
+        [HttpPut("UpdateCatalogYearSelective/{id}")]
+        public async Task<IActionResult> UpdateCatalogYearSelective(int id, UpdateCatalogYearSelectiveDto dto)
+        {
+            var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        [HttpDelete("DeleteCatalogYearSelective/{id}")]
+        public async Task<IActionResult> DeleteCatalogYearSelective(int id)
+        {
+            var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.DeleteAsync(id);
             if (!success)
                 return StatusCode(statusCode, new { message = errorMessage });
             return NoContent();

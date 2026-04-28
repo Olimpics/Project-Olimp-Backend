@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -65,7 +66,7 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Take(queryDto.PageSize)
             .Select(b => new BindLoansMainDto
             {
-                IdBindLoan = b.IdBindLoan ?? 0,
+                IdBindLoan = b.IdBindLoan,
                 AddDisciplinesId = b.AddDisciplinesId ?? 0,
                 EducationalProgramId = b.EducationalProgramId ?? 0,
                 CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
@@ -85,7 +86,7 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Where(b => b.IdBindLoan == id)
             .Select(b => new BindLoansMainDto
             {
-                IdBindLoan = b.IdBindLoan ?? 0,
+                IdBindLoan = b.IdBindLoan,
                 AddDisciplinesId = b.AddDisciplinesId ?? 0,
                 EducationalProgramId = b.EducationalProgramId ?? 0,
                 CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",

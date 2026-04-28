@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class Department
 {
-    public int? IdDepartment { get; set; }
+    public int IdDepartment { get; set; }
 
     public int? FacultyId { get; set; }
 
@@ -13,9 +13,17 @@ public partial class Department
 
     public string? Abbreviation { get; set; }
 
-    public string? AdminId { get; set; }
-
     public string? Metadata { get; set; }
 
+    public virtual ICollection<AddDetail> AddDetails { get; set; } = new List<AddDetail>();
+
+    public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
+
+    public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
+
     public virtual Faculty? Faculty { get; set; }
+
+    public virtual ICollection<Speciality> Specialities { get; set; } = new List<Speciality>();
+
+    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

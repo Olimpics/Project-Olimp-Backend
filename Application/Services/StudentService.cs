@@ -7,6 +7,7 @@ using OlimpBack.Infrastructure.Database;
 using OlimpBack.Models;
 using OlimpBack.Utils;
 using System.Linq.Expressions;
+using OlimpBack.Data;
 
 namespace OlimpBack.Application.Services;
 

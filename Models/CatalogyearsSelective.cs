@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class CatalogyearsSelective
+public partial class CatalogYearsSelective
 {
     public int IdCatalogYear { get; set; }
 
@@ -12,5 +12,5 @@ public partial class CatalogyearsSelective
 
     public BitArray? IsFormed { get; set; }
 
-    public virtual ICollection<Adddiscipline> Adddisciplines { get; set; } = new List<Adddiscipline>();
+    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
 }

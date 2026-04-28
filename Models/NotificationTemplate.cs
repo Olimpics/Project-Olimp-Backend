@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Notificationtemplate
+public partial class NotificationTemplate
 {
-    public int? IdNotificationTemplates { get; set; }
+    public int IdNotificationTemplates { get; set; }
 
     public string? NotificationType { get; set; }
 

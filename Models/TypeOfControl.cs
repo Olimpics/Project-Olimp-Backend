@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Typeofcontroll
+public partial class TypeOfControl
 {
     public int Idtypeofcontroll { get; set; }
 
     public string? Type { get; set; }
 
-    public virtual ICollection<Adddetail> Adddetails { get; set; } = new List<Adddetail>();
+    public virtual ICollection<AddDetail> AddDetails { get; set; } = new List<AddDetail>();
 }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
+using System.Linq;
 
 namespace OlimpBack.Application.Services;
 
@@ -32,14 +34,14 @@ public class NotificationService : INotificationService
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .Select(n => new NotificationProjection(
-                n.IdNotification ?? 0,
+                n.IdNotification,
                 n.UserId ?? 0,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
-                n.IsRead,
-                n.CreatedAt,
+                n.IsRead != null && n.IsRead.Length > 0 ? (int?)(n.IsRead[0] ? 1 : 0) : null,
+                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToString("O") : null,
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -74,14 +76,14 @@ public class NotificationService : INotificationService
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
             .Select(n => new NotificationProjection(
-                n.IdNotification ?? 0,
+                n.IdNotification,
                 n.UserId ?? 0,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
-                n.IsRead,
-                n.CreatedAt,
+                n.IsRead != null && n.IsRead.Length > 0 ? (int?)(n.IsRead[0] ? 1 : 0) : null,
+                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToString("O") : null,
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -103,14 +105,14 @@ public class NotificationService : INotificationService
             .AsNoTracking()
             .Where(n => n.IdNotification == id)
             .Select(n => new NotificationProjection(
-                n.IdNotification ?? 0,
+                n.IdNotification,
                 n.UserId ?? 0,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
-                n.IsRead,
-                n.CreatedAt,
+                n.IsRead != null && n.IsRead.Length > 0 ? (int?)(n.IsRead[0] ? 1 : 0) : null,
+                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToString("O") : null,
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -126,8 +128,8 @@ public class NotificationService : INotificationService
             UserId = dto.UserId,
             TemplateId = dto.TemplateId,
             CustomMessage = string.IsNullOrWhiteSpace(dto.Message) ? dto.Title : dto.Message,
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.ToString("o"),
+            IsRead = new System.Collections.BitArray(1, false), // false = íåïðî÷èòàíî
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             Metadata = dto.Metadata?.RootElement.GetRawText()
         };
 
@@ -141,13 +143,15 @@ public class NotificationService : INotificationService
 
         return new NotificationDto
         {
-            IdNotification = notification.IdNotification ?? 0,
+            IdNotification = notification.IdNotification,
             UserId = notification.UserId ?? 0,
             TemplateId = notification.TemplateId ?? 0,
             Title = template?.Title ?? dto.Title ?? string.Empty,
             Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
-            IsRead = (notification.IsRead ?? 0) != 0,
-            CreatedAt = DateTime.TryParse(notification.CreatedAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var ca) ? ca : default,
+            IsRead = notification.IsRead != null && notification.IsRead.Length > 0 && notification.IsRead[0] == true,
+            CreatedAt = notification.CreatedAt.HasValue
+                ? notification.CreatedAt.Value.ToDateTime(TimeOnly.MinValue)
+                : default,
             NotificationType = template?.NotificationType ?? dto.NotificationType,
             Metadata = dto.Metadata
         };
@@ -157,8 +161,8 @@ public class NotificationService : INotificationService
     {
         // ˜˜˜˜˜-˜˜˜˜?˜˜?˜: ˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜'˜˜˜! (˜˜˜˜˜˜ ˜˜ EF Core 7.0+)
         var updatedRows = await _context.Notifications
-            .Where(n => n.IdNotification == id && (n.IsRead ?? 0) == 0) // ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜ ˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜
-            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, 1));
+            .Where(n => n.IdNotification == id && n.IsRead != null && n.IsRead.Length > 0 && !n.IsRead[0])
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, new System.Collections.BitArray(1, true)));
 
         if (updatedRows > 0)
             return (true, StatusCodes.Status204NoContent, null);
@@ -194,7 +198,7 @@ public class NotificationService : INotificationService
         if (queryDto.IsRead.HasValue)
         {
             var wantRead = queryDto.IsRead.Value ? 1 : 0;
-            query = query.Where(n => (n.IsRead ?? 0) == wantRead);
+            query = query.Where(n => (n.IsRead != null && n.IsRead.Length > 0 && n.IsRead[0] == (wantRead == 1)));
         }
 
         return query;
@@ -254,7 +258,7 @@ public class NotificationService : INotificationService
             TemplateId = p.TemplateId ?? 0,
             Title = p.TemplateTitle ?? string.Empty,
             Message = p.TemplateMessage ?? p.CustomMessage ?? string.Empty,
-            IsRead = (p.IsRead ?? 0) != 0,
+            IsRead = (p.IsRead != null && p.IsRead.HasValue),
             CreatedAt = createdAt,
             NotificationType = p.NotificationType ?? string.Empty,
             Metadata = !string.IsNullOrWhiteSpace(p.Metadata) ? JsonDocument.Parse(p.Metadata) : null

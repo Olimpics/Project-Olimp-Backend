@@ -31,7 +31,7 @@ public class GroupService : IGroupService
 
     public async Task<GroupDto> CreateGroupAsync(CreateGroupDto dto)
     {
-        var group = _mapper.Map<Group>(dto);
+        var group = _mapper.Map<StudentGroup>(dto);
         await _repository.AddAsync(group);
         await _repository.SaveChangesAsync();
 

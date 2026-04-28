@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Maindiscipline
+public partial class MainDiscipline
 {
-    public int IdBindMainDisciplines { get; set; }
+    public int IdMainDisciplines { get; set; }
 
     public string? CodeMainDisciplines { get; set; }
 
-    public string? NameBindMainDisciplines { get; set; }
+    public string? NameMainDisciplines { get; set; }
 
     public int? Loans { get; set; }
 
@@ -25,9 +25,9 @@ public partial class Maindiscipline
 
     public int? Idcataloog { get; set; }
 
-    public virtual Educationalprogram? EducationalProgram { get; set; }
+    public virtual EducationalProgram? EducationalProgram { get; set; }
 
-    public virtual CatalogyearsMain? IdcataloogNavigation { get; set; }
+    public virtual CatalogYearsMain? IdcataloogNavigation { get; set; }
 
-    public virtual ICollection<Maingrade> Maingrades { get; set; } = new List<Maingrade>();
+    public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
 }

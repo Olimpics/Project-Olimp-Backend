@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OlimpBack.Models;
 
@@ -14,9 +14,7 @@ public partial class User
 
     public byte[]? Passwordsalt { get; set; }
 
-    public int Roleid { get; set; }
-
-    public int Isfirstlogin { get; set; }
+    public BitArray Isfirstlogin { get; set; } = null!;
 
     public DateTime? Passwordchangedat { get; set; }
 
@@ -24,9 +22,9 @@ public partial class User
 
     public DateTime Lastloginat { get; set; }
 
-    /// <summary>Primary role from users.roleid (roles.id).</summary>
-    [ForeignKey(nameof(Roleid))]
-    public virtual Role1? PrimaryRole { get; set; }
+    public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
-    public virtual ICollection<Role1> Roles { get; set; } = new List<Role1>();
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

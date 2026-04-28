@@ -45,7 +45,7 @@ public class NormativeService : INormativeService
         await _repository.SaveChangesAsync();
 
         // Повертаємо повноцінну DTO з БД (якщо треба підтягнути назви через зв'язки)
-        var resultDto = await _repository.GetDtoByIdAsync(entity.IdNormative.GetValueOrDefault());
+        var resultDto = await _repository.GetDtoByIdAsync(entity.IdNormative);
         return resultDto ?? _mapper.Map<NormativeDto>(entity);
     }
 

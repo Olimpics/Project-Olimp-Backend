@@ -4,6 +4,7 @@ using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
 using OlimpBack.Utils; // ˜˜˜ DisciplineAvailabilityService
+using OlimpBack.Data;
 
 namespace OlimpBack.Application.Services;
 
@@ -30,7 +31,14 @@ public class DisciplineTabService : IDisciplineTabService
         var fullList = allDisciplines.Select(discipline =>
         {
             var dto = _mapper.Map<FullDisciplineDto>(discipline);
-            dto.CountOfPeople = discipline.IdAddDisciplines.HasValue && context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines.Value, out var c) ? c : 0;
+            if (context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c))
+            {
+                dto.CountOfPeople = c;
+            }
+            else
+            {
+                dto.CountOfPeople = 0;
+            }
             dto.IsAvailable = DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context);
             return dto;
         });
@@ -79,7 +87,7 @@ public class DisciplineTabService : IDisciplineTabService
             .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
             .Select(d => new SimpleDisciplineDto
             {
-                IdAddDisciplines = d.IdAddDisciplines ?? 0,
+                IdAddDisciplines = d.IdAddDisciplines,
                 NameAddDisciplines = d.NameAddDisciplines ?? "",
                 CodeAddDisciplines = d.CodeAddDisciplines ?? ""
             })
@@ -118,7 +126,7 @@ public class DisciplineTabService : IDisciplineTabService
             StudentId = dto.StudentId,
             AddDisciplinesId = dto.DisciplineId,
             Semestr = targetSemester,
-            InProcess = 1,
+            InProcess = new System.Collections.BitArray(1, true),
             Loans = dto.Loans
         };
 

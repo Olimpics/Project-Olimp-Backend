@@ -54,7 +54,7 @@ public class BindLoansMainService : IBindLoansMainService
         // Це зекономить 1 похід у базу при кожному створенні.
         return new BindLoansMainDto
         {
-            IdBindLoan = binding.IdBindLoan.GetValueOrDefault(),
+            IdBindLoan = binding.IdBindLoan,
             AddDisciplinesId = binding.AddDisciplinesId.GetValueOrDefault(),
             EducationalProgramId = binding.EducationalProgramId.GetValueOrDefault(),
             CodeAddDisciplines = "", // При створенні ми не знаємо назв, і це нормально для response

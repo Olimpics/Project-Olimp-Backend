@@ -45,7 +45,7 @@ public class DepartmentService : IDepartmentService
         await _repository.SaveChangesAsync();
 
         // Повертаємо через GetDtoByIdAsync, щоб підтягнулася FacultyName
-        return (await _repository.GetDtoByIdAsync(department.IdDepartment.GetValueOrDefault()))!;
+        return (await _repository.GetDtoByIdAsync(department.IdDepartment))!;
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> UpdateDepartmentAsync(int id, UpdateDepartmentDto dto)

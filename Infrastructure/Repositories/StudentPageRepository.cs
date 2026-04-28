@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -30,7 +31,7 @@ public class StudentPageRepository : IStudentPageRepository
             {
                 s.IdStudent,
                 s.NameStudent,
-                MainDisciplines = s.EducationalProgram != null ? s.EducationalProgram.BindMainDisciplines : null,
+                MainDisciplines = s.EducationalProgram != null ? s.EducationalProgram.MainDisciplines : null,
                 AdditionalDisciplines = s.BindAddDisciplines
             })
             .FirstOrDefaultAsync();
@@ -43,8 +44,8 @@ public class StudentPageRepository : IStudentPageRepository
             StudentId = data.IdStudent,
             StudentName = data.NameStudent ?? "",
             MainDisciplines = data.MainDisciplines != null
-                ? _mapper.Map<List<BindMainDisciplineDto>>(data.MainDisciplines)
-                : new List<BindMainDisciplineDto>(),
+                ? _mapper.Map<List<MainDisciplineDto>>(data.MainDisciplines)
+                : new List<MainDisciplineDto>(),
             AdditionalDisciplines = data.AdditionalDisciplines != null
                 ? _mapper.Map<List<BindAddDisciplineDto>>(data.AdditionalDisciplines)
                 : new List<BindAddDisciplineDto>()

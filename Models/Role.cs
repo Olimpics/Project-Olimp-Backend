@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class Role
 {
-    public int IdRole { get; set; }
+    public int Id { get; set; }
 
-    public string? NameRole { get; set; }
+    public string Name { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public int? ParentRoleId { get; set; }
 
-    public int? IsSystem { get; set; }
+    public long? PermissionsMask { get; set; }
 }

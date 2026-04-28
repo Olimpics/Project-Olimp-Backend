@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Adddiscipline
+public partial class AddDiscipline
 {
-    public int? IdAddDisciplines { get; set; }
+    public int IdAddDisciplines { get; set; }
 
     public string? NameAddDisciplines { get; set; }
 
@@ -33,13 +33,20 @@ public partial class Adddiscipline
 
     public int? IdCatalog { get; set; }
 
+    public List<int>? Idsimilar { get; set; }
+    public virtual AddDetail? AddDetail { get; set; } = new AddDetail();
+
+    public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
+
+    public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
+
     public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual Faculty? Faculty { get; set; }
 
-    public virtual ICollection<Bindadddiscipline> BindAddDisciplines { get; set; } = new List<Bindadddiscipline>();
+    public virtual CatalogYearsSelective? IdCatalogNavigation { get; set; }
 
-    public virtual Adddetail? AddDetail { get; set; }
+    public virtual ICollection<Prerequisite> Prerequisites { get; set; } = new List<Prerequisite>();
 
-    public virtual Typeofdiscipline? Type { get; set; }
+    public virtual TypeOfDiscipline? Type { get; set; }
 }

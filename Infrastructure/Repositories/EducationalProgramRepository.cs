@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
+
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -42,7 +44,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .OrderBy(ep => ep.NameEducationalProgram)
             .Select(ep => new EducationalProgramFilterDto
             {
-                Id = ep.IdEducationalProgram ?? 0,
+                Id = ep.IdEducationalProgram,
                 Name = ep.NameEducationalProgram ?? ""
             })
             .ToListAsync();
@@ -82,7 +84,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .Take(queryDto.PageSize)
             .Select(ep => new EducationalProgramDto
             {
-                IdEducationalProgram = ep.IdEducationalProgram ?? 0,
+                IdEducationalProgram = ep.IdEducationalProgram,
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
                 DegreeId = ep.DegreeId ?? 0,
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
@@ -90,7 +92,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 Speciality = ep.Speciality ?? "",
                 StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
-                DisciplinesCount = ep.BindMainDisciplines.Count()
+                DisciplinesCount = ep.MainDisciplines.Count()
             })
             .ToListAsync();
 
@@ -104,7 +106,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .Where(ep => ep.IdEducationalProgram == id)
             .Select(ep => new EducationalProgramDto
             {
-                IdEducationalProgram = ep.IdEducationalProgram ?? 0,
+                IdEducationalProgram = ep.IdEducationalProgram,
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
                 DegreeId = ep.DegreeId ?? 0,
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
@@ -112,7 +114,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 Speciality = ep.Speciality ?? "",
                 StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
-                DisciplinesCount = ep.BindMainDisciplines.Count()
+                DisciplinesCount = ep.MainDisciplines.Count()
             })
             .FirstOrDefaultAsync();
     }

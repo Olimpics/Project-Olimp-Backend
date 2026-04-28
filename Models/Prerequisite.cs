@@ -10,4 +10,8 @@ public partial class Prerequisite
     public int? Educationalprogramid { get; set; }
 
     public int? Adddisciplensid { get; set; }
+
+    public virtual AddDiscipline? Adddisciplens { get; set; }
+
+    public virtual EducationalProgram? Educationalprogram { get; set; }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Application.Services;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 namespace OlimpBack.Controllers
 {
@@ -51,7 +52,7 @@ namespace OlimpBack.Controllers
                 .GroupBy(ep => ep.Speciality)
                 .Select(g => new SpecialityFilterDto
                 {
-                    Id = g.First().IdEducationalProgram ?? 0,
+                    Id = g.First().IdEducationalProgram,
                     Code = g.First().SpecialityCode ?? "",
                     Name = g.Key ?? ""
                 });
@@ -74,7 +75,7 @@ namespace OlimpBack.Controllers
         [HttpGet("groups")]
         public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups([FromQuery] string? search = null)
         {
-            var query = _context.Groups
+            var query = _context.StudentGroups
                 .Select(g => new GroupFilterDto
                 {
                     Id = g.IdGroup,
@@ -102,7 +103,7 @@ namespace OlimpBack.Controllers
             var query = _context.AddDisciplines
                 .Select(ad => new SpecialityFilterDto
                 {
-                    Id = ad.IdAddDisciplines ?? 0,
+                    Id = ad.IdAddDisciplines,
                     Code = ad.CodeAddDisciplines ?? "",
                     Name = ad.NameAddDisciplines ?? ""
                 });
@@ -138,7 +139,7 @@ namespace OlimpBack.Controllers
             var query = _context.NotificationTemplates
                 .Select(t => new NotificationTemplateFilterDto
                 {
-                    IdNotificationTemplates = t.IdNotificationTemplates ?? 0,
+                    IdNotificationTemplates = t.IdNotificationTemplates,
                     NotificationType = t.NotificationType ?? ""
                 });
 

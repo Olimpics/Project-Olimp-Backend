@@ -95,7 +95,7 @@ namespace OlimpBack.Application.DTO
         // ˜˜˜˜˜˜ string? ˜˜˜˜˜˜˜˜˜˜˜˜˜ List<int> (˜˜˜˜˜˜ ˜˜˜˜˜˜)
         public List<int>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
-        public List<int>? Groups { get; set; }
+        public List<int>? StudentGroups { get; set; }
         public List<int>? DegreeLevelIds { get; set; }
 
         public int? SelectionStatus { get; set; }

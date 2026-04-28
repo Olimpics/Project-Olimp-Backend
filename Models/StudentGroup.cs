@@ -20,17 +20,19 @@ public partial class StudentGroup
 
     public int? IdEducationalProgram { get; set; }
 
+    public virtual EducationalProgram? EducationalProgram { get; set; }
+
     public int? IdStudyForm { get; set; }
 
     public BitArray IsAccelerated { get; set; } = null!;
 
     public DateOnly? Admissionyear { get; set; }
 
-    public virtual Adminspersonal? Admin { get; set; }
+    public virtual AdminsPersonal? Admin { get; set; }
 
-    public virtual Educationaldegree? Degree { get; set; }
+    public virtual EducationalDegree? Degree { get; set; }
 
-    public virtual Studyform? IdStudyFormNavigation { get; set; }
+    public virtual StudyForm? IdStudyFormNavigation { get; set; }
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

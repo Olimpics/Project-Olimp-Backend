@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Bindadddiscipline
+public partial class BindAddDiscipline
 {
-    public int? IdBindAddDisciplines { get; set; }
+    public int IdBindAddDisciplines { get; set; }
 
     public int? StudentId { get; set; }
 
@@ -15,13 +16,13 @@ public partial class Bindadddiscipline
 
     public int? Loans { get; set; }
 
-    public int? InProcess { get; set; }
+    public BitArray? InProcess { get; set; }
 
     public string? Grade { get; set; }
 
     public string? CreatedAt { get; set; }
 
-    public virtual Student? Student { get; set; }
+    public virtual AddDiscipline? AddDisciplines { get; set; }
 
-    public virtual Adddiscipline? AddDisciplines { get; set; }
+    public virtual Student? Student { get; set; }
 }

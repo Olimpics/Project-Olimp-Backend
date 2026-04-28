@@ -4,6 +4,8 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using OlimpBack.Infrastructure.Database;
+    using OlimpBack.Data;
+
 
     public class DatabaseAvailabilityService : BackgroundService
     {

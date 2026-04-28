@@ -7,49 +7,48 @@ using OlimpBack.Models;
 
 namespace OlimpBack.Application.Services;
 
-public interface IBindMainDisciplineService
+public interface IMainDisciplineService
 {
-    Task<BindMainDisciplineDto?> GetByIdAsync(int id);
-    Task<BindMainDisciplineDto> CreateAsync(CreateBindMainDisciplineDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateBindMainDisciplineDto dto);
+    Task<MainDisciplineDto?> GetByIdAsync(int id);
+    Task<MainDisciplineDto> CreateAsync(CreateMainDisciplineDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateMainDisciplineDto dto);
     Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
 }
 
-public class BindMainDisciplineService : IBindMainDisciplineService
+public class MainDisciplineService : IMainDisciplineService
 {
-    private readonly IBindMainDisciplineRepository _repository;
+    private readonly IMainDisciplineRepository _repository;
     private readonly IMapper _mapper;
 
-    public BindMainDisciplineService(IBindMainDisciplineRepository repository, IMapper mapper)
+    public MainDisciplineService(IMainDisciplineRepository repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
     }
 
-    public async Task<BindMainDisciplineDto?> GetByIdAsync(int id)
+    public async Task<MainDisciplineDto?> GetByIdAsync(int id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
 
-    public async Task<BindMainDisciplineDto> CreateAsync(CreateBindMainDisciplineDto dto)
+    public async Task<MainDisciplineDto> CreateAsync(CreateMainDisciplineDto dto)
     {
-        var entity = _mapper.Map<BindMainDiscipline>(dto);
+        var entity = _mapper.Map<MainDiscipline>(dto);
 
         await _repository.AddAsync(entity);
         await _repository.SaveChangesAsync();
 
-        // Повертаємо DTO без повторного походу в БД
-        return _mapper.Map<BindMainDisciplineDto>(entity);
+        return _mapper.Map<MainDisciplineDto>(entity);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateBindMainDisciplineDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateMainDisciplineDto dto)
     {
-        if (id != dto.IdBindMainDisciplines)
+        if (id != dto.IdMainDisciplines)
             return (false, StatusCodes.Status400BadRequest, "Route id does not match body id.");
 
         var entity = await _repository.GetEntityByIdAsync(id);
         if (entity == null)
-            return (false, StatusCodes.Status404NotFound, "Binding not found");
+            return (false, StatusCodes.Status404NotFound, "Discipline not found");
 
         _mapper.Map(dto, entity);
 
@@ -60,7 +59,7 @@ public class BindMainDisciplineService : IBindMainDisciplineService
         catch (DbUpdateConcurrencyException)
         {
             if (!await _repository.ExistsAsync(id))
-                return (false, StatusCodes.Status404NotFound, "Binding not found");
+                return (false, StatusCodes.Status404NotFound, "Discipline not found");
 
             throw;
         }
@@ -72,7 +71,7 @@ public class BindMainDisciplineService : IBindMainDisciplineService
     {
         var deletedRows = await _repository.DeleteAsync(id);
         if (deletedRows == 0)
-            return (false, StatusCodes.Status404NotFound, "Binding not found");
+            return (false, StatusCodes.Status404NotFound, "Discipline not found");
 
         return (true, StatusCodes.Status204NoContent, null);
     }

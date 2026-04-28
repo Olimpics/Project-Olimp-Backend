@@ -3,13 +3,17 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class Bindevent
+public partial class BindEvent
 {
-    public string? IdBindEvent { get; set; }
+    public int IdBindEvent { get; set; }
 
-    public string? StudentId { get; set; }
+    public int? StudentId { get; set; }
 
-    public string? EventId { get; set; }
+    public int? EventId { get; set; }
 
-    public string? Points { get; set; }
+    public int? Points { get; set; }
+
+    public virtual Event? Event { get; set; }
+
+    public virtual Student? Student { get; set; }
 }

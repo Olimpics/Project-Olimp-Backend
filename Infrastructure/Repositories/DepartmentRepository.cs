@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using OlimpBack.Data;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -58,7 +59,7 @@ public class DepartmentRepository : IDepartmentRepository
             .Take(queryDto.PageSize)
             .Select(d => new DepartmentDto
             {
-                IdDepartment = d.IdDepartment ?? 0,
+                IdDepartment = d.IdDepartment,
                 FacultyId = d.FacultyId ?? 0,
                 NameDepartment = d.NameDepartment ?? "",
                 Abbreviation = d.Abbreviation ?? "",
@@ -76,7 +77,7 @@ public class DepartmentRepository : IDepartmentRepository
             .Where(d => d.IdDepartment == id)
             .Select(d => new DepartmentDto
             {
-                IdDepartment = d.IdDepartment ?? 0,
+                IdDepartment = d.IdDepartment,
                 FacultyId = d.FacultyId ?? 0,
                 NameDepartment = d.NameDepartment ?? "",
                 Abbreviation = d.Abbreviation ?? "",

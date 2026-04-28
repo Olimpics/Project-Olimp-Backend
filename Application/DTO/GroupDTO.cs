@@ -7,11 +7,11 @@ namespace OlimpBack.Application.DTO
         public int? NumberOfStudents { get; set; }
     }
 
-    public class GroupBindMainDisciplinesDTO
+    public class GroupMainDisciplineDto
     {   
         //public int idGroup { get; set; }
-        public int idBindMainDisciplines { get; set; }
-        public string nameBindMainDisciplines { get; set; } = null!;
+        public int idMainDisciplines { get; set; }
+        public string nameMainDisciplines { get; set; } = null!;
         public int? Semestr { get; set; }
         public int? Loans { get; set; }
         public int? Hours { get; set; }
@@ -21,7 +21,7 @@ namespace OlimpBack.Application.DTO
     {
         public int IdGroup { get; set; }
         public string GroupCode { get; set; } = null!;
-        public List<GroupBindMainDisciplinesDTO> BindMainDisciplines { get; set; } = new List<GroupBindMainDisciplinesDTO>();
+        public List<GroupMainDisciplineDto> MainDisciplines { get; set; } = new List<GroupMainDisciplineDto>();
     }
 
 

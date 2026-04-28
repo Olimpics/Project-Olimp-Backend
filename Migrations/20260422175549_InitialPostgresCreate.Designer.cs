@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 
 #nullable disable
 
@@ -398,12 +399,12 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.BindMainDiscipline", b =>
                 {
-                    b.Property<int>("IdBindMainDisciplines")
+                    b.Property<int>("IdMainDisciplines")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("idBindMainDisciplines");
+                        .HasColumnName("idMainDisciplines");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBindMainDisciplines"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdMainDisciplines"));
 
                     b.Property<string>("CodeMainDisciplines")
                         .IsRequired()
@@ -424,11 +425,11 @@ namespace OlimpBack.Migrations
                     b.Property<int>("Loans")
                         .HasColumnType("integer");
 
-                    b.Property<string>("NameBindMainDisciplines")
+                    b.Property<string>("NameMainDisciplines")
                         .IsRequired()
                         .HasMaxLength(45)
                         .HasColumnType("character varying(45)")
-                        .HasColumnName("nameBindMainDisciplines");
+                        .HasColumnName("nameMainDisciplines");
 
                     b.Property<int>("Semestr")
                         .HasColumnType("integer");
@@ -436,11 +437,11 @@ namespace OlimpBack.Migrations
                     b.Property<string>("Teachers")
                         .HasColumnType("json");
 
-                    b.HasKey("IdBindMainDisciplines");
+                    b.HasKey("IdMainDisciplines");
 
-                    b.HasIndex(new[] { "EducationalProgramId" }, "BindMainDisciplines_EducationalProgram_idx");
+                    b.HasIndex(new[] { "EducationalProgramId" }, "MainDisciplines_EducationalProgram_idx");
 
-                    b.ToTable("BindMainDisciplines");
+                    b.ToTable("MainDisciplines");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.BindRolePermission", b =>
@@ -1658,10 +1659,10 @@ namespace OlimpBack.Migrations
             modelBuilder.Entity("OlimpBack.Models.BindMainDiscipline", b =>
                 {
                     b.HasOne("OlimpBack.Models.EducationalProgram", "EducationalProgram")
-                        .WithMany("BindMainDisciplines")
+                        .WithMany("MainDisciplines")
                         .HasForeignKey("EducationalProgramId")
                         .IsRequired()
-                        .HasConstraintName("BindMainDisciplines_EducationalProgram");
+                        .HasConstraintName("MainDisciplines_EducationalProgram");
 
                     b.Navigation("EducationalProgram");
                 });
@@ -1782,44 +1783,44 @@ namespace OlimpBack.Migrations
             modelBuilder.Entity("OlimpBack.Models.Group", b =>
                 {
                     b.HasOne("OlimpBack.Models.AdminsPersonal", "Admin")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("AdminId")
                         .HasConstraintName("Group_Admin");
 
                     b.HasOne("OlimpBack.Models.EducationalDegree", "Degree")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("DegreeId")
                         .HasConstraintName("Group_Degree");
 
                     b.HasOne("OlimpBack.Models.Department", "Department")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("DepartmentId")
                         .HasConstraintName("Group_Department");
 
                     b.HasOne("OlimpBack.Models.Faculty", "Faculty")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("FacultyId")
                         .HasConstraintName("Group_Faculties");
 
-                    b.HasOne("OlimpBack.Models.EducationalProgram", "IdEducationalProgramNavigation")
-                        .WithMany("Groups")
+                    b.HasOne("OlimpBack.Models.EducationalProgram", "EducationalProgram")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("IdEducationalProgram")
                         .HasConstraintName("FK_Group_EducationalProgram");
 
                     b.HasOne("OlimpBack.Models.Speciality", "IdSpecialityNavigation")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("IdSpeciality")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Group_Speciality");
 
                     b.HasOne("OlimpBack.Models.Specialization", "IdSpecializationNavigation")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("IdSpecialization")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Group_Specialization");
 
                     b.HasOne("OlimpBack.Models.StudyForm", "IdStudyFormNavigation")
-                        .WithMany("Groups")
+                        .WithMany("StudentGroups")
                         .HasForeignKey("IdStudyForm")
                         .HasConstraintName("FK_Group_StudyForm");
 
@@ -1831,7 +1832,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("Faculty");
 
-                    b.Navigation("IdEducationalProgramNavigation");
+                    b.Navigation("EducationalProgram");
 
                     b.Navigation("IdSpecialityNavigation");
 
@@ -1933,7 +1934,7 @@ namespace OlimpBack.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Speciality_Branch");
 
-                    b.HasOne("OlimpBack.Models.Department", "IdDepartmentNavigation")
+                    b.HasOne("OlimpBack.Models.Department", "DepartmentNavigation")
                         .WithMany("Specialities")
                         .HasForeignKey("IdDepartment")
                         .OnDelete(DeleteBehavior.SetNull)
@@ -1947,7 +1948,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("IdBranchNavigation");
 
-                    b.Navigation("IdDepartmentNavigation");
+                    b.Navigation("DepartmentNavigation");
 
                     b.Navigation("IdFacultyNavigation");
                 });
@@ -2051,7 +2052,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("Faculties");
 
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.BindMainDiscipline", b =>
@@ -2077,7 +2078,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("DisciplineChoicePeriods");
 
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
 
                     b.Navigation("Specialities");
                 });
@@ -2095,7 +2096,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("EducationalPrograms");
 
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
 
                     b.Navigation("Normatives");
 
@@ -2106,9 +2107,9 @@ namespace OlimpBack.Migrations
                 {
                     b.Navigation("BindLoansMains");
 
-                    b.Navigation("BindMainDisciplines");
+                    b.Navigation("MainDisciplines");
 
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
 
                     b.Navigation("Students");
                 });
@@ -2128,7 +2129,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("DisciplineChoicePeriods");
 
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
 
                     b.Navigation("Specialities");
 
@@ -2173,14 +2174,14 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.Speciality", b =>
                 {
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
 
                     b.Navigation("Specializations");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.Specialization", b =>
                 {
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.Student", b =>
@@ -2200,7 +2201,7 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.StudyForm", b =>
                 {
-                    b.Navigation("Groups");
+                    b.Navigation("StudentGroups");
 
                     b.Navigation("Students");
                 });

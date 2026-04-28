@@ -45,5 +45,5 @@ public partial class Group
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 
-    public virtual Educationaldegree? Degree { get; set; }
+    public virtual EducationalDegree? Degree { get; set; }
 }
