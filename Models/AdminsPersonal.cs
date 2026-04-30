@@ -17,6 +17,10 @@ public partial class AdminsPersonal
 
     public virtual ICollection<AdminLog> AdminLogs { get; set; } = new List<AdminLog>();
 
+    public virtual ICollection<BindTeacherMain> BindTeacherMains { get; set; } = new List<BindTeacherMain>();
+
+    public virtual ICollection<BindTeachersSelective> BindTeachersSelectives { get; set; } = new List<BindTeachersSelective>();
+
     public virtual Department? Department { get; set; }
 
     public virtual Faculty? Faculty { get; set; }

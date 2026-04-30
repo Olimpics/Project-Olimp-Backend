@@ -22,7 +22,7 @@ public partial class BindAddDiscipline
 
     public string? CreatedAt { get; set; }
 
-    public virtual AddDiscipline? AddDisciplines { get; set; }
+    public virtual SelectiveDiscipline? AddDisciplines { get; set; }
 
     public virtual Student? Student { get; set; }
 }

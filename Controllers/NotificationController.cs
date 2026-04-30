@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -16,6 +17,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.NotificationsRead)]
         public async Task<ActionResult<object>> GetNotifications(
             [FromQuery] NotificationQueryDto query)
         {
@@ -24,6 +26,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("user/{userId}")]
+        [RequirePermission(RbacPermissions.NotificationsRead)]
         public async Task<ActionResult<object>> GetUserNotifications(
             int userId,
             [FromQuery] NotificationQueryDto query)
@@ -33,6 +36,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.NotificationsRead)]
         public async Task<ActionResult<NotificationDto>> GetNotification(int id)
         {
             var notification = await _notificationService.GetNotificationAsync(id);
@@ -43,6 +47,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
+        [RequirePermission(RbacPermissions.NotificationsCreate)]
         public async Task<ActionResult<NotificationDto>> CreateNotification(CreateNotificationDto dto)
         {
             var response = await _notificationService.CreateNotificationAsync(dto);
@@ -50,6 +55,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("{id}/mark-as-read")]
+        [RequirePermission(RbacPermissions.NotificationsUpdate)]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             var (success, statusCode, errorMessage) = await _notificationService.MarkAsReadAsync(id);

@@ -1,111 +1,107 @@
-//using AutoMapper;
-//using Microsoft.AspNetCore.Http;
-//using OlimpBack.Application.DTO;
-//using OlimpBack.Application.Permissions;
-//using OlimpBack.Infrastructure.Database.Repositories;
-//using OlimpBack.Models;
+using Microsoft.AspNetCore.Http;
+using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
+using OlimpBack.Infrastructure.Database.Repositories;
+using OlimpBack.Models;
 
-//namespace OlimpBack.Application.Services;
+namespace OlimpBack.Application.Services;
 
-//public interface IBindRolePermissionService
-//{
-//    Task<IEnumerable<BindRolePermissionDto>> GetAllAsync();
-//    Task<BindRolePermissionDto?> GetByIdAsync(int id);
-//    Task<(BindRolePermissionDto? dto, int? statusCode, string? errorMessage)> CreateAsync(CreateBindRolePermissionDto dto);
-//    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateBindRolePermissionDto dto);
-//    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
-//}
+public interface IBindRolePermissionService
+{
+    Task<IEnumerable<BindRolePermissionDto>> GetAllAsync();
+    Task<BindRolePermissionDto?> GetByKeyAsync(int roleId, int permissionId);
+    Task<(BindRolePermissionDto? dto, int? statusCode, string? errorMessage)> CreateAsync(CreateBindRolePermissionDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int roleId, int permissionId, UpdateBindRolePermissionDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int roleId, int permissionId);
+}
 
-//public class BindRolePermissionService : IBindRolePermissionService
-//{
-//    private readonly IBindRolePermissionRepository _repository;
-//    private readonly IRoleMaskService _roleMaskService;
-//    private readonly IMapper _mapper;
+public class BindRolePermissionService : IBindRolePermissionService
+{
+    private readonly IBindRolePermissionRepository _repository;
+    private readonly IRoleMaskService _roleMaskService;
 
-//    public BindRolePermissionService(IBindRolePermissionRepository repository, IRoleMaskService roleMaskService, IMapper mapper)
-//    {
-//        _repository = repository;
-//        _roleMaskService = roleMaskService;
-//        _mapper = mapper;
-//    }
+    public BindRolePermissionService(IBindRolePermissionRepository repository, IRoleMaskService roleMaskService)
+    {
+        _repository = repository;
+        _roleMaskService = roleMaskService;
+    }
 
-//    public async Task<IEnumerable<BindRolePermissionDto>> GetAllAsync()
-//    {
-//        return await _repository.GetAllDtoAsync();
-//    }
+    public async Task<IEnumerable<BindRolePermissionDto>> GetAllAsync()
+    {
+        return await _repository.GetAllDtoAsync();
+    }
 
-//    public async Task<BindRolePermissionDto?> GetByIdAsync(int id)
-//    {
-//        return await _repository.GetDtoByIdAsync(id);
-//    }
+    public async Task<BindRolePermissionDto?> GetByKeyAsync(int roleId, int permissionId)
+    {
+        return await _repository.GetDtoAsync(roleId, permissionId);
+    }
 
-//    public async Task<(BindRolePermissionDto? dto, int? statusCode, string? errorMessage)> CreateAsync(CreateBindRolePermissionDto dto)
-//    {
-//        if (!await _repository.ExistsRoleAsync(dto.RoleId))
-//            return (null, StatusCodes.Status400BadRequest, "Role not found");
+    public async Task<(BindRolePermissionDto? dto, int? statusCode, string? errorMessage)> CreateAsync(CreateBindRolePermissionDto dto)
+    {
+        if (!await _repository.ExistsRoleAsync(dto.RoleId))
+            return (null, StatusCodes.Status400BadRequest, "Role not found");
 
-//        if (!await _repository.ExistsPermissionAsync(dto.PermissionId))
-//            return (null, StatusCodes.Status400BadRequest, "Permission not found");
+        if (!await _repository.ExistsPermissionAsync(dto.PermissionId))
+            return (null, StatusCodes.Status400BadRequest, "Permission not found");
 
-//        if (await _repository.BindingExistsAsync(dto.RoleId, dto.PermissionId))
-//            return (null, StatusCodes.Status400BadRequest, "This role-permission binding already exists");
+        if (await _repository.BindingExistsAsync(dto.RoleId, dto.PermissionId))
+            return (null, StatusCodes.Status400BadRequest, "This role-permission binding already exists");
 
-//        var binding = _mapper.Map<BindRolePermission>(dto);
+        var binding = new RolePermission
+        {
+            RoleId = dto.RoleId,
+            PermissionId = dto.PermissionId
+        };
 
-//        await _repository.AddAsync(binding);
-//        await _repository.SaveChangesAsync();
-//        if (binding.RoleId.HasValue)
-//            await _roleMaskService.RecalculateRoleMaskAsync(binding.RoleId.Value);
+        await _repository.AddAsync(binding);
+        await _repository.SaveChangesAsync();
+        await _roleMaskService.RecalculateRoleMaskAsync(dto.RoleId);
 
-//        var resultDto = binding.IdBindRolePermission.HasValue
-//            ? await _repository.GetDtoByIdAsync(binding.IdBindRolePermission.Value)
-//            : null;
-//        return (resultDto, null, null);
-//    }
+        var resultDto = await _repository.GetDtoAsync(dto.RoleId, dto.PermissionId);
+        return (resultDto, null, null);
+    }
 
-//    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateBindRolePermissionDto dto)
-//    {
-//        if (id != dto.IdBindRolePermission)
-//            return (false, StatusCodes.Status400BadRequest, "ID mismatch");
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int roleId, int permissionId, UpdateBindRolePermissionDto dto)
+    {
+        var binding = await _repository.GetEntityAsync(roleId, permissionId);
+        if (binding == null)
+            return (false, StatusCodes.Status404NotFound, "Binding not found");
 
-//        var binding = await _repository.GetEntityByIdAsync(id);
-//        if (binding == null)
-//            return (false, StatusCodes.Status404NotFound, "Binding not found");
+        if (!await _repository.ExistsRoleAsync(dto.RoleId))
+            return (false, StatusCodes.Status400BadRequest, "Role not found");
 
-//        var oldRoleId = binding.RoleId;
+        if (!await _repository.ExistsPermissionAsync(dto.PermissionId))
+            return (false, StatusCodes.Status400BadRequest, "Permission not found");
 
-//        if (!await _repository.ExistsRoleAsync(dto.RoleId))
-//            return (false, StatusCodes.Status400BadRequest, "Role not found");
+        if ((dto.RoleId != roleId || dto.PermissionId != permissionId) &&
+            await _repository.BindingExistsAsync(dto.RoleId, dto.PermissionId))
+        {
+            return (false, StatusCodes.Status400BadRequest, "This role-permission binding already exists");
+        }
 
-//        if (!await _repository.ExistsPermissionAsync(dto.PermissionId))
-//            return (false, StatusCodes.Status400BadRequest, "Permission not found");
+        await _repository.DeleteAsync(roleId, permissionId);
+        await _repository.AddAsync(new RolePermission
+        {
+            RoleId = dto.RoleId,
+            PermissionId = dto.PermissionId
+        });
+        await _repository.SaveChangesAsync();
 
-//        if (await _repository.BindingExistsAsync(dto.RoleId, dto.PermissionId, id))
-//            return (false, StatusCodes.Status400BadRequest, "This role-permission binding already exists");
+        await _roleMaskService.RecalculateRoleMaskAsync(roleId);
+        if (roleId != dto.RoleId)
+            await _roleMaskService.RecalculateRoleMaskAsync(dto.RoleId);
 
-//        _mapper.Map(dto, binding);
-//        await _repository.SaveChangesAsync();
-//        await _roleMaskService.RecalculateRoleMaskAsync(dto.RoleId);
-//        if (oldRoleId.HasValue && oldRoleId.Value != dto.RoleId)
-//            await _roleMaskService.RecalculateRoleMaskAsync(oldRoleId.Value);
+        return (true, StatusCodes.Status204NoContent, null);
+    }
 
-//        return (true, StatusCodes.Status204NoContent, null);
-//    }
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int roleId, int permissionId)
+    {
+        var deletedRows = await _repository.DeleteAsync(roleId, permissionId);
 
-//    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
-//    {
-//        var binding = await _repository.GetEntityByIdAsync(id);
-//        if (binding == null)
-//            return (false, StatusCodes.Status404NotFound, "Binding not found");
+        if (deletedRows == 0)
+            return (false, StatusCodes.Status404NotFound, "Binding not found");
 
-//        var deletedRows = await _repository.DeleteAsync(id);
-
-//        if (deletedRows == 0)
-//            return (false, StatusCodes.Status404NotFound, "Binding not found");
-
-//        if (binding.RoleId.HasValue)
-//            await _roleMaskService.RecalculateRoleMaskAsync(binding.RoleId.Value);
-
-//        return (true, StatusCodes.Status204NoContent, null);
-//    }
-//}
+        await _roleMaskService.RecalculateRoleMaskAsync(roleId);
+        return (true, StatusCodes.Status204NoContent, null);
+    }
+}

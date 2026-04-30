@@ -27,23 +27,25 @@ public partial class EducationalProgram
 
     public string? Speciality { get; set; }
 
+    public int? SpecialityId { get; set; }
+
     public int? Accreditation { get; set; }
 
     public string? AccreditationType { get; set; }
 
     public int? StudentsAmount { get; set; }
 
-    public int? SpecialityId { get; set; }
-
-    public virtual Speciality? SpecialityEntity { get; set; }
-
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 
     public virtual EducationalDegree? Degree { get; set; }
 
+    public virtual Speciality? SpecialityEntity { get; set; }
+
     public virtual ICollection<MainDiscipline> MainDisciplines { get; set; } = new List<MainDiscipline>();
 
     public virtual ICollection<Prerequisite> Prerequisites { get; set; } = new List<Prerequisite>();
+
+    public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

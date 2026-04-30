@@ -5,15 +5,17 @@ namespace OlimpBack.Models;
 
 public partial class MembersOfSg
 {
-    public int IdMember { get; set; }
+    public int IdMembersOfSg { get; set; }
 
-    public int? SubDivisionId { get; set; }
+    public int? StudentId { get; set; }
 
-    public int? RoleInSgid { get; set; }
+    public int? BindsubdivisionRoleSgid { get; set; }
 
-    public virtual RolesInSg? RoleInSg { get; set; }
+    public int? CreatedBy { get; set; }
 
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+    public virtual BindSubdivisionRoleSg? BindsubdivisionRoleSg { get; set; }
 
-    public virtual SubDivisionsSg? SubDivision { get; set; }
+    public virtual Student? CreatedByNavigation { get; set; }
+
+    public virtual Student? Student { get; set; }
 }

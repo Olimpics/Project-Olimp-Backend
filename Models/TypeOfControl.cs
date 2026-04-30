@@ -9,5 +9,5 @@ public partial class TypeOfControl
 
     public string? Type { get; set; }
 
-    public virtual ICollection<AddDetail> AddDetails { get; set; } = new List<AddDetail>();
+    public virtual ICollection<SelectiveDetail> SelectiveDetails { get; set; } = new List<SelectiveDetail>();
 }

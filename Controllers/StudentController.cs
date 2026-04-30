@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -17,6 +18,7 @@ namespace OlimpBack.Controllers
 
         // GET: api/Student
         [HttpGet]
+        [RequirePermission(RbacPermissions.StudentsRead)]
         public async Task<ActionResult<object>> GetStudents(
             [FromQuery] StudentQueryDto query)
         {
@@ -26,6 +28,7 @@ namespace OlimpBack.Controllers
 
         // GET: api/Student/5
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.StudentsRead)]
         public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
             var student = await _studentService.GetStudentAsync(id);
@@ -39,6 +42,7 @@ namespace OlimpBack.Controllers
 
         // POST: api/Student
         [HttpPost]
+        [RequirePermission(RbacPermissions.StudentsCreate)]
         public async Task<ActionResult<StudentDto>> CreateStudent([FromBody] List<CreateStudentDto> dtos)
         {
             var results = await _studentService.CreateStudentsAsync(dtos);
@@ -47,6 +51,7 @@ namespace OlimpBack.Controllers
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.StudentsUpdate)]
         public async Task<IActionResult> UpdateStudent(int id, UpdateStudentDto updateDto)
         {
             var (success, statusCode, errorMessage) =

@@ -17,6 +17,8 @@ public partial class RegulationOnAddPoint
 
     public string? Notes { get; set; }
 
+    public string? SubTypeOfActivitys { get; set; }
+
     public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();

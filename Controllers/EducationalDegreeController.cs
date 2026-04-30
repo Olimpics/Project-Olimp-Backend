@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -18,6 +19,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.EducationalDegreesRead)]
         public async Task<ActionResult<IEnumerable<EducationalDegreeDto>>> GetEducationalDegrees()
         {
             var degrees = await _service.GetAllAsync();
@@ -25,6 +27,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.EducationalDegreesRead)]
         public async Task<ActionResult<EducationalDegreeDto>> GetEducationalDegree(int id)
         {
             var degree = await _service.GetByIdAsync(id);
@@ -35,6 +38,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
+        [RequirePermission(RbacPermissions.EducationalDegreesCreate)]
         public async Task<ActionResult<EducationalDegreeDto>> CreateEducationalDegree(CreateEducationalDegreeDto dto)
         {
             var resultDto = await _service.CreateAsync(dto);
@@ -42,6 +46,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.EducationalDegreesUpdate)]
         public async Task<IActionResult> UpdateEducationalDegree(int id, UpdateEducationalDegreeDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
@@ -53,6 +58,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermission(RbacPermissions.EducationalDegreesDelete)]
         public async Task<IActionResult> DeleteEducationalDegree(int id)
         {
             var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);

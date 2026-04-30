@@ -6,6 +6,7 @@ using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Models;
 using OlimpBack.Data;
+using OlimpBack.Application.Permissions;
 
 namespace OlimpBack.Controllers
 {
@@ -25,6 +26,7 @@ namespace OlimpBack.Controllers
 
         // GET: api/User
         [HttpGet]
+        [RequirePermission(RbacPermissions.UsersRead)]
         public async Task<ActionResult<IEnumerable<UserRoleDto>>> GetUsers()
         {
             var dtos = await _context.Users
@@ -36,6 +38,7 @@ namespace OlimpBack.Controllers
 
         // GET: api/User/5
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.UsersRead)]
         public async Task<ActionResult<UserRoleDto>> GetUser(int id)
         {
             var dto = await _context.Users
@@ -51,6 +54,7 @@ namespace OlimpBack.Controllers
 
         // PUT: api/User/5
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.UsersUpdate)]
         public async Task<IActionResult> UpdateUser(int id, UpdateUserDto dto)
         {
             var user = await _context.Users.FindAsync(id);

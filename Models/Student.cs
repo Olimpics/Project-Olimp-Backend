@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -31,13 +32,17 @@ public partial class Student
 
     public int GroupId { get; set; }
 
-    public int IsInSg { get; set; }
+    public BitArray IsInSg { get; set; } = null!;
 
     public List<int>? Idfav { get; set; }
 
     public int? Departmentid { get; set; }
 
+    public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
+
     public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
+
+    public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
     public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
 
@@ -55,9 +60,13 @@ public partial class Student
 
     public virtual StudentGroup Group { get; set; } = null!;
 
-    public virtual MembersOfSg IsInSgNavigation { get; set; } = null!;
+    public virtual ICollection<InventorySg> InventorySgs { get; set; } = new List<InventorySg>();
 
     public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
+
+    public virtual ICollection<MembersOfSg> MembersOfSgCreatedByNavigations { get; set; } = new List<MembersOfSg>();
+
+    public virtual ICollection<MembersOfSg> MembersOfSgStudents { get; set; } = new List<MembersOfSg>();
 
     public virtual StudyForm StudyForm { get; set; } = null!;
 

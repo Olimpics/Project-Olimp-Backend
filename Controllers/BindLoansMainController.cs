@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using OlimpBack.Application.Services;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 
 namespace OlimpBack.Controllers
 {
@@ -20,6 +21,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.MainDisciplinesRead)]
         public async Task<ActionResult<object>> GetBindLoansMain(
             [FromQuery] BindLoansMainQueryDto query)
         {
@@ -28,6 +30,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.MainDisciplinesRead)]
         public async Task<ActionResult<BindLoansMainDto>> GetBindLoansMain(int id)
         {
             var binding = await _bindLoansMainService.GetBindLoansMainAsync(id);
@@ -42,6 +45,7 @@ namespace OlimpBack.Controllers
 
         [Authorize]
         [HttpPost]
+        [RequirePermission(RbacPermissions.MainDisciplinesCreate)]
         public async Task<ActionResult<BindLoansMainDto>> CreateBindLoansMain(CreateBindLoansMainDto dto)
         {
             var result = await _bindLoansMainService.CreateBindLoansMainAsync(dto);
@@ -50,6 +54,7 @@ namespace OlimpBack.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.MainDisciplinesUpdate)]
         public async Task<IActionResult> UpdateBindLoansMain(int id, UpdateBindLoansMainDto dto)
         {
             var (success, statusCode, errorMessage) =
@@ -63,6 +68,7 @@ namespace OlimpBack.Controllers
 
         [Authorize]
         [HttpDelete("{id}")]
+        [RequirePermission(RbacPermissions.MainDisciplinesDelete)]
         public async Task<IActionResult> DeleteBindLoansMain(int id)
         {
             var (success, statusCode, errorMessage) =

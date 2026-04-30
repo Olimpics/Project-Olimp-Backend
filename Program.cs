@@ -6,10 +6,11 @@ using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
-using OlimpBack.Infrastructure.Redis;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
-using StackExchange.Redis;
+// TEMPORARY: Redis is disabled for local development until Redis is available.
+// using OlimpBack.Infrastructure.Redis;
+// using StackExchange.Redis;
 using System.Configuration;
 using System.Diagnostics;
 using System.Text;
@@ -200,12 +201,13 @@ builder.Services.AddAuthentication(options =>
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
-builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
-{
-    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
-    return ConnectionMultiplexer.Connect(redisConnection);
-});
-builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
+// TEMPORARY: Redis is disabled for local development until Redis is available.
+// builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+// {
+//     var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
+//     return ConnectionMultiplexer.Connect(redisConnection);
+// });
+// builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
 // ==========================================
 // РЕПОЗИТОРІЇ ТА СЕРВІСИ (Domain Modules)
 // ==========================================

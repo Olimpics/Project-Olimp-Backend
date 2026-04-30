@@ -13,15 +13,21 @@ public partial class Event
 
     public string? Location { get; set; }
 
-    public string? LinkToRegistration { get; set; }
-
-    public string? Description { get; set; }
-
-    public string? AmountPeople { get; set; }
-
     public int? RegulationId { get; set; }
+
+    public int? CeatorId { get; set; }
+
+    public int? SubdivisionSgid { get; set; }
+
+    public string? Format { get; set; }
+
+    public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
     public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
 
+    public virtual User? Ceator { get; set; }
+
     public virtual RegulationOnAddPoint? Regulation { get; set; }
+
+    public virtual SubDivisionsSg? SubdivisionSg { get; set; }
 }

@@ -9,7 +9,9 @@ public partial class RolesInSg
 
     public string? NameRole { get; set; }
 
-    public string? Points { get; set; }
+    public string? PointsFac { get; set; }
 
-    public virtual ICollection<MembersOfSg> MembersOfSgs { get; set; } = new List<MembersOfSg>();
+    public string? PointsUni { get; set; }
+
+    public virtual ICollection<BindSubdivisionRoleSg> BindSubdivisionRoleSgs { get; set; } = new List<BindSubdivisionRoleSg>();
 }

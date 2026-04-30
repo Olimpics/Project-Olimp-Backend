@@ -12,5 +12,5 @@ public partial class CatalogYearsSelective
 
     public BitArray? IsFormed { get; set; }
 
-    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
+    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 }

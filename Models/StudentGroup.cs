@@ -20,8 +20,6 @@ public partial class StudentGroup
 
     public int? IdEducationalProgram { get; set; }
 
-    public virtual EducationalProgram? EducationalProgram { get; set; }
-
     public int? IdStudyForm { get; set; }
 
     public BitArray IsAccelerated { get; set; } = null!;
@@ -31,6 +29,14 @@ public partial class StudentGroup
     public virtual AdminsPersonal? Admin { get; set; }
 
     public virtual EducationalDegree? Degree { get; set; }
+
+    public virtual EducationalProgram? IdEducationalProgramNavigation { get; set; }
+
+    public virtual EducationalProgram? EducationalProgram
+    {
+        get => IdEducationalProgramNavigation;
+        set => IdEducationalProgramNavigation = value;
+    }
 
     public virtual StudyForm? IdStudyFormNavigation { get; set; }
 

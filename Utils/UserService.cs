@@ -22,15 +22,31 @@ namespace OlimpBack.Utils
             var user = new Models.User
             {
                 Email = email,
-                Passwordhash = hash,
-                Passwordsalt = salt,
-                Isfirstlogin = new System.Collections.BitArray(1, true),
-                Createdat = DateTime.UtcNow,
-                Lastloginat = DateTime.UtcNow
+                PasswordHash = hash,
+                PasswordSalt = salt,
+                IsFirstLogin = new System.Collections.BitArray(1, true),
+                CreatedAt = ToPostgresTimestamp(DateTime.UtcNow),
+                LastLoginAt = ToPostgresTimestamp(DateTime.UtcNow)
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            if (await _context.Roles.AnyAsync(r => r.IdRole == roleId))
+            {
+                _context.UserRoles.Add(new Models.UserRole
+                {
+                    UserId = user.IdUser,
+                    RoleId = roleId
+                });
+                await _context.SaveChangesAsync();
+            }
+
             return user.IdUser;
+        }
+
+        private static DateTime ToPostgresTimestamp(DateTime value)
+        {
+            return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
         }
     }
 }

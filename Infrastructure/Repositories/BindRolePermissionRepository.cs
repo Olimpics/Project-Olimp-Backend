@@ -1,95 +1,114 @@
-//using AutoMapper;
-//using AutoMapper.QueryableExtensions;
-//using Microsoft.EntityFrameworkCore;
-//using OlimpBack.Application.DTO;
-//using OlimpBack.Infrastructure.Database;
-//using OlimpBack.Models;
-//using OlimpBack.Data;
+using Microsoft.EntityFrameworkCore;
+using OlimpBack.Application.DTO;
+using OlimpBack.Data;
+using OlimpBack.Models;
 
-//namespace OlimpBack.Infrastructure.Database.Repositories;
+namespace OlimpBack.Infrastructure.Database.Repositories;
 
-//public interface IBindRolePermissionRepository
-//{
-//    Task<IEnumerable<BindRolePermissionDto>> GetAllDtoAsync();
-//    Task<BindRolePermissionDto?> GetDtoByIdAsync(int id);
-//    Task<BindRolePermission?> GetEntityByIdAsync(int id);
-//    Task<bool> ExistsRoleAsync(int roleId);
-//    Task<bool> ExistsPermissionAsync(int permissionId);
-//    Task<bool> BindingExistsAsync(int roleId, int permissionId, int? excludeId = null);
-//    Task AddAsync(BindRolePermission binding);
-//    Task<int> DeleteAsync(int id);
-//    Task SaveChangesAsync();
-//}
+public interface IBindRolePermissionRepository
+{
+    Task<IEnumerable<BindRolePermissionDto>> GetAllDtoAsync();
+    Task<BindRolePermissionDto?> GetDtoAsync(int roleId, int permissionId);
+    Task<RolePermission?> GetEntityAsync(int roleId, int permissionId);
+    Task<bool> ExistsRoleAsync(int roleId);
+    Task<bool> ExistsPermissionAsync(int permissionId);
+    Task<bool> BindingExistsAsync(int roleId, int permissionId);
+    Task AddAsync(RolePermission binding);
+    Task<int> DeleteAsync(int roleId, int permissionId);
+    Task SaveChangesAsync();
+}
 
-//public class BindRolePermissionRepository : IBindRolePermissionRepository
-//{
-//    private readonly AppDbContext _context;
-//    private readonly IMapper _mapper;
+public class BindRolePermissionRepository : IBindRolePermissionRepository
+{
+    private readonly AppDbContext _context;
 
-//    public BindRolePermissionRepository(AppDbContext context, IMapper mapper)
-//    {
-//        _context = context;
-//        _mapper = mapper;
-//    }
+    public BindRolePermissionRepository(AppDbContext context)
+    {
+        _context = context;
+    }
 
-//    public async Task<IEnumerable<BindRolePermissionDto>> GetAllDtoAsync()
-//    {
-//        return await _context.BindRolePermissions
-//            .AsNoTracking()
-//            .ProjectTo<BindRolePermissionDto>(_mapper.ConfigurationProvider)
-//            .ToListAsync();
-//    }
+    public async Task<IEnumerable<BindRolePermissionDto>> GetAllDtoAsync()
+    {
+        return await _context.RolePermissions
+            .AsNoTracking()
+            .Include(rp => rp.Role)
+            .Include(rp => rp.Permission)
+            .OrderBy(rp => rp.RoleId)
+            .ThenBy(rp => rp.Permission.BitIndex)
+            .Select(rp => ToDto(rp))
+            .ToListAsync();
+    }
 
-//    public async Task<BindRolePermissionDto?> GetDtoByIdAsync(int id)
-//    {
-//        return await _context.BindRolePermissions
-//            .AsNoTracking()
-//            .Where(b => b.IdBindRolePermission == id)
-//            .ProjectTo<BindRolePermissionDto>(_mapper.ConfigurationProvider)
-//            .FirstOrDefaultAsync();
-//    }
+    public async Task<BindRolePermissionDto?> GetDtoAsync(int roleId, int permissionId)
+    {
+        return await _context.RolePermissions
+            .AsNoTracking()
+            .Include(rp => rp.Role)
+            .Include(rp => rp.Permission)
+            .Where(rp => rp.RoleId == roleId && rp.PermissionId == permissionId)
+            .Select(rp => ToDto(rp))
+            .FirstOrDefaultAsync();
+    }
 
-//    public async Task<BindRolePermission?> GetEntityByIdAsync(int id)
-//    {
-//        return await _context.BindRolePermissions.FindAsync(id);
-//    }
+    public async Task<RolePermission?> GetEntityAsync(int roleId, int permissionId)
+    {
+        return await _context.RolePermissions.FindAsync(roleId, permissionId);
+    }
 
-//    public async Task<bool> ExistsRoleAsync(int roleId)
-//    {
-//        return await _context.Roles1.AnyAsync(r => r.Id == roleId);
-//    }
+    public async Task<bool> ExistsRoleAsync(int roleId)
+    {
+        return await _context.Roles.AnyAsync(r => r.IdRole == roleId);
+    }
 
-//    public async Task<bool> ExistsPermissionAsync(int permissionId)
-//    {
-//        return await _context.Permissions.AnyAsync(p => p.Id == permissionId);
-//    }
+    public async Task<bool> ExistsPermissionAsync(int permissionId)
+    {
+        return await _context.Permissions.AnyAsync(p => p.Id == permissionId);
+    }
 
-//    public async Task<bool> BindingExistsAsync(int roleId, int permissionId, int? excludeId = null)
-//    {
-//        var query = _context.BindRolePermissions.Where(b => b.RoleId == roleId && b.PermissionId == permissionId);
+    public async Task<bool> BindingExistsAsync(int roleId, int permissionId)
+    {
+        return await _context.RolePermissions.AnyAsync(b => b.RoleId == roleId && b.PermissionId == permissionId);
+    }
 
-//        if (excludeId.HasValue)
-//        {
-//            query = query.Where(b => b.IdBindRolePermission != excludeId.Value);
-//        }
+    public async Task AddAsync(RolePermission binding)
+    {
+        await _context.RolePermissions.AddAsync(binding);
+    }
 
-//        return await query.AnyAsync();
-//    }
+    public async Task<int> DeleteAsync(int roleId, int permissionId)
+    {
+        return await _context.RolePermissions
+            .Where(b => b.RoleId == roleId && b.PermissionId == permissionId)
+            .ExecuteDeleteAsync();
+    }
 
-//    public async Task AddAsync(BindRolePermission binding)
-//    {
-//        await _context.BindRolePermissions.AddAsync(binding);
-//    }
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
 
-//    public async Task<int> DeleteAsync(int id)
-//    {
-//        return await _context.BindRolePermissions
-//            .Where(b => b.IdBindRolePermission == id)
-//            .ExecuteDeleteAsync();
-//    }
+    private static BindRolePermissionDto ToDto(RolePermission binding)
+    {
+        return new BindRolePermissionDto
+        {
+            IdBindRolePermission = binding.PermissionId,
+            RoleId = binding.RoleId,
+            RoleName = binding.Role.Name,
+            PermissionId = binding.PermissionId,
+            TypePermission = GetPermissionAction(binding.Permission.Code),
+            TableName = GetPermissionResource(binding.Permission.Code)
+        };
+    }
 
-//    public async Task SaveChangesAsync()
-//    {
-//        await _context.SaveChangesAsync();
-//    }
-//}
+    private static string GetPermissionResource(string code)
+    {
+        var parts = code.Split('.', 2, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 0 ? parts[0] : code;
+    }
+
+    private static string GetPermissionAction(string code)
+    {
+        var parts = code.Split('.', 2, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 1 ? parts[1] : string.Empty;
+    }
+}

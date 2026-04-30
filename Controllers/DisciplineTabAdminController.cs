@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -18,6 +19,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetAllDisciplines")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<PaginatedResponseDto<FullDisciplineDto>>> GetAllDisciplines(
             [FromQuery] GetAllDisciplinesAdminQueryDto query)
         {
@@ -26,6 +28,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetStudentsWithDisciplineChoices")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<object>> GetStudentsWithDisciplineChoices(
             [FromQuery] GetStudentsWithDisciplineChoicesQueryDto query)
         {
@@ -34,6 +37,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateChoice")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<object>> UpdateChoice(ConfirmOrRejectChoiceDto[] items)
         {
             if (items == null || items.Length == 0)
@@ -44,6 +48,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetDisciplinesWithStatus")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<object>> GetDisciplinesWithStatus(
             [FromQuery] GetDisciplinesWithStatusQueryDto query)
         {
@@ -52,6 +57,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateDisciplineStatus")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<object>> UpdateDisciplineStatus(UpdateDisciplineStatusDto dto)
         {
             if (dto.Status < 1 || dto.Status > 4)
@@ -64,6 +70,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<BindAddDisciplineDto>> GetBind(int id)
         {
             var result = await _service.GetBindAsync(id);
@@ -73,6 +80,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetStudentWithChoices/{studentId}")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<StudentWithDisciplineChoicesDto>> GetStudentWithChoices(int studentId)
         {
             var result = await _service.GetStudentWithChoicesAsync(studentId);
@@ -82,6 +90,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetStudentsByAddDiscipline")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<PaginatedResponseDto<AdminStudentByAddDisciplineDto>>> GetStudentsByAddDiscipline(
             [FromQuery] GetStudentsByAddDisciplineQueryDto query)
         {
@@ -90,6 +99,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetStudentsByMainDiscipline")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<PaginatedResponseDto<AdminStudentByMainDisciplineDto>>> GetStudentsByMainDiscipline(
             [FromQuery] GetStudentsByMainDisciplineQueryDto query)
         {
@@ -98,6 +108,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetStudentsIncompleteAfterChoicePeriod")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<List<StudentIdNameDto>>> GetStudentsIncompleteAfterChoicePeriod([FromQuery] int facultyId)
         {
             if (facultyId <= 0)
@@ -138,6 +149,7 @@ namespace OlimpBack.Controllers
 
         //
         [HttpDelete("RepealChoice/{studentId}/{DisciplineId}")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<IActionResult> RepealChoice(int DisciplineId, int studentId)
         {
             var (success, errorMessage) = await _service.RepealChoiceAsync(DisciplineId, studentId);

@@ -13,13 +13,13 @@ public partial class Faculty
 
     public string? Metadata { get; set; }
 
-    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
-
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
 
     public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
+
+    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -16,6 +17,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.DepartmentsRead)]
         public async Task<ActionResult<object>> GetDepartments(
           [FromQuery] DepartmentQueryDto query)
         {
@@ -25,6 +27,7 @@ namespace OlimpBack.Controllers
 
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.DepartmentsRead)]
         public async Task<ActionResult<DepartmentDto>> GetDepartment(int id)
         {
             var department = await _departmentService.GetDepartmentAsync(id);
@@ -36,6 +39,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
+        [RequirePermission(RbacPermissions.DepartmentsCreate)]
         public async Task<ActionResult<DepartmentDto>> CreateDepartment(CreateDepartmentDto dto)
         {
             var resultDto = await _departmentService.CreateDepartmentAsync(dto);
@@ -43,6 +47,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.DepartmentsUpdate)]
         public async Task<IActionResult> UpdateDepartment(int id, UpdateDepartmentDto dto)
         {
             var (success, statusCode, errorMessage) =
@@ -55,6 +60,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermission(RbacPermissions.DepartmentsDelete)]
         public async Task<IActionResult> DeleteDepartment(int id)
         {
             var (success, statusCode, errorMessage) =

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -16,6 +17,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.DisciplineChoicePeriodsRead)]
         public async Task<ActionResult<IEnumerable<DisciplineChoicePeriodDto>>> GetAll([FromQuery] GetDisciplineChoicePeriodsQueryDto queryDto)
         {
             var result = await _service.GetAllAsync(queryDto);
@@ -23,6 +25,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
+        [RequirePermission(RbacPermissions.DisciplineChoicePeriodsCreate)]
         public async Task<ActionResult<DisciplineChoicePeriodDto>> Create([FromBody] CreateDisciplineChoicePeriodDto dto)
         {
             var result = await _service.CreateAsync(dto);
@@ -30,6 +33,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateDisciplineChoicePeriodDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
@@ -39,6 +43,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateAfterStart/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
         public async Task<ActionResult> UpdateAfterStart(int id, [FromBody] UpdateDisciplineChoicePeriodAfterStartDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAfterStartAsync(id, dto);
@@ -48,6 +53,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("OpenOrClose/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
         public async Task<ActionResult> OpenOrClose(int id, [FromBody] UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.OpenOrCloseAsync(id, dto);

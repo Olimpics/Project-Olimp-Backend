@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -16,6 +17,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.FacultiesRead)]
         public async Task<ActionResult<IEnumerable<FacultyDto>>> GetFaculties()
         {
             var faculties = await _facultyService.GetFacultiesAsync();
@@ -23,6 +25,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.FacultiesRead)]
         public async Task<ActionResult<FacultyDto>> GetFaculty(int id)
         {
             var faculty = await _facultyService.GetFacultyAsync(id);
@@ -33,6 +36,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
+        [RequirePermission(RbacPermissions.FacultiesCreate)]
         public async Task<ActionResult<FacultyDto>> CreateFaculty(FacultyCreateDto facultyDto)
         {
             var resultDto = await _facultyService.CreateFacultyAsync(facultyDto);
@@ -41,6 +45,7 @@ namespace OlimpBack.Controllers
 
 
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.FacultiesUpdate)]
         public async Task<IActionResult> UpdateFaculty(int id, FacultyDto facultyDto)
         {
             if (id != facultyDto.IdFaculty)

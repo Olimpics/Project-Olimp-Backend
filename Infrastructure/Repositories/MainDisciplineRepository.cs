@@ -32,7 +32,7 @@ public class MainDisciplineRepository : IMainDisciplineRepository
     {
         return await _context.MainDisciplines
             .AsNoTracking()
-            .Where(bmd => bmd.IdMainDisciplines == id)
+            .Where(bmd => bmd.IdBindMainDisciplines == id)
             .ProjectTo<MainDisciplineDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
     }
@@ -44,7 +44,7 @@ public class MainDisciplineRepository : IMainDisciplineRepository
 
     public async Task<bool> ExistsAsync(int id)
     {
-        return await _context.MainDisciplines.AnyAsync(e => e.IdMainDisciplines == id);
+        return await _context.MainDisciplines.AnyAsync(e => e.IdBindMainDisciplines == id);
     }
 
     public async Task AddAsync(MainDiscipline entity)
@@ -55,7 +55,7 @@ public class MainDisciplineRepository : IMainDisciplineRepository
     public async Task<int> DeleteAsync(int id)
     {
         return await _context.MainDisciplines
-            .Where(bmd => bmd.IdMainDisciplines == id)
+            .Where(bmd => bmd.IdBindMainDisciplines == id)
             .ExecuteDeleteAsync();
     }
 

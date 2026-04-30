@@ -9,5 +9,5 @@ public partial class TypeOfDiscipline
 
     public string? TypeName { get; set; }
 
-    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
+    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 }

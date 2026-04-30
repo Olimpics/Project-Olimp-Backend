@@ -9,4 +9,9 @@ public class RequirePermissionAttribute : Attribute
     {
         BitIndex = bitIndex;
     }
+
+    public RequirePermissionAttribute(RbacPermissions permission)
+    {
+        BitIndex = (int)permission;
+    }
 }

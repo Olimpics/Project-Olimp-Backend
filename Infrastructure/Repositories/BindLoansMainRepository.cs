@@ -35,8 +35,8 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(b =>
                 (b.AddDisciplines != null && (
-                    EF.Functions.Like(b.AddDisciplines.NameAddDisciplines.ToLower(), $"%{lowerSearch}%") ||
-                    EF.Functions.Like(b.AddDisciplines.CodeAddDisciplines.ToLower(), $"%{lowerSearch}%"))) ||
+                    EF.Functions.Like(b.AddDisciplines.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(b.AddDisciplines.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"))) ||
                 (b.EducationalProgram != null && (
                     EF.Functions.Like(b.EducationalProgram.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
                     EF.Functions.Like(b.EducationalProgram.SpecialityCode.ToLower(), $"%{lowerSearch}%"))));
@@ -54,10 +54,10 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         // 3. СОРТУВАННЯ
         query = queryDto.SortOrder switch
         {
-            1 => query.OrderByDescending(b => b.AddDisciplines.CodeAddDisciplines),
+            1 => query.OrderByDescending(b => b.AddDisciplines.CodeSelectiveDisciplines),
             2 => query.OrderBy(b => b.EducationalProgram.SpecialityCode),
             3 => query.OrderByDescending(b => b.EducationalProgram.SpecialityCode),
-            _ => query.OrderBy(b => b.AddDisciplines.CodeAddDisciplines)
+            _ => query.OrderBy(b => b.AddDisciplines.CodeSelectiveDisciplines)
         };
 
         // 4. БЛИСКАВИЧНА ПРОЕКЦІЯ ТА ПАГІНАЦІЯ
@@ -69,8 +69,8 @@ public class BindLoansMainRepository : IBindLoansMainRepository
                 IdBindLoan = b.IdBindLoan,
                 AddDisciplinesId = b.AddDisciplinesId ?? 0,
                 EducationalProgramId = b.EducationalProgramId ?? 0,
-                CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
-                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
+                CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeSelectiveDisciplines : "",
+                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameSelectiveDisciplines : "",
                 SpecialityCode = b.EducationalProgram != null ? b.EducationalProgram.SpecialityCode : "",
                 EducationalProgramName = b.EducationalProgram != null ? b.EducationalProgram.NameEducationalProgram : ""
             })
@@ -89,8 +89,8 @@ public class BindLoansMainRepository : IBindLoansMainRepository
                 IdBindLoan = b.IdBindLoan,
                 AddDisciplinesId = b.AddDisciplinesId ?? 0,
                 EducationalProgramId = b.EducationalProgramId ?? 0,
-                CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeAddDisciplines : "",
-                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameAddDisciplines : "",
+                CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeSelectiveDisciplines : "",
+                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameSelectiveDisciplines : "",
                 SpecialityCode = b.EducationalProgram != null ? b.EducationalProgram.SpecialityCode : "",
                 EducationalProgramName = b.EducationalProgram != null ? b.EducationalProgram.NameEducationalProgram : ""
             })

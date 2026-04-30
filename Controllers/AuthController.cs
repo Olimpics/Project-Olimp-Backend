@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 using OlimpBack.Utils;
 using System.Security.Claims;
@@ -30,6 +31,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("permissions/{roleId}")]
+    [RequirePermission(RbacPermissions.PermissionsRead)]
     public async Task<ActionResult<Dictionary<string, List<string>>>> GetPermissionsByRoleId(int roleId)
     {
         var groupedPermissions = await _authAppService.GetPermissionsByRoleAsync(roleId);

@@ -9,5 +9,7 @@ public partial class SubDivisionsSg
 
     public string? NameDivision { get; set; }
 
-    public virtual ICollection<MembersOfSg> MembersOfSgs { get; set; } = new List<MembersOfSg>();
+    public virtual ICollection<BindSubdivisionRoleSg> BindSubdivisionRoleSgs { get; set; } = new List<BindSubdivisionRoleSg>();
+
+    public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 }

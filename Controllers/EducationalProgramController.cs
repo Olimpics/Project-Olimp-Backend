@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using OlimpBack.Application.Services;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 
 namespace OlimpBack.Controllers
 {
@@ -17,6 +18,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet]
+        [RequirePermission(RbacPermissions.EducationalProgramsRead)]
         public async Task<ActionResult<object>> GetEducationalPrograms(
             [FromQuery] EducationalProgramListQueryDto query)
         {
@@ -25,6 +27,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.EducationalProgramsRead)]
         public async Task<ActionResult<EducationalProgramDto>> GetEducationalProgram(int id)
         {
             var program = await _educationalProgramService.GetEducationalProgramAsync(id);
@@ -37,6 +40,7 @@ namespace OlimpBack.Controllers
 
         [Authorize]
         [HttpPost]
+        [RequirePermission(RbacPermissions.EducationalProgramsCreate)]
         public async Task<ActionResult<EducationalProgramDto>> CreateEducationalProgram(CreateEducationalProgramDto dto)
         {
             var result = await _educationalProgramService.CreateEducationalProgramAsync(dto);
@@ -46,6 +50,7 @@ namespace OlimpBack.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.EducationalProgramsUpdate)]
         public async Task<IActionResult> UpdateEducationalProgram(int id, UpdateEducationalProgramDto dto)
         {
             if (id != dto.IdEducationalProgram)

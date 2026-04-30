@@ -9,11 +9,11 @@ public partial class EducationalDegree
 
     public string? NameEducationalDegreec { get; set; }
 
-    public virtual ICollection<AddDiscipline> AddDisciplines { get; set; } = new List<AddDiscipline>();
-
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 
     public virtual ICollection<Normative> Normatives { get; set; } = new List<Normative>();
+
+    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 
     public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
 

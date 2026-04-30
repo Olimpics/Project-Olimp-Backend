@@ -5,7 +5,9 @@ namespace OlimpBack.Models;
 
 public partial class Approval
 {
-    public int? Idapproval { get; set; }
+    public int Idapproval { get; set; }
 
     public string? Appovalstatus { get; set; }
+
+    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 }

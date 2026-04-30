@@ -32,7 +32,7 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
     {
         var query = _context.DisciplineChoicePeriods.AsNoTracking().AsQueryable();
 
-        // Фільтрація
+        // ФіпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (queryDto.FacultyId.HasValue)
             query = query.Where(p => p.FacultyId == queryDto.FacultyId.Value);
 
@@ -48,7 +48,7 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
         if (queryDto.PeriodCourse.HasValue)
             query = query.Where(p => p.PeriodCourse == queryDto.PeriodCourse.Value);
 
-        // Сортування та магічна проекція (ProjectTo)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (ProjectTo)
         return await query
             .OrderByDescending(p => p.StartDate)
             .ProjectTo<DisciplineChoicePeriodDto>(_mapper.ConfigurationProvider)

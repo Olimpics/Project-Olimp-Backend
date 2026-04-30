@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -16,6 +17,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.MainDisciplinesRead)]
         public async Task<ActionResult<MainDisciplineDto>> GetMainDiscipline(int id)
         {
             var result = await _service.GetByIdAsync(id);
@@ -27,6 +29,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost]
+        [RequirePermission(RbacPermissions.MainDisciplinesCreate)]
         public async Task<ActionResult<MainDisciplineDto>> CreateMainDiscipline(CreateMainDisciplineDto dto)
         {
             var resultDto = await _service.CreateAsync(dto);
@@ -35,6 +38,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.MainDisciplinesUpdate)]
         public async Task<IActionResult> UpdateMainDiscipline(int id, UpdateMainDisciplineDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
@@ -46,6 +50,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermission(RbacPermissions.MainDisciplinesDelete)]
         public async Task<IActionResult> DeleteMainDiscipline(int id)
         {
             var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);

@@ -13,7 +13,11 @@ namespace OlimpBack.MappingProfiles
             //User
             CreateMap<User, UserRoleDto>()
                 .ForMember(dest => dest.IdUsers, opt => opt.MapFrom(src => src.IdUser))
-                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.PrimaryRole != null ? src.PrimaryRole.Name : string.Empty));
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src =>
+                    src.UserRoles
+                        .OrderBy(ur => ur.RoleId)
+                        .Select(ur => ur.Role.Name)
+                        .FirstOrDefault() ?? string.Empty));
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>()
                 .ForMember(dest => dest.IdUser, opt => opt.Ignore());
@@ -24,7 +28,11 @@ namespace OlimpBack.MappingProfiles
              CreateMap<Student, LoginResponseStudentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User != null && src.User.PrimaryRole != null ? src.User.PrimaryRole.Id : src.User!.Roleid))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src =>
+                    src.User.UserRoles
+                        .OrderBy(ur => ur.RoleId)
+                        .Select(ur => ur.RoleId)
+                        .FirstOrDefault()))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
@@ -35,7 +43,11 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<AdminsPersonal, LoginResponseAdminDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.User != null && src.User.PrimaryRole != null ? src.User.PrimaryRole.Id : src.User!.Roleid))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src =>
+                    src.User!.UserRoles
+                        .OrderBy(ur => ur.RoleId)
+                        .Select(ur => ur.RoleId)
+                        .FirstOrDefault()))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAdmin))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
 
@@ -86,7 +98,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.StudentFullName,
                            opt => opt.MapFrom(src => src.Student.NameStudent))
                 .ForMember(dest => dest.AddDisciplineName,
-                           opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines))
+                           opt => opt.MapFrom(src => src.AddDisciplines.NameSelectiveDisciplines))
                 .ForMember(dest => dest.InProcess,
                            opt => opt.MapFrom(src => src.InProcess != null && src.InProcess.Length > 0 && src.InProcess[0]));
 
@@ -163,7 +175,19 @@ namespace OlimpBack.MappingProfiles
             CreateMap<Department, FiltersDepartmentDTO>();
 
             //Role
-            CreateMap<Role, RoleDto>().ReverseMap();
+            CreateMap<Role, RoleDto>()
+                .ForMember(dest => dest.IdRole, opt => opt.MapFrom(src => src.IdRole))
+                .ForMember(dest => dest.NameRole, opt => opt.MapFrom(src => src.Name));
+            CreateMap<RoleDto, Role>()
+                .ForMember(dest => dest.IdRole, opt => opt.MapFrom(src => src.IdRole))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameRole))
+                .ForMember(dest => dest.PermissionsMask, opt => opt.Ignore())
+                .ForMember(dest => dest.ParentRole, opt => opt.Ignore())
+                .ForMember(dest => dest.ChildRoles, opt => opt.Ignore())
+                .ForMember(dest => dest.RolePermissions, opt => opt.Ignore())
+                .ForMember(dest => dest.Permissions, opt => opt.Ignore())
+                .ForMember(dest => dest.UserRoles, opt => opt.Ignore())
+                .ForMember(dest => dest.Users, opt => opt.Ignore());
 
             //StudyForm
             CreateMap<StudyForm, StudyFormDto>().ReverseMap();
@@ -226,8 +250,8 @@ namespace OlimpBack.MappingProfiles
 
             //BindLoansMain
             CreateMap<BindLoansMain, BindLoansMainDto>()
-                .ForMember(dest => dest.AddDisciplineName, opt => opt.MapFrom(src => src.AddDisciplines.NameAddDisciplines))
-                .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.AddDisciplines.CodeAddDisciplines))
+                .ForMember(dest => dest.AddDisciplineName, opt => opt.MapFrom(src => src.AddDisciplines.NameSelectiveDisciplines))
+                .ForMember(dest => dest.CodeAddDisciplines, opt => opt.MapFrom(src => src.AddDisciplines.CodeSelectiveDisciplines))
                 .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.EducationalProgram.SpecialityCode))
                 .ForMember(dest => dest.EducationalProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram));
             CreateMap<CreateBindLoansMainDto, BindLoansMain>();
@@ -278,12 +302,13 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => $"{src.TypePermission}:{src.TableName}"));
 
             //BindRolePermission
-            CreateMap<BindRolePermission, BindRolePermissionDto>()
-                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role1 != null ? src.Role1.Name : string.Empty))
+            CreateMap<RolePermission, BindRolePermissionDto>()
+                .ForMember(dest => dest.IdBindRolePermission, opt => opt.MapFrom(src => src.PermissionId))
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty))
                 .ForMember(dest => dest.TypePermission, opt => opt.MapFrom(src => src.Permission != null ? "S" : string.Empty))
                 .ForMember(dest => dest.TableName, opt => opt.MapFrom(src => src.Permission != null ? src.Permission.Code : string.Empty));
-            CreateMap<CreateBindRolePermissionDto, BindRolePermission>();
-            CreateMap<UpdateBindRolePermissionDto, BindRolePermission>();
+            CreateMap<CreateBindRolePermissionDto, RolePermission>();
+            CreateMap<UpdateBindRolePermissionDto, RolePermission>();
 
             //DisciplineChoicePeriod
             CreateMap<DisciplineChoicePeriod, DisciplineChoicePeriodDto>()

@@ -7,6 +7,7 @@ using AutoMapper;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Data;
+using OlimpBack.Application.Permissions;
 
 namespace OlimpBack.Controllers
 {
@@ -25,6 +26,7 @@ namespace OlimpBack.Controllers
 
         // GET: api/Role
         [HttpGet]
+        [RequirePermission(RbacPermissions.RolesRead)]
         public async Task<ActionResult<IEnumerable<RoleDto>>> GetRoles()
         {
             var roles = await _context.Roles.ToListAsync();
@@ -33,6 +35,7 @@ namespace OlimpBack.Controllers
 
         // GET: api/Role/5
         [HttpGet("{id}")]
+        [RequirePermission(RbacPermissions.RolesRead)]
         public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
             var role = await _context.Roles.FindAsync(id);
@@ -44,6 +47,7 @@ namespace OlimpBack.Controllers
 
         // POST: api/Role
         [HttpPost]
+        [RequirePermission(RbacPermissions.RolesCreate)]
         public async Task<ActionResult<RoleDto>> CreateRole(RoleDto roleDto)
         {
             var role = _mapper.Map<Role>(roleDto);
@@ -51,11 +55,12 @@ namespace OlimpBack.Controllers
             await _context.SaveChangesAsync();
 
             var resultDto = _mapper.Map<RoleDto>(role);
-            return CreatedAtAction(nameof(GetRole), new { id = role.Id }, resultDto);
+            return CreatedAtAction(nameof(GetRole), new { id = role.IdRole }, resultDto);
         }
 
         // PUT: api/Role/5
         [HttpPut("{id}")]
+        [RequirePermission(RbacPermissions.RolesUpdate)]
         public async Task<IActionResult> UpdateRole(int id, RoleDto roleDto)
         {
             if (id != roleDto.IdRole)
@@ -73,6 +78,7 @@ namespace OlimpBack.Controllers
 
         // DELETE: api/Role/5
         [HttpDelete("{id}")]
+        [RequirePermission(RbacPermissions.RolesDelete)]
         public async Task<IActionResult> DeleteRole(int id)
         {
             var role = await _context.Roles.FindAsync(id);

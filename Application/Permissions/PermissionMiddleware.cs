@@ -14,9 +14,9 @@ public class PermissionMiddleware
     public async Task Invoke(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
-        var attr = endpoint?.Metadata.GetMetadata<RequirePermissionAttribute>();
+        var attrs = endpoint?.Metadata.GetOrderedMetadata<RequirePermissionAttribute>() ?? Array.Empty<RequirePermissionAttribute>();
 
-        if (attr == null)
+        if (attrs.Count == 0)
         {
             await _next(context);
             return;
@@ -29,7 +29,7 @@ public class PermissionMiddleware
             return;
         }
 
-        var requiredMask = PermissionMaskHelper.ToMask(attr.BitIndex);
+        var requiredMask = PermissionMaskHelper.BuildMask(attrs.Select(attr => attr.BitIndex));
         if (!PermissionMaskHelper.HasAll(userMask, requiredMask))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;

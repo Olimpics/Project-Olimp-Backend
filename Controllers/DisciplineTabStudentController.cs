@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -16,6 +17,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetAllDisciplinesWithAvailability")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<object>> GetAllDisciplinesWithAvailability(
             [FromQuery] GetAllDisciplinesWithAvailabilityQueryDto query)
         {
@@ -26,6 +28,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("AddDisciplineBind")]
+        [RequirePermission(RbacPermissions.DisciplineCreate)]
         public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
         {
             try
@@ -54,6 +57,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetDisciplineWithDetails/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetDisciplineWithDetails(int id)
         {
             var result = await _service.GetDisciplineWithDetailsAsync(id);
@@ -63,6 +67,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetDisciplinesBySemester")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
            [FromQuery] GetDisciplinesBySemesterQueryDto query)
         {
@@ -75,6 +80,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateDisciplineWithDetails")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateAddDisciplineWithDetailsDto dto)
         {
             var result = await _service.CreateDisciplineWithDetailsAsync(dto);
@@ -84,6 +90,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateDisciplineWithDetails/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<IActionResult> UpdateDisciplineWithDetails(int id, UpdateAddDisciplineWithDetailsDto dto)
         {
             if (id != dto.IdAddDisciplines)
