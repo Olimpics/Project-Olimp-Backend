@@ -8,12 +8,12 @@ public interface IDisciplineTabService
     Task<PaginatedResponseDto<FullDisciplineDto>?> GetAllDisciplinesWithAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto query);
 
     Task<DisciplineTabResponseDto?> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto);
-    Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto);
+    Task<(int? bindId, string? error)> SelectiveDisciplineBindAsync(SelectiveDisciplineBindDto dto);
 
     Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(int id);
 
-    Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateAddDisciplineWithDetailsDto dto);
+    Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto);
 
-    Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateAddDisciplineWithDetailsDto dto);
+    Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateSelectiveDisciplineWithDetailsDto dto);
 
 }

@@ -88,7 +88,7 @@ namespace OlimpBack.Controllers
 
         // ADD DISCIPLINE WITH DETAILS
         [HttpPost("add-discipline-with-details/update-or-create")]
-        public async Task<IActionResult> UpdateOrCreateAddDisciplineWithDetails([FromQuery] string fileName)
+        public async Task<IActionResult> UpdateOrCreateSelectiveDisciplineWithDetails([FromQuery] string fileName)
         {
             var parsedFilesPath = "/opt/Project-Olimp-Parser/fastapi-project/parsed_json";
             var fullPath = Path.Combine(parsedFilesPath, fileName);
@@ -98,33 +98,33 @@ namespace OlimpBack.Controllers
 
             var jsonContent = await System.IO.File.ReadAllTextAsync(fullPath);
 
-            var dtos = JsonSerializer.Deserialize<List<CreateAddDisciplineWithDetailsDto>>(jsonContent);
+            var dtos = JsonSerializer.Deserialize<List<CreateSelectiveDisciplineWithDetailsDto>>(jsonContent);
 
             if (dtos == null || dtos.Count == 0)
                 return BadRequest(new { message = "No data found in file" });
 
-            var results = new List<CreateAddDisciplineWithDetailsDto>();
+            var results = new List<CreateSelectiveDisciplineWithDetailsDto>();
 
             foreach (var dto in dtos)
             {
-                if (string.IsNullOrWhiteSpace(dto.NameAddDisciplines) || string.IsNullOrWhiteSpace(dto.CodeAddDisciplines))
+                if (string.IsNullOrWhiteSpace(dto.NameSelectiveDisciplines) || string.IsNullOrWhiteSpace(dto.CodeSelectiveDisciplines))
                     continue;
-                var discipline = await _context.AddDisciplines
-                    .Include(d => d.AddDetail)
-                    .FirstOrDefaultAsync(d => d.CodeAddDisciplines == dto.CodeAddDisciplines);
+                var discipline = await _context.SelectiveDisciplines
+                    .Include(d => d.SelectiveDetail)
+                    .FirstOrDefaultAsync(d => d.CodeSelectiveDisciplines == dto.CodeSelectiveDisciplines);
                 if (discipline == null)
                 {
-                    discipline = _mapper.Map<AddDiscipline>(dto);
-                    _context.AddDisciplines.Add(discipline);
+                    discipline = _mapper.Map<SelectiveDiscipline>(dto);
+                    _context.SelectiveDisciplines.Add(discipline);
                     await _context.SaveChangesAsync();
-                    var details = _mapper.Map<AddDetail>(dto.Details);
-                    details.IdAddDetails = discipline.IdAddDisciplines;
-                    _context.AddDetails.Add(details);
+                    var details = _mapper.Map<SelectiveDetail>(dto.Details);
+                    details.IdSelectiveDetails = discipline.IdSelectiveDisciplines;
+                    _context.SelectiveDetails.Add(details);
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(dto.NameAddDisciplines)) discipline.NameAddDisciplines = dto.NameAddDisciplines;
-                    if (!string.IsNullOrWhiteSpace(dto.CodeAddDisciplines)) discipline.CodeAddDisciplines = dto.CodeAddDisciplines;
+                    if (!string.IsNullOrWhiteSpace(dto.NameSelectiveDisciplines)) discipline.NameSelectiveDisciplines = dto.NameSelectiveDisciplines;
+                    if (!string.IsNullOrWhiteSpace(dto.CodeSelectiveDisciplines)) discipline.CodeSelectiveDisciplines = dto.CodeSelectiveDisciplines;
                     if (dto.FacultyId != 0) discipline.FacultyId = dto.FacultyId;
                     if (dto.MinCountPeople.HasValue) discipline.MinCountPeople = dto.MinCountPeople;
                     if (dto.MaxCountPeople.HasValue) discipline.MaxCountPeople = dto.MaxCountPeople;
@@ -134,27 +134,27 @@ namespace OlimpBack.Controllers
                         discipline.IsEven = (sbyte)dto.IsEven.Value;
                     if (dto.DegreeLevelId.HasValue) discipline.DegreeLevelId = dto.DegreeLevelId;
                     // Details
-                    if (discipline.AddDetail == null)
+                    if (discipline.SelectiveDetail == null)
                     {
-                        discipline.AddDetail = _mapper.Map<AddDetail>(dto.Details);
-                        discipline.AddDetail.IdAddDetails = discipline.IdAddDisciplines;
-                        _context.AddDetails.Add(discipline.AddDetail);
+                        discipline.SelectiveDetail = _mapper.Map<SelectiveDetail>(dto.Details);
+                        discipline.SelectiveDetail.IdSelectiveDetails = discipline.IdSelectiveDisciplines;
+                        _context.SelectiveDetails.Add(discipline.SelectiveDetail);
                     }
                     else if (dto.Details != null)
                     {
                         var det = dto.Details;
-                        if (det.DepartmentId.HasValue) discipline.AddDetail.DepartmentId = det.DepartmentId;
-                        if (!string.IsNullOrWhiteSpace(det.Content.Teacher)) discipline.AddDetail.Teachers = det.Content.Teacher;
-                        if (!string.IsNullOrWhiteSpace(det.Content.Recomend)) discipline.AddDetail.Recomend = det.Content.Recomend;
-                        if (!string.IsNullOrWhiteSpace(det.Content.Prerequisites)) discipline.AddDetail.Prerequisites = det.Content.Prerequisites;
-                        if (!string.IsNullOrWhiteSpace(det.Content.Language)) discipline.AddDetail.Language = det.Content.Language;
-                        if (!string.IsNullOrWhiteSpace(det.Content.Provision )) discipline.AddDetail.Provision = det.Content.Provision ;
-                        if (!string.IsNullOrWhiteSpace(det.Content.WhyInterestingDetermination)) discipline.AddDetail.WhyInterestingDetermination = det.Content.WhyInterestingDetermination;
-                        if (!string.IsNullOrWhiteSpace(det.Content.ResultEducation)) discipline.AddDetail.ResultEducation = det.Content.ResultEducation;
-                        if (!string.IsNullOrWhiteSpace(det.Content.UsingIrl)) discipline.AddDetail.UsingIrl = det.Content.UsingIrl;
-                        if (!string.IsNullOrWhiteSpace(det.Content.DisciplineTopics)) discipline.AddDetail.DisciplineTopics = det.Content.DisciplineTopics;
-                        if (!string.IsNullOrWhiteSpace(det.Content.TypesOfTraining)) discipline.AddDetail.TypesOfTraining = det.Content.TypesOfTraining;
-                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.AddDetail.TypeOfControlNavigation.Type= det.Content.TypeOfControll;
+                        if (det.DepartmentId.HasValue) discipline.SelectiveDetail.DepartmentId = det.DepartmentId;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Teacher)) discipline.SelectiveDetail.Teachers = det.Content.Teacher;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Recomend)) discipline.SelectiveDetail.Recomend = det.Content.Recomend;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Prerequisites)) discipline.SelectiveDetail.Prerequisites = det.Content.Prerequisites;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Language)) discipline.SelectiveDetail.Language = det.Content.Language;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Provision )) discipline.SelectiveDetail.Provision = det.Content.Provision ;
+                        if (!string.IsNullOrWhiteSpace(det.Content.WhyInterestingDetermination)) discipline.SelectiveDetail.WhyInterestingDetermination = det.Content.WhyInterestingDetermination;
+                        if (!string.IsNullOrWhiteSpace(det.Content.ResultEducation)) discipline.SelectiveDetail.ResultEducation = det.Content.ResultEducation;
+                        if (!string.IsNullOrWhiteSpace(det.Content.UsingIrl)) discipline.SelectiveDetail.UsingIrl = det.Content.UsingIrl;
+                        if (!string.IsNullOrWhiteSpace(det.Content.DisciplineTopics)) discipline.SelectiveDetail.DisciplineTopics = det.Content.DisciplineTopics;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypesOfTraining)) discipline.SelectiveDetail.TypesOfTraining = det.Content.TypesOfTraining;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.SelectiveDetail.TypeOfControlNavigation.Type= det.Content.TypeOfControll;
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -195,14 +195,10 @@ namespace OlimpBack.Controllers
                 else
                 {
                     if (!string.IsNullOrWhiteSpace(dto.NameEducationalProgram)) program.NameEducationalProgram = dto.NameEducationalProgram;
-                    if (dto.CountAddSemestr3.HasValue) program.CountAddSemestr3 = dto.CountAddSemestr3;
-                    if (dto.CountAddSemestr4.HasValue) program.CountAddSemestr4 = dto.CountAddSemestr4;
-                    if (dto.CountAddSemestr5.HasValue) program.CountAddSemestr5 = dto.CountAddSemestr5;
-                    if (dto.CountAddSemestr6.HasValue) program.CountAddSemestr6 = dto.CountAddSemestr6;
-                    if (dto.CountAddSemestr7.HasValue) program.CountAddSemestr7 = dto.CountAddSemestr7;
-                    if (dto.CountAddSemestr8.HasValue) program.CountAddSemestr8 = dto.CountAddSemestr8;
+                    if (dto.SelectiveDisciplineBySemestr != null && dto.SelectiveDisciplineBySemestr.Any())
+                        program.SelectiveDisciplineBySemestr = dto.SelectiveDisciplineBySemestr;
                     program.DegreeId = dto.DegreeId;
-                    if (!string.IsNullOrWhiteSpace(dto.Speciality)) program.Speciality = dto.Speciality;
+                    if (dto.SpecialityId != 0) program.SpeciaityId = dto.SpecialityId;
                     if (dto.Accreditation != 0) program.Accreditation = dto.Accreditation;
                     if (!string.IsNullOrWhiteSpace(dto.AccreditationType)) program.AccreditationType = dto.AccreditationType;
                     if (dto.StudentsAmount != 0) program.StudentsAmount = (int?)dto.StudentsAmount;

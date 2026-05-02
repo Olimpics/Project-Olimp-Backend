@@ -7,15 +7,9 @@ public partial class SelectiveDiscipline
 {
     public int IdSelectiveDisciplines { get; set; }
 
-    public int IdAddDisciplines { get => IdSelectiveDisciplines; set => IdSelectiveDisciplines = value; }
-
     public string? NameSelectiveDisciplines { get; set; }
 
-    public string? NameAddDisciplines { get => NameSelectiveDisciplines; set => NameSelectiveDisciplines = value; }
-
     public string? CodeSelectiveDisciplines { get; set; }
-
-    public string? CodeAddDisciplines { get => CodeSelectiveDisciplines; set => CodeSelectiveDisciplines = value; }
 
     public int? IsFaculty { get; set; }
 
@@ -43,9 +37,11 @@ public partial class SelectiveDiscipline
 
     public int? ApprovalStatusId { get; set; }
 
+    public string? Feedback { get; set; }
+
     public virtual Approval? ApprovalStatus { get; set; }
 
-    public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
+    public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 

@@ -8,7 +8,7 @@ public class StudentQueryDto
 
     // Типізовані списки замість string!
     public List<string>? Faculties { get; set; }
-    public List<string>? Specialities { get; set; }
+    public List<int>? Specialities { get; set; }
     public List<int>? GroupIds { get; set; }
     public List<int>? Courses { get; set; }
     public List<int>? StudyFormIds { get; set; }

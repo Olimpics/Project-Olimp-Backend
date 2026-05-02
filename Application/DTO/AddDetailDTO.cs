@@ -19,7 +19,7 @@ namespace OlimpBack.Application.DTO
     }
 
     // DTO для читання (GET)
-    public class AddDetailDto : AddDisciplineDto
+    public class SelectiveDetailDto : SelectiveDisciplineDto
     {
         public int DepartmentId { get; set; }
         public string DepartmentName { get; set; } = null!;
@@ -29,7 +29,7 @@ namespace OlimpBack.Application.DTO
     }
 
     // DTO для створення (POST/PUT)
-    public class CreateAddDetailDto
+    public class CreateSelectiveDetailDto
     {
         public int? DepartmentId { get; set; }
 

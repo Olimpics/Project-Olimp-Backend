@@ -31,9 +31,9 @@ public class StudentPageController : ControllerBase
     }
 
     [HttpGet("add-disciplines/{studentId}")]
-    public async Task<ActionResult<StudentAddDisciplinesDto>> GetStudentAddDisciplines(int studentId)
+    public async Task<ActionResult<StudentSelectiveDisciplinesDto>> GetStudentSelectiveDisciplines(int studentId)
     {
-        var result = await _service.GetStudentAddDisciplinesAsync(studentId);
+        var result = await _service.GetStudentSelectiveDisciplinesAsync(studentId);
 
         if (result == null)
         {

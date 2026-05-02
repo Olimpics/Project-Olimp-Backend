@@ -34,19 +34,23 @@ public partial class Student
 
     public BitArray IsInSg { get; set; } = null!;
 
-    public List<int>? Idfav { get; set; }
+    public List<int>? IdFav { get; set; }
 
-    public int? Departmentid { get; set; }
+    public int? DepartmentId { get; set; }
+
+    public string? ReportCard { get; set; }
 
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 
-    public virtual ICollection<BindAddDiscipline> BindAddDisciplines { get; set; } = new List<BindAddDiscipline>();
+    public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
     public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
 
     public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
+
+    public virtual ICollection<BindRating> BindRatings { get; set; } = new List<BindRating>();
 
     public virtual Department? Department { get; set; }
 

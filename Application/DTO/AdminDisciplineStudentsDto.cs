@@ -1,6 +1,6 @@
 namespace OlimpBack.Application.DTO;
 
-public class AdminStudentByAddDisciplineDto
+public class AdminStudentBySelectiveDisciplineDto
 {
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
@@ -31,7 +31,7 @@ public class AdminStudentByMainDisciplineDto
     public int Course { get; set; }
 }
 
-public class GetStudentsByAddDisciplineQueryDto
+public class GetStudentsBySelectiveDisciplineQueryDto
 {
     public int DisciplineId { get; set; }
     public int Page { get; set; } = 1;

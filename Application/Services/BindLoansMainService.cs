@@ -42,7 +42,7 @@ public class BindLoansMainService : IBindLoansMainService
     {
         var binding = new BindLoansMain
         {
-            AddDisciplinesId = dto.AddDisciplinesId,
+            SelectiveDisciplinesId = dto.SelectiveDisciplinesId,
             EducationalProgramId = dto.EducationalProgramId
         };
 
@@ -55,10 +55,10 @@ public class BindLoansMainService : IBindLoansMainService
         return new BindLoansMainDto
         {
             IdBindLoan = binding.IdBindLoan,
-            AddDisciplinesId = binding.AddDisciplinesId.GetValueOrDefault(),
+            SelectiveDisciplinesId = binding.SelectiveDisciplinesId.GetValueOrDefault(),
             EducationalProgramId = binding.EducationalProgramId.GetValueOrDefault(),
-            CodeAddDisciplines = "", // При створенні ми не знаємо назв, і це нормально для response
-            AddDisciplineName = "",
+            CodeSelectiveDisciplines = "", // При створенні ми не знаємо назв, і це нормально для response
+            SelectiveDisciplineName = "",
             SpecialityCode = "",
             EducationalProgramName = ""
         };
@@ -75,7 +75,7 @@ public class BindLoansMainService : IBindLoansMainService
             return (false, StatusCodes.Status404NotFound, "Binding not found");
 
         // Оновлюємо поля
-        binding.AddDisciplinesId = dto.AddDisciplinesId;
+        binding.SelectiveDisciplinesId = dto.SelectiveDisciplinesId;
         binding.EducationalProgramId = dto.EducationalProgramId;
 
         try

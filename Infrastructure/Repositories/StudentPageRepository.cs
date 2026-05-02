@@ -8,7 +8,7 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IStudentPageRepository
 {
     Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(int studentId);
-    Task<StudentAddDisciplinesDto?> GetStudentAddDisciplinesAsync(int studentId);
+    Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(int studentId);
 }
 
 public class StudentPageRepository : IStudentPageRepository
@@ -32,7 +32,7 @@ public class StudentPageRepository : IStudentPageRepository
                 s.IdStudent,
                 s.NameStudent,
                 MainDisciplines = s.EducationalProgram != null ? s.EducationalProgram.MainDisciplines : null,
-                AdditionalDisciplines = s.BindAddDisciplines
+                AdditionalDisciplines = s.BindSelectiveDisciplines
             })
             .FirstOrDefaultAsync();
 
@@ -47,11 +47,11 @@ public class StudentPageRepository : IStudentPageRepository
                 ? _mapper.Map<List<MainDisciplineDto>>(data.MainDisciplines)
                 : new List<MainDisciplineDto>(),
             AdditionalDisciplines = data.AdditionalDisciplines != null
-                ? _mapper.Map<List<BindAddDisciplineDto>>(data.AdditionalDisciplines)
-                : new List<BindAddDisciplineDto>()
+                ? _mapper.Map<List<BindSelectiveDisciplineDto>>(data.AdditionalDisciplines)
+                : new List<BindSelectiveDisciplineDto>()
         };
     }
-    public async Task<StudentAddDisciplinesDto?> GetStudentAddDisciplinesAsync(int studentId)
+    public async Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(int studentId)
     {
         var data = await _context.Students
             .AsNoTracking()
@@ -60,20 +60,20 @@ public class StudentPageRepository : IStudentPageRepository
             {
                 s.IdStudent,
                 s.NameStudent,
-                AdditionalDisciplines = s.BindAddDisciplines
+                AdditionalDisciplines = s.BindSelectiveDisciplines
             })
             .FirstOrDefaultAsync();
 
         if (data == null)
             return null;
 
-        return new StudentAddDisciplinesDto
+        return new StudentSelectiveDisciplinesDto
         {
             StudentId = data.IdStudent,
             StudentName = data.NameStudent ?? "",
             AdditionalDisciplines = data.AdditionalDisciplines != null
-                ? _mapper.Map<List<BindAddDisciplineDto>>(data.AdditionalDisciplines)
-                : new List<BindAddDisciplineDto>()
+                ? _mapper.Map<List<BindSelectiveDisciplineDto>>(data.AdditionalDisciplines)
+                : new List<BindSelectiveDisciplineDto>()
         };
     }
 }

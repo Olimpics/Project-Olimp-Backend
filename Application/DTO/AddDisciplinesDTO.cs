@@ -2,11 +2,11 @@ using OlimpBack.Models;
 
 namespace OlimpBack.Application.DTO
 {
-    public class AddDisciplineDto 
+    public class SelectiveDisciplineDto 
     {
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
         public int FacultyId { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
@@ -17,10 +17,10 @@ namespace OlimpBack.Application.DTO
         public string DegreeLevelName { get; set; }
     }
 
-    public class CreateAddDisciplineDto 
+    public class CreateSelectiveDisciplineDto 
     {
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
         public int FacultyId { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
@@ -30,16 +30,16 @@ namespace OlimpBack.Application.DTO
         public int? DegreeLevelId { get; set; }
     }
 
-    public class CreateAddDisciplineWithDetailsDto : CreateAddDisciplineDto
+    public class CreateSelectiveDisciplineWithDetailsDto : CreateSelectiveDisciplineDto
     {
-        public CreateAddDetailDto Details { get; set; } = null!;
+        public CreateSelectiveDetailDto Details { get; set; } = null!;
 
         public List<int>? RecomendationSpeciality { get; set; }
         public List<int>? RecomendationEducationalProgram { get; set; }
     }
 
-    public class UpdateAddDisciplineWithDetailsDto : CreateAddDisciplineWithDetailsDto
+    public class UpdateSelectiveDisciplineWithDetailsDto : CreateSelectiveDisciplineWithDetailsDto
     {
-        public int IdAddDisciplines { get; set; }
+        public int IdSelectiveDisciplines { get; set; }
     }
 }

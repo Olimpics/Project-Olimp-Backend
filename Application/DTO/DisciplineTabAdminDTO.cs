@@ -8,10 +8,10 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class StudentSelectedDisciplineDto
     {
-        public int IdBindAddDisciplines { get; set; }
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public int IdBindSelectiveDisciplines { get; set; }
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
         public int Semestr { get; set; }
         /// <summary>1 = in process (awaiting confirmation), 0 = confirmed.</summary>
         public sbyte InProcess { get; set; }
@@ -52,8 +52,8 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class AdminDisciplineListItemDto
     {
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
         public string? Teachers { get; set; }
         public string? DepartmentName { get; set; }
         public int? Credits { get; set; }
@@ -110,9 +110,9 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class FullForAdminDisciplineDto
     {
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
         public string Faculty { get; set; } = null!;
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
@@ -194,8 +194,8 @@ namespace OlimpBack.Application.DTO
         EducationalProgram? Program, 
         List<StudentSelectedDisciplineDto> SelectedDisciplines);
 
-    public record DisciplineStatusProjection(int IdAddDisciplines, 
-        string NameAddDisciplines, 
+    public record DisciplineStatusProjection(int IdSelectiveDisciplines, 
+        string NameSelectiveDisciplines, 
         string? Teachers, 
         string? DepartmentName, 
         int? MinCountPeople,

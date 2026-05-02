@@ -5,7 +5,7 @@ namespace OlimpBack.Application.Services;
 
 public interface IStudentPageService
 {
-    Task<StudentAddDisciplinesDto?> GetStudentAddDisciplinesAsync(int studentId);
+    Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(int studentId);
     Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(int studentId);
 }
 
@@ -23,8 +23,8 @@ public class StudentPageService : IStudentPageService
         return await _repository.GetStudentEducationalProgramAsync(studentId);
     }
 
-    public async Task<StudentAddDisciplinesDto?> GetStudentAddDisciplinesAsync(int studentId)
+    public async Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(int studentId)
     {
-        return await _repository.GetStudentAddDisciplinesAsync(studentId);
+        return await _repository.GetStudentSelectiveDisciplinesAsync(studentId);
     }
 }

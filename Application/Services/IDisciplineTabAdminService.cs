@@ -13,15 +13,15 @@ public interface IDisciplineTabAdminService
 
     Task<UpdateDisciplineStatusResponseDto?> UpdateDisciplineStatusAsync(UpdateDisciplineStatusDto dto);
 
-    Task<BindAddDisciplineDto?> GetBindAsync(int id);
+    Task<BindSelectiveDisciplineDto?> GetBindAsync(int id);
 
     Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(int studentId);
 
-    Task<(int? bindId, string? error)> CreateBindAsync(AddDisciplineBindDto dto);
+    Task<(int? bindId, string? error)> CreateBindAsync(SelectiveDisciplineBindDto dto);
 
     Task<bool> DeleteBindAsync(int id);
 
-    Task<PaginatedResponseDto<AdminStudentByAddDisciplineDto>> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query);
+    Task<PaginatedResponseDto<AdminStudentBySelectiveDisciplineDto>> GetStudentsBySelectiveDisciplineAsync(GetStudentsBySelectiveDisciplineQueryDto query);
 
     Task<(bool success, string? errorMessage)> RepealChoiceAsync(int DisciplinId, int studentId);
 

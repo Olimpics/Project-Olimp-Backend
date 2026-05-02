@@ -1,9 +1,9 @@
 // Scaffolded PostgreSQL models use lowercase class names; application code uses PascalCase.
 global using AdminsPersonal = OlimpBack.Models.AdminsPersonal;
-global using AddDetail = OlimpBack.Models.AddDetail;
-global using AddDiscipline = OlimpBack.Models.AddDiscipline;
+global using SelectiveDetail = OlimpBack.Models.SelectiveDetail;
+global using SelectiveDiscipline = OlimpBack.Models.SelectiveDiscipline;
 global using AdminLog = OlimpBack.Models.AdminLog;
-global using BindAddDiscipline = OlimpBack.Models.BindAddDiscipline;
+global using BindSelectiveDiscipline = OlimpBack.Models.BindSelectiveDiscipline;
 global using BindEvent = OlimpBack.Models.BindEvent;
 global using BindExtraActivity = OlimpBack.Models.BindExtraActivity;
 global using BindLoansMain = OlimpBack.Models.BindLoansMain;

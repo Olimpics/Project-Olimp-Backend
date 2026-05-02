@@ -27,13 +27,13 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
-        [HttpPost("AddDisciplineBind")]
+        [HttpPost("SelectiveDisciplineBind")]
         [RequirePermission(RbacPermissions.DisciplineCreate)]
-        public async Task<ActionResult> AddDisciplineBind(AddDisciplineBindDto dto)
+        public async Task<ActionResult> SelectiveDisciplineBind(SelectiveDisciplineBindDto dto)
         {
             try
             {
-                var (bindId, error) = await _service.AddDisciplineBindAsync(dto);
+                var (bindId, error) = await _service.SelectiveDisciplineBindAsync(dto);
                 if (error != null)
                 {
                     if (error.StartsWith("Student not found"))
@@ -81,19 +81,19 @@ namespace OlimpBack.Controllers
 
         [HttpPost("CreateDisciplineWithDetails")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateAddDisciplineWithDetailsDto dto)
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateSelectiveDisciplineWithDetailsDto dto)
         {
             var result = await _service.CreateDisciplineWithDetailsAsync(dto);
             if (result == null)
                 return NotFound("Discipline details not found");
-            return CreatedAtAction(nameof(GetDisciplineWithDetails), new { id = result.IdAddDisciplines }, result);
+            return CreatedAtAction(nameof(GetDisciplineWithDetails), new { id = result.IdSelectiveDisciplines }, result);
         }
 
         [HttpPut("UpdateDisciplineWithDetails/{id}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<IActionResult> UpdateDisciplineWithDetails(int id, UpdateAddDisciplineWithDetailsDto dto)
+        public async Task<IActionResult> UpdateDisciplineWithDetails(int id, UpdateSelectiveDisciplineWithDetailsDto dto)
         {
-            if (id != dto.IdAddDisciplines)
+            if (id != dto.IdSelectiveDisciplines)
                 return BadRequest();
 
             var (success, error) = await _service.UpdateDisciplineWithDetailsAsync(id, dto);

@@ -34,16 +34,16 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(b =>
-                (b.AddDisciplines != null && (
-                    EF.Functions.Like(b.AddDisciplines.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
-                    EF.Functions.Like(b.AddDisciplines.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"))) ||
+                (b.SelectiveDisciplines != null && (
+                    EF.Functions.Like(b.SelectiveDisciplines.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                    EF.Functions.Like(b.SelectiveDisciplines.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"))) ||
                 (b.EducationalProgram != null && (
                     EF.Functions.Like(b.EducationalProgram.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
-                    EF.Functions.Like(b.EducationalProgram.SpecialityCode.ToLower(), $"%{lowerSearch}%"))));
+                    EF.Functions.Like(b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code.HasValue ? b.EducationalProgram.Speciality.Code.Value.ToString().ToLower() : "", $"%{lowerSearch}%"))));
         }
 
-        if (queryDto.AddDisciplinesIds != null && queryDto.AddDisciplinesIds.Any())
-            query = query.Where(b => b.AddDisciplinesId.HasValue && queryDto.AddDisciplinesIds.Contains(b.AddDisciplinesId.Value));
+        if (queryDto.SelectiveDisciplinesIds != null && queryDto.SelectiveDisciplinesIds.Any())
+            query = query.Where(b => b.SelectiveDisciplinesId.HasValue && queryDto.SelectiveDisciplinesIds.Contains(b.SelectiveDisciplinesId.Value));
 
         if (queryDto.EducationalProgramIds != null && queryDto.EducationalProgramIds.Any())
             query = query.Where(b => b.EducationalProgramId.HasValue && queryDto.EducationalProgramIds.Contains(b.EducationalProgramId.Value));
@@ -54,10 +54,10 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         // 3. СОРТУВАННЯ
         query = queryDto.SortOrder switch
         {
-            1 => query.OrderByDescending(b => b.AddDisciplines.CodeSelectiveDisciplines),
-            2 => query.OrderBy(b => b.EducationalProgram.SpecialityCode),
-            3 => query.OrderByDescending(b => b.EducationalProgram.SpecialityCode),
-            _ => query.OrderBy(b => b.AddDisciplines.CodeSelectiveDisciplines)
+            1 => query.OrderByDescending(b => b.SelectiveDisciplines.CodeSelectiveDisciplines),
+            2 => query.OrderBy(b => b.EducationalProgram.Speciality.Code),
+            3 => query.OrderByDescending(b => b.EducationalProgram.Speciality.Code),
+            _ => query.OrderBy(b => b.SelectiveDisciplines.CodeSelectiveDisciplines)
         };
 
         // 4. БЛИСКАВИЧНА ПРОЕКЦІЯ ТА ПАГІНАЦІЯ
@@ -67,11 +67,11 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Select(b => new BindLoansMainDto
             {
                 IdBindLoan = b.IdBindLoan,
-                AddDisciplinesId = b.AddDisciplinesId ?? 0,
+                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? 0,
                 EducationalProgramId = b.EducationalProgramId ?? 0,
-                CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeSelectiveDisciplines : "",
-                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameSelectiveDisciplines : "",
-                SpecialityCode = b.EducationalProgram != null ? b.EducationalProgram.SpecialityCode : "",
+                CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines : "",
+                SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines : "",
+                SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code.HasValue ? b.EducationalProgram.Speciality.Code.Value.ToString() : "",
                 EducationalProgramName = b.EducationalProgram != null ? b.EducationalProgram.NameEducationalProgram : ""
             })
             .ToListAsync();
@@ -87,11 +87,11 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Select(b => new BindLoansMainDto
             {
                 IdBindLoan = b.IdBindLoan,
-                AddDisciplinesId = b.AddDisciplinesId ?? 0,
+                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? 0,
                 EducationalProgramId = b.EducationalProgramId ?? 0,
-                CodeAddDisciplines = b.AddDisciplines != null ? b.AddDisciplines.CodeSelectiveDisciplines : "",
-                AddDisciplineName = b.AddDisciplines != null ? b.AddDisciplines.NameSelectiveDisciplines : "",
-                SpecialityCode = b.EducationalProgram != null ? b.EducationalProgram.SpecialityCode : "",
+                CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines : "",
+                SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines : "",
+                SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code.HasValue ? b.EducationalProgram.Speciality.Code.Value.ToString() : "",
                 EducationalProgramName = b.EducationalProgram != null ? b.EducationalProgram.NameEducationalProgram : ""
             })
             .FirstOrDefaultAsync();

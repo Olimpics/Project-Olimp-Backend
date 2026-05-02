@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
-public partial class BindAddDiscipline
+public partial class BindSelectiveDiscipline
 {
-    public int IdBindAddDisciplines { get; set; }
+    public int IdBindSelectiveDisciplines { get; set; }
 
     public int? StudentId { get; set; }
 
-    public int? AddDisciplinesId { get; set; }
+    public int? SelectiveDisciplinesId { get; set; }
 
     public int? Semestr { get; set; }
 
@@ -22,7 +22,7 @@ public partial class BindAddDiscipline
 
     public string? CreatedAt { get; set; }
 
-    public virtual SelectiveDiscipline? AddDisciplines { get; set; }
+    public virtual SelectiveDiscipline? SelectiveDisciplines { get; set; }
 
     public virtual Student? Student { get; set; }
 }

@@ -45,11 +45,11 @@ namespace OlimpBack.Migrations
                     b.ToTable("Achievement", (string)null);
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.AddDetail", b =>
+            modelBuilder.Entity("OlimpBack.Models.SelectiveDetail", b =>
                 {
-                    b.Property<int>("IdAddDetails")
+                    b.Property<int>("IdSelectiveDetails")
                         .HasColumnType("integer")
-                        .HasColumnName("idAddDetails");
+                        .HasColumnName("idSelectiveDetails");
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("integer");
@@ -100,30 +100,30 @@ namespace OlimpBack.Migrations
                         .HasMaxLength(800)
                         .HasColumnType("character varying(800)");
 
-                    b.HasKey("IdAddDetails");
+                    b.HasKey("IdSelectiveDetails");
 
-                    b.HasIndex(new[] { "DepartmentId" }, "AddDetails_Departments");
+                    b.HasIndex(new[] { "DepartmentId" }, "SelectiveDetails_Departments");
 
-                    b.HasIndex(new[] { "IdAddDetails" }, "idAddDeteils_UNIQUE")
+                    b.HasIndex(new[] { "IdSelectiveDetails" }, "idAddDeteils_UNIQUE")
                         .IsUnique();
 
-                    b.ToTable("AddDetails");
+                    b.ToTable("SelectiveDetails");
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.AddDiscipline", b =>
+            modelBuilder.Entity("OlimpBack.Models.SelectiveDiscipline", b =>
                 {
-                    b.Property<int>("IdAddDisciplines")
+                    b.Property<int>("IdSelectiveDisciplines")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("idAddDisciplines");
+                        .HasColumnName("idSelectiveDisciplines");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdAddDisciplines"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdSelectiveDisciplines"));
 
-                    b.Property<string>("CodeAddDisciplines")
+                    b.Property<string>("CodeSelectiveDisciplines")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("codeAddDisciplines");
+                        .HasColumnName("codeSelectiveDisciplines");
 
                     b.Property<int?>("DegreeLevelId")
                         .HasColumnType("integer");
@@ -162,29 +162,29 @@ namespace OlimpBack.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("minCourse");
 
-                    b.Property<string>("NameAddDisciplines")
+                    b.Property<string>("NameSelectiveDisciplines")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("nameAddDisciplines");
+                        .HasColumnName("nameSelectiveDisciplines");
 
                     b.Property<int?>("TypeId")
                         .HasColumnType("integer");
 
-                    b.HasKey("IdAddDisciplines");
+                    b.HasKey("IdSelectiveDisciplines");
 
-                    b.HasIndex(new[] { "FacultyId" }, "AddDisciplines_ Faculties_idx");
+                    b.HasIndex(new[] { "FacultyId" }, "SelectiveDisciplines_ Faculties_idx");
 
-                    b.HasIndex(new[] { "IdCatalog" }, "AddDisciplines_CatalogYears_FK");
+                    b.HasIndex(new[] { "IdCatalog" }, "SelectiveDisciplines_CatalogYears_FK");
 
-                    b.HasIndex(new[] { "DegreeLevelId" }, "AddDisciplines_EducationalDegree_idx");
+                    b.HasIndex(new[] { "DegreeLevelId" }, "SelectiveDisciplines_EducationalDegree_idx");
 
-                    b.HasIndex(new[] { "TypeId" }, "AddDisciplines_Type_idx");
+                    b.HasIndex(new[] { "TypeId" }, "SelectiveDisciplines_Type_idx");
 
-                    b.HasIndex(new[] { "IdAddDisciplines" }, "idAddDisciplines_UNIQUE")
+                    b.HasIndex(new[] { "IdSelectiveDisciplines" }, "idSelectiveDisciplines_UNIQUE")
                         .IsUnique();
 
-                    b.ToTable("AddDisciplines");
+                    b.ToTable("SelectiveDisciplines");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.AdminLog", b =>
@@ -272,16 +272,16 @@ namespace OlimpBack.Migrations
                     b.ToTable("AdminsPersonal", (string)null);
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.BindAddDiscipline", b =>
+            modelBuilder.Entity("OlimpBack.Models.BindSelectiveDiscipline", b =>
                 {
-                    b.Property<int>("IdBindAddDisciplines")
+                    b.Property<int>("IdBindSelectiveDisciplines")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("idBindAddDisciplines");
+                        .HasColumnName("idBindSelectiveDisciplines");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBindAddDisciplines"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBindSelectiveDisciplines"));
 
-                    b.Property<int>("AddDisciplinesId")
+                    b.Property<int>("SelectiveDisciplinesId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -307,13 +307,13 @@ namespace OlimpBack.Migrations
                     b.Property<int>("StudentId")
                         .HasColumnType("integer");
 
-                    b.HasKey("IdBindAddDisciplines");
+                    b.HasKey("IdBindSelectiveDisciplines");
 
-                    b.HasIndex(new[] { "AddDisciplinesId" }, "Bind_AddCourse_idx");
+                    b.HasIndex(new[] { "SelectiveDisciplinesId" }, "Bind_AddCourse_idx");
 
                     b.HasIndex(new[] { "StudentId" }, "Bind_Student_idx");
 
-                    b.ToTable("BindAddDisciplines");
+                    b.ToTable("BindSelectiveDisciplines");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.BindEvent", b =>
@@ -379,7 +379,7 @@ namespace OlimpBack.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBindLoan"));
 
-                    b.Property<int>("AddDisciplinesId")
+                    b.Property<int>("SelectiveDisciplinesId")
                         .HasColumnType("integer");
 
                     b.Property<int>("EducationalProgramId")
@@ -387,7 +387,7 @@ namespace OlimpBack.Migrations
 
                     b.HasKey("IdBindLoan");
 
-                    b.HasIndex(new[] { "AddDisciplinesId" }, "BindLoansMain_AddDisciplines_idx");
+                    b.HasIndex(new[] { "SelectiveDisciplinesId" }, "BindLoansMain_SelectiveDisciplines_idx");
 
                     b.HasIndex(new[] { "EducationalProgramId" }, "BindLoansMain_EducationalProgram_idx");
 
@@ -474,9 +474,9 @@ namespace OlimpBack.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBindStudentsFavouriteDisciplines"));
 
-                    b.Property<int?>("IdAddDiscipline")
+                    b.Property<int?>("IdSelectiveDiscipline")
                         .HasColumnType("integer")
-                        .HasColumnName("idAddDiscipline");
+                        .HasColumnName("idSelectiveDiscipline");
 
                     b.Property<int?>("IdStudent")
                         .HasColumnType("integer")
@@ -484,7 +484,7 @@ namespace OlimpBack.Migrations
 
                     b.HasKey("IdBindStudentsFavouriteDisciplines");
 
-                    b.HasIndex(new[] { "IdAddDiscipline" }, "BindStudentsFavouriteDisciplines_AddDisciplines_FK");
+                    b.HasIndex(new[] { "IdSelectiveDiscipline" }, "BindStudentsFavouriteDisciplines_SelectiveDisciplines_FK");
 
                     b.HasIndex(new[] { "IdStudent" }, "BindStudentsFavouriteDisciplines_Student_FK");
 
@@ -684,30 +684,6 @@ namespace OlimpBack.Migrations
                         .HasMaxLength(400)
                         .HasColumnType("character varying(400)")
                         .HasColumnName("accreditationType");
-
-                    b.Property<int?>("CountAddSemestr3")
-                        .HasColumnType("integer")
-                        .HasColumnName("countAddSemestr3");
-
-                    b.Property<int?>("CountAddSemestr4")
-                        .HasColumnType("integer")
-                        .HasColumnName("countAddSemestr4");
-
-                    b.Property<int?>("CountAddSemestr5")
-                        .HasColumnType("integer")
-                        .HasColumnName("countAddSemestr5");
-
-                    b.Property<int?>("CountAddSemestr6")
-                        .HasColumnType("integer")
-                        .HasColumnName("countAddSemestr6");
-
-                    b.Property<int?>("CountAddSemestr7")
-                        .HasColumnType("integer")
-                        .HasColumnName("countAddSemestr7");
-
-                    b.Property<int?>("CountAddSemestr8")
-                        .HasColumnType("integer")
-                        .HasColumnName("countAddSemestr8");
 
                     b.Property<int>("DegreeId")
                         .HasColumnType("integer")
@@ -1500,48 +1476,48 @@ namespace OlimpBack.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.AddDetail", b =>
+            modelBuilder.Entity("OlimpBack.Models.SelectiveDetail", b =>
                 {
                     b.HasOne("OlimpBack.Models.Department", "Department")
-                        .WithMany("AddDetails")
+                        .WithMany("SelectiveDetails")
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("AddDetails_Departments");
+                        .HasConstraintName("SelectiveDetails_Departments");
 
-                    b.HasOne("OlimpBack.Models.AddDiscipline", "IdAddDetailsNavigation")
-                        .WithOne("AddDetail")
-                        .HasForeignKey("OlimpBack.Models.AddDetail", "IdAddDetails")
+                    b.HasOne("OlimpBack.Models.SelectiveDiscipline", "IdSelectiveDetailsNavigation")
+                        .WithOne("SelectiveDetail")
+                        .HasForeignKey("OlimpBack.Models.SelectiveDetail", "IdSelectiveDetails")
                         .IsRequired()
-                        .HasConstraintName("AddDeteils_AddDisciplines");
+                        .HasConstraintName("AddDeteils_SelectiveDisciplines");
 
                     b.Navigation("Department");
 
-                    b.Navigation("IdAddDetailsNavigation");
+                    b.Navigation("IdSelectiveDetailsNavigation");
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.AddDiscipline", b =>
+            modelBuilder.Entity("OlimpBack.Models.SelectiveDiscipline", b =>
                 {
                     b.HasOne("OlimpBack.Models.EducationalDegree", "DegreeLevel")
-                        .WithMany("AddDisciplines")
+                        .WithMany("SelectiveDisciplines")
                         .HasForeignKey("DegreeLevelId")
-                        .HasConstraintName("AddDisciplines_EducationalDegree");
+                        .HasConstraintName("SelectiveDisciplines_EducationalDegree");
 
                     b.HasOne("OlimpBack.Models.Faculty", "Faculty")
-                        .WithMany("AddDisciplines")
+                        .WithMany("SelectiveDisciplines")
                         .HasForeignKey("FacultyId")
                         .IsRequired()
-                        .HasConstraintName("AddDisciplines_ Faculties");
+                        .HasConstraintName("SelectiveDisciplines_ Faculties");
 
                     b.HasOne("OlimpBack.Models.CatalogYear", "IdCatalogNavigation")
-                        .WithMany("AddDisciplines")
+                        .WithMany("SelectiveDisciplines")
                         .HasForeignKey("IdCatalog")
                         .IsRequired()
-                        .HasConstraintName("AddDisciplines_CatalogYears_FK");
+                        .HasConstraintName("SelectiveDisciplines_CatalogYears_FK");
 
                     b.HasOne("OlimpBack.Models.TypeOfDiscipline", "Type")
-                        .WithMany("AddDisciplines")
+                        .WithMany("SelectiveDisciplines")
                         .HasForeignKey("TypeId")
-                        .HasConstraintName("AddDisciplines_Type");
+                        .HasConstraintName("SelectiveDisciplines_Type");
 
                     b.Navigation("DegreeLevel");
 
@@ -1577,21 +1553,21 @@ namespace OlimpBack.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.BindAddDiscipline", b =>
+            modelBuilder.Entity("OlimpBack.Models.BindSelectiveDiscipline", b =>
                 {
-                    b.HasOne("OlimpBack.Models.AddDiscipline", "AddDisciplines")
-                        .WithMany("BindAddDisciplines")
-                        .HasForeignKey("AddDisciplinesId")
+                    b.HasOne("OlimpBack.Models.SelectiveDiscipline", "SelectiveDisciplines")
+                        .WithMany("BindSelectiveDisciplines")
+                        .HasForeignKey("SelectiveDisciplinesId")
                         .IsRequired()
                         .HasConstraintName("Bind_AddDisciple");
 
                     b.HasOne("OlimpBack.Models.Student", "Student")
-                        .WithMany("BindAddDisciplines")
+                        .WithMany("BindSelectiveDisciplines")
                         .HasForeignKey("StudentId")
                         .IsRequired()
                         .HasConstraintName("Bind_Student");
 
-                    b.Navigation("AddDisciplines");
+                    b.Navigation("SelectiveDisciplines");
 
                     b.Navigation("Student");
                 });
@@ -1636,11 +1612,11 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.BindLoansMain", b =>
                 {
-                    b.HasOne("OlimpBack.Models.AddDiscipline", "AddDisciplines")
+                    b.HasOne("OlimpBack.Models.SelectiveDiscipline", "SelectiveDisciplines")
                         .WithMany("BindLoansMains")
-                        .HasForeignKey("AddDisciplinesId")
+                        .HasForeignKey("SelectiveDisciplinesId")
                         .IsRequired()
-                        .HasConstraintName("BindLoansMain_AddDisciplines");
+                        .HasConstraintName("BindLoansMain_SelectiveDisciplines");
 
                     b.HasOne("OlimpBack.Models.EducationalProgram", "EducationalProgram")
                         .WithMany("BindLoansMains")
@@ -1648,7 +1624,7 @@ namespace OlimpBack.Migrations
                         .IsRequired()
                         .HasConstraintName("BindLoansMain_EducationalProgram");
 
-                    b.Navigation("AddDisciplines");
+                    b.Navigation("SelectiveDisciplines");
 
                     b.Navigation("EducationalProgram");
                 });
@@ -1685,11 +1661,11 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.BindStudentsFavouriteDiscipline", b =>
                 {
-                    b.HasOne("OlimpBack.Models.AddDiscipline", "IdAddDisciplineNavigation")
+                    b.HasOne("OlimpBack.Models.SelectiveDiscipline", "IdSelectiveDisciplineNavigation")
                         .WithMany("BindStudentsFavouriteDisciplines")
-                        .HasForeignKey("IdAddDiscipline")
+                        .HasForeignKey("IdSelectiveDiscipline")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("BindStudentsFavouriteDisciplines_AddDisciplines_FK");
+                        .HasConstraintName("BindStudentsFavouriteDisciplines_SelectiveDisciplines_FK");
 
                     b.HasOne("OlimpBack.Models.Student", "IdStudentNavigation")
                         .WithMany("BindStudentsFavouriteDisciplines")
@@ -1697,7 +1673,7 @@ namespace OlimpBack.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("BindStudentsFavouriteDisciplines_Student_FK");
 
-                    b.Navigation("IdAddDisciplineNavigation");
+                    b.Navigation("IdSelectiveDisciplineNavigation");
 
                     b.Navigation("IdStudentNavigation");
                 });
@@ -1931,7 +1907,7 @@ namespace OlimpBack.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Speciality_Branch");
 
-                    b.HasOne("OlimpBack.Models.Department", "DepartmentNavigation")
+                    b.HasOne("OlimpBack.Models.Department", "Department")
                         .WithMany("Specialities")
                         .HasForeignKey("IdDepartment")
                         .OnDelete(DeleteBehavior.SetNull)
@@ -1945,7 +1921,7 @@ namespace OlimpBack.Migrations
 
                     b.Navigation("IdBranchNavigation");
 
-                    b.Navigation("DepartmentNavigation");
+                    b.Navigation("Department");
 
                     b.Navigation("IdFacultyNavigation");
                 });
@@ -2032,11 +2008,11 @@ namespace OlimpBack.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.AddDiscipline", b =>
+            modelBuilder.Entity("OlimpBack.Models.SelectiveDiscipline", b =>
                 {
-                    b.Navigation("AddDetail");
+                    b.Navigation("SelectiveDetail");
 
-                    b.Navigation("BindAddDisciplines");
+                    b.Navigation("BindSelectiveDisciplines");
 
                     b.Navigation("BindLoansMains");
 
@@ -2064,12 +2040,12 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.CatalogYear", b =>
                 {
-                    b.Navigation("AddDisciplines");
+                    b.Navigation("SelectiveDisciplines");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.Department", b =>
                 {
-                    b.Navigation("AddDetails");
+                    b.Navigation("SelectiveDetails");
 
                     b.Navigation("AdminsPersonals");
 
@@ -2087,7 +2063,7 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.EducationalDegree", b =>
                 {
-                    b.Navigation("AddDisciplines");
+                    b.Navigation("SelectiveDisciplines");
 
                     b.Navigation("DisciplineChoicePeriods");
 
@@ -2118,7 +2094,7 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.Faculty", b =>
                 {
-                    b.Navigation("AddDisciplines");
+                    b.Navigation("SelectiveDisciplines");
 
                     b.Navigation("AdminsPersonals");
 
@@ -2183,7 +2159,7 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.Student", b =>
                 {
-                    b.Navigation("BindAddDisciplines");
+                    b.Navigation("BindSelectiveDisciplines");
 
                     b.Navigation("BindEvents");
 
@@ -2210,7 +2186,7 @@ namespace OlimpBack.Migrations
 
             modelBuilder.Entity("OlimpBack.Models.TypeOfDiscipline", b =>
                 {
-                    b.Navigation("AddDisciplines");
+                    b.Navigation("SelectiveDisciplines");
                 });
 
             modelBuilder.Entity("OlimpBack.Models.User", b =>
