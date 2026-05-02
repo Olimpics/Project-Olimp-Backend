@@ -8,6 +8,6 @@ namespace OlimpBack.Application.DTO
         public string StudentName { get; set; } = string.Empty;
         public string DegreeName { get; set; } = string.Empty;
         public Dictionary<int, List<MainDisciplineDto>> MainDisciplinesBySemester { get; set; } = new Dictionary<int, List<MainDisciplineDto>>();
-        public Dictionary<int, List<BindAddDisciplineDto>> AdditionalDisciplinesBySemester { get; set; } = new Dictionary<int, List<BindAddDisciplineDto>>();
+        public Dictionary<int, List<BindSelectiveDisciplineDto>> AdditionalDisciplinesBySemester { get; set; } = new Dictionary<int, List<BindSelectiveDisciplineDto>>();
     }
 } 

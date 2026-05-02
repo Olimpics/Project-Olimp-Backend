@@ -19,7 +19,7 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
 
-        // Більше ніяких ком!
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ!
         public List<int>? DegreeLevelIds { get; set; }
 
         public int SortOrder { get; set; } = 0;
@@ -28,12 +28,7 @@ namespace OlimpBack.Application.DTO
     {
         public int IdEducationalProgram { get; set; }
         public string NameEducationalProgram { get; set; } = null!;
-        public int? CountAddSemestr3 { get; set; }
-        public int? CountAddSemestr4 { get; set; }
-        public int? CountAddSemestr5 { get; set; }
-        public int? CountAddSemestr6 { get; set; }
-        public int? CountAddSemestr7 { get; set; }
-        public int? CountAddSemestr8 { get; set; }
+        public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
         public string Degree { get; set; } = null!;
         public int DegreeId { get; set; }
         public string Speciality { get; set; } = null!;
@@ -46,17 +41,12 @@ namespace OlimpBack.Application.DTO
     public class CreateEducationalProgramDto
     {
         public string NameEducationalProgram { get; set; } = null!;
-        public int? CountAddSemestr3 { get; set; }
-        public int? CountAddSemestr4 { get; set; }
-        public int? CountAddSemestr5 { get; set; }
-        public int? CountAddSemestr6 { get; set; }
-        public int? CountAddSemestr7 { get; set; }
-        public int? CountAddSemestr8 { get; set; }
-        
-        // Замість string Degree робимо нормальний ID
+        public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
+
+        //  string Degree   ID
         public int DegreeId { get; set; }
 
-        public string Speciality { get; set; } = null!;
+        public int SpecialityId { get; set; }
         public sbyte Accreditation { get; set; }
         public string AccreditationType { get; set; } = null!;
         public uint StudentsAmount { get; set; }

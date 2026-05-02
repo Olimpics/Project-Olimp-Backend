@@ -46,16 +46,16 @@ public class GroupRepository : IGroupRepository
 
         if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
             query = query.Where(g => g.EducationalProgram != null && 
-                                     g.EducationalProgram.SpecialityEntity != null && 
-                                     g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null &&
-                                     g.EducationalProgram.SpecialityEntity.DepartmentNavigation.FacultyId.HasValue &&
-                                     queryDto.FacultyIds.Contains(g.EducationalProgram.SpecialityEntity.DepartmentNavigation.FacultyId.Value));
+                                     g.EducationalProgram.Speciality != null && 
+                                     g.EducationalProgram.Speciality.Department != null &&
+                                     g.EducationalProgram.Speciality.Department.FacultyId.HasValue &&
+                                     queryDto.FacultyIds.Contains(g.EducationalProgram.Speciality.Department.FacultyId.Value));
 
         if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
             query = query.Where(g => g.EducationalProgram != null && 
-                                     g.EducationalProgram.SpecialityEntity != null && 
-                                     g.EducationalProgram.SpecialityEntity.IdDepartment.HasValue &&
-                                     queryDto.DepartmentIds.Contains(g.EducationalProgram.SpecialityEntity.IdDepartment.Value));
+                                     g.EducationalProgram.Speciality != null && 
+                                     g.EducationalProgram.Speciality.IdDepartment.HasValue &&
+                                     queryDto.DepartmentIds.Contains(g.EducationalProgram.Speciality.IdDepartment.Value));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
@@ -67,8 +67,8 @@ public class GroupRepository : IGroupRepository
         {
             1 => query.OrderBy(d => d.GroupCode),
             2 => query.OrderByDescending(d => d.GroupCode),
-            3 => query.OrderBy(d => d.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty.Abbreviation),
-            4 => query.OrderByDescending(d => d.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty.Abbreviation),
+            3 => query.OrderBy(d => d.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
+            4 => query.OrderByDescending(d => d.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
             5 => query.OrderBy(d => d.Course),
             6 => query.OrderByDescending(d => d.Course),
             _ => query.OrderBy(d => d.GroupCode)
@@ -101,19 +101,19 @@ public class GroupRepository : IGroupRepository
                 AdminId = g.AdminId,
                 DegreeId = g.DegreeId,
                 Course = g.Course,
-                FacultyId = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null 
-                            ? g.EducationalProgram.SpecialityEntity.DepartmentNavigation.FacultyId : null,
-                FacultyName = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty != null
-                            ? g.EducationalProgram.SpecialityEntity.DepartmentNavigation.Faculty.NameFaculty : null,
-                DepartmentId = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null 
-                             ? g.EducationalProgram.SpecialityEntity.IdDepartment : null,
-                DepartmentName = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null && g.EducationalProgram.SpecialityEntity.DepartmentNavigation != null
-                             ? g.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment : null,
+                FacultyId = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null 
+                            ? g.EducationalProgram.Speciality.Department.FacultyId : null,
+                FacultyName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null && g.EducationalProgram.Speciality.Department.Faculty != null
+                            ? g.EducationalProgram.Speciality.Department.Faculty.NameFaculty : null,
+                DepartmentId = g.EducationalProgram != null && g.EducationalProgram.Speciality != null 
+                             ? g.EducationalProgram.Speciality.IdDepartment : null,
+                DepartmentName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null
+                             ? g.EducationalProgram.Speciality.Department.NameDepartment : null,
                 IdEducationalProgram = g.IdEducationalProgram,
                 EducationalProgramName = g.EducationalProgram != null ? g.EducationalProgram.NameEducationalProgram : null,
-                IdSpeciality = g.EducationalProgram != null ? g.EducationalProgram.SpecialityId : null,
-                SpecialityName = g.EducationalProgram != null && g.EducationalProgram.SpecialityEntity != null 
-                               ? g.EducationalProgram.SpecialityEntity.Name : null,
+                IdSpeciality = g.EducationalProgram != null ? g.EducationalProgram.SpeciaityId : null,
+                SpecialityName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null 
+                               ? g.EducationalProgram.Speciality.Name : null,
                 AdmissionYear = g.Admissionyear.HasValue ? g.Admissionyear.Value.Year : null,
                 IdStudyForm = g.IdStudyForm,
                 IsAccelerated = g.IsAccelerated.Cast<bool>().FirstOrDefault()
@@ -151,8 +151,8 @@ public class GroupRepository : IGroupRepository
                     .Where(bmd => bmd.EducationalProgramId == g.IdEducationalProgram)
                     .Select(bmd => new GroupMainDisciplineDto
                     {
-                        idMainDisciplines = bmd.IdMainDisciplines,
-                        nameMainDisciplines = bmd.NameMainDisciplines,
+                        idMainDisciplines = bmd.IdBindMainDisciplines,
+                        nameMainDisciplines = bmd.NameBindMainDisciplines,
                         Semestr = bmd.Semestr,
                         Loans = bmd.Loans,
                         Hours = bmd.Hours,

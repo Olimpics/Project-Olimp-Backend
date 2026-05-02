@@ -7,11 +7,11 @@ public partial class BindLoansMain
 {
     public int IdBindLoan { get; set; }
 
-    public int? AddDisciplinesId { get; set; }
+    public int? SelectiveDisciplinesId { get; set; }
 
     public int? EducationalProgramId { get; set; }
 
-    public virtual SelectiveDiscipline? AddDisciplines { get; set; }
+    public virtual SelectiveDiscipline? SelectiveDisciplines { get; set; }
 
     public virtual EducationalProgram? EducationalProgram { get; set; }
 }

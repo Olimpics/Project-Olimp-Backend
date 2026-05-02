@@ -6,7 +6,7 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IAdminDisciplineStudentListRepository
 {
-    Task<(int totalCount, List<AdminStudentByAddDisciplineDto> items)> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query);
+    Task<(int totalCount, List<AdminStudentBySelectiveDisciplineDto> items)> GetStudentsBySelectiveDisciplineAsync(GetStudentsBySelectiveDisciplineQueryDto query);
     Task<(int totalCount, List<AdminStudentByMainDisciplineDto> items)> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query);
 }
 
@@ -19,11 +19,11 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
         _context = context;
     }
 
-    public async Task<(int totalCount, List<AdminStudentByAddDisciplineDto> items)> GetStudentsByAddDisciplineAsync(GetStudentsByAddDisciplineQueryDto query)
+    public async Task<(int totalCount, List<AdminStudentBySelectiveDisciplineDto> items)> GetStudentsBySelectiveDisciplineAsync(GetStudentsBySelectiveDisciplineQueryDto query)
     {
-        var baseQuery = _context.BindAddDisciplines
+        var baseQuery = _context.BindSelectiveDisciplines
             .AsNoTracking()
-            .Where(b => b.AddDisciplinesId == query.DisciplineId);
+            .Where(b => b.SelectiveDisciplinesId == query.DisciplineId);
 
         if (query.FacultyId is > 0)
         {
@@ -37,7 +37,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         if (query.DepartmentId is > 0)
         {
-            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.IdDepartment == query.DepartmentId);
+            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.Speciality.Department.IdDepartment == query.DepartmentId);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -47,8 +47,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             baseQuery = baseQuery.Where(b =>
                 EF.Functions.Like(b.Student.NameStudent, $"%{search}%") ||
                 EF.Functions.Like(b.Student.Group.GroupCode, $"%{search}%") ||
-                (b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation != null &&
-                 EF.Functions.Like(b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment, $"%{search}%")) ||
+                (b.Student.Group.EducationalProgram.Speciality.Department != null &&
+                 EF.Functions.Like(b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment, $"%{search}%")) ||
                 EF.Functions.Like(b.Student.EducationalDegree.NameEducationalDegreec, $"%{search}%"));
         }
 
@@ -61,10 +61,10 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             2 => baseQuery.OrderBy(b => b.Student.Group.GroupCode),
             3 => baseQuery.OrderByDescending(b => b.Student.Group.GroupCode),
             4 => baseQuery.OrderBy(b => b.Student.Group != null
-                ? b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment
+                ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
-            5 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment != null
-                ? b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment
+            5 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment != null
+                ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
             6 => baseQuery.OrderBy(b => b.Student.Course),
             7 => baseQuery.OrderByDescending(b => b.Student.Course),
@@ -78,14 +78,14 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
         var items = await baseQuery
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(b => new AdminStudentByAddDisciplineDto
+            .Select(b => new AdminStudentBySelectiveDisciplineDto
             {
                 StudentId = b.StudentId ?? 0,
                 StudentName = b.Student.NameStudent,
                 GroupId = b.Student.GroupId,
                 GroupCode = b.Student.Group.GroupCode,
-                DepartmentName = b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation != null
-                    ? b.Student.Group.EducationalProgram.SpecialityEntity.DepartmentNavigation.NameDepartment
+                DepartmentName = b.Student.Group.EducationalProgram.Speciality.Department != null
+                    ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                     : string.Empty,
                 Year = b.Student.Course,
                 EducationLevel = b.Student.EducationalDegree.NameEducationalDegreec,

@@ -48,21 +48,7 @@ public class StudentService : IStudentService
 
         if (queryDto.Specialities != null && queryDto.Specialities.Any())
         {
-            // Спрощене Expression Tree для спеціальностей (StartsWith -> Like 'val%')
-            var parameter = Expression.Parameter(typeof(Student), "s");
-            var progProp = Expression.Property(parameter, nameof(Student.EducationalProgram));
-            var specCodeProp = Expression.Property(progProp, nameof(EducationalProgram.SpecialityCode));
-
-            Expression? orExpression = null;
-            foreach (var val in queryDto.Specialities.Select(s => s.ToLower()))
-            {
-                var likeCall = Expression.Call(
-                    typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), Type.EmptyTypes,
-                    Expression.Constant(EF.Functions), specCodeProp, Expression.Constant(val + "%")
-                );
-                orExpression = orExpression == null ? likeCall : Expression.OrElse(orExpression, likeCall);
-            }
-            query = query.Where(Expression.Lambda<Func<Student, bool>>(orExpression!, parameter));
+            query = query.Where(s => s.EducationalProgram.SpeciaityId.HasValue && queryDto.Specialities.Contains(s.EducationalProgram.SpeciaityId.Value));
         }
 
         if (queryDto.GroupIds != null && queryDto.GroupIds.Any())

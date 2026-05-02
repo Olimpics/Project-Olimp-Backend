@@ -71,7 +71,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.DisciplineRead)]
-        public async Task<ActionResult<BindAddDisciplineDto>> GetBind(int id)
+        public async Task<ActionResult<BindSelectiveDisciplineDto>> GetBind(int id)
         {
             var result = await _service.GetBindAsync(id);
             if (result == null)
@@ -89,12 +89,12 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
-        [HttpGet("GetStudentsByAddDiscipline")]
+        [HttpGet("GetStudentsBySelectiveDiscipline")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<ActionResult<PaginatedResponseDto<AdminStudentByAddDisciplineDto>>> GetStudentsByAddDiscipline(
-            [FromQuery] GetStudentsByAddDisciplineQueryDto query)
+        public async Task<ActionResult<PaginatedResponseDto<AdminStudentBySelectiveDisciplineDto>>> GetStudentsBySelectiveDiscipline(
+            [FromQuery] GetStudentsBySelectiveDisciplineQueryDto query)
         {
-            var result = await _service.GetStudentsByAddDisciplineAsync(query);
+            var result = await _service.GetStudentsBySelectiveDisciplineAsync(query);
             return Ok(result);
         }
 
@@ -120,9 +120,9 @@ namespace OlimpBack.Controllers
 
 
         //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateBindAddDiscipline(int id, UpdateBindAddDisciplineDto updateDto)
+        //public async Task<IActionResult> UpdateBindSelectiveDiscipline(int id, UpdateBindSelectiveDisciplineDto updateDto)
         //{
-        //    var bind = await _context.BindAddDisciplines.FindAsync(id);
+        //    var bind = await _context.BindSelectiveDisciplines.FindAsync(id);
         //    if (bind == null)
         //    {
         //        return NotFound();

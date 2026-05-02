@@ -31,7 +31,7 @@ public class DisciplineTabService : IDisciplineTabService
         var fullList = allDisciplines.Select(discipline =>
         {
             var dto = _mapper.Map<FullDisciplineDto>(discipline);
-            if (context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines, out var c))
+            if (context.DisciplineCounts.TryGetValue(discipline.IdSelectiveDisciplines, out var c))
             {
                 dto.CountOfPeople = c;
             }
@@ -48,11 +48,11 @@ public class DisciplineTabService : IDisciplineTabService
 
         var sortedList = queryDto.SortOrder switch
         {
-            1 => fullList.OrderByDescending(d => d.NameAddDisciplines).ToList(),
+            1 => fullList.OrderByDescending(d => d.NameSelectiveDisciplines).ToList(),
             2 => fullList.OrderBy(d => d.CountOfPeople).ToList(),
             3 => fullList.OrderByDescending(d => d.CountOfPeople).ToList(),
             4 => fullList.OrderBy(d => d.FacultyAbbreviation).ToList(),
-            _ => fullList.OrderBy(d => d.NameAddDisciplines).ToList()
+            _ => fullList.OrderBy(d => d.NameSelectiveDisciplines).ToList()
         };
 
         var totalItems = sortedList.Count();
@@ -87,9 +87,9 @@ public class DisciplineTabService : IDisciplineTabService
             .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
             .Select(d => new SimpleDisciplineDto
             {
-                IdAddDisciplines = d.IdAddDisciplines,
-                NameAddDisciplines = d.NameAddDisciplines ?? "",
-                CodeAddDisciplines = d.CodeAddDisciplines ?? ""
+                IdSelectiveDisciplines = d.IdSelectiveDisciplines,
+                NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
+                CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? ""
             })
             .ToList();
 
@@ -103,7 +103,7 @@ public class DisciplineTabService : IDisciplineTabService
         };
     }
 
-    public async Task<(int? bindId, string? error)> AddDisciplineBindAsync(AddDisciplineBindDto dto)
+    public async Task<(int? bindId, string? error)> SelectiveDisciplineBindAsync(SelectiveDisciplineBindDto dto)
     {
         var context = await DisciplineAvailabilityService.BuildAvailabilityContext(dto.StudentId, _context);
         if (context == null) return (null, $"Student not found {dto.StudentId}");
@@ -121,10 +121,10 @@ public class DisciplineTabService : IDisciplineTabService
         if (!DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context))
             return (null, "Discipline is not available for this student");
 
-        var bind = new BindAddDiscipline
+        var bind = new BindSelectiveDiscipline
         {
             StudentId = dto.StudentId,
-            AddDisciplinesId = dto.DisciplineId,
+            SelectiveDisciplinesId = dto.DisciplineId,
             Semestr = targetSemester,
             InProcess = new System.Collections.BitArray(1, true),
             Loans = dto.Loans
@@ -133,26 +133,26 @@ public class DisciplineTabService : IDisciplineTabService
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
 
-        return (bind.IdBindAddDisciplines, null);
+        return (bind.IdBindSelectiveDisciplines, null);
     }
 
     public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(int id) =>
         await _repository.GetDisciplineWithDetailsDtoAsync(id);
 
-    public async Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateAddDisciplineWithDetailsDto dto)
+    public async Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto)
     {
-        var discipline = _mapper.Map<AddDiscipline>(dto, opts => opts.Items["DbContext"] = _context);
-        var details = _mapper.Map<AddDetail>(dto.Details);
+        var discipline = _mapper.Map<SelectiveDiscipline>(dto, opts => opts.Items["DbContext"] = _context);
+        var details = _mapper.Map<SelectiveDetail>(dto.Details);
 
-        discipline.AddDetail = details;
+        discipline.SelectiveDetail = details;
 
-        await _repository.AddDisciplineAsync(discipline);
+        await _repository.SelectiveDisciplineAsync(discipline);
         await _repository.SaveChangesAsync();
 
         return _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
     }
 
-    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateAddDisciplineWithDetailsDto dto)
+    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateSelectiveDisciplineWithDetailsDto dto)
     {
         var discipline = await _repository.GetDisciplineWithDetailEntityAsync(id);
         if (discipline == null) return (false, "Discipline not found");
@@ -163,14 +163,14 @@ public class DisciplineTabService : IDisciplineTabService
                 return (false, $"Department with ID {dto.Details.DepartmentId.Value} does not exist");
         }
 
-        if (discipline.AddDetail == null)
+        if (discipline.SelectiveDetail == null)
         {
-            discipline.AddDetail = new AddDetail { IdAddDetails = discipline.IdAddDisciplines };
+            discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
             // EF Core track-˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜
         }
 
         _mapper.Map(dto, discipline, opts => opts.Items["DbContext"] = _context);
-        _mapper.Map(dto.Details, discipline.AddDetail);
+        _mapper.Map(dto.Details, discipline.SelectiveDetail);
 
         await _repository.SaveChangesAsync();
 

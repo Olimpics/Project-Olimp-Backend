@@ -14,7 +14,7 @@ namespace OlimpBack.Utils
         {
             var student = await _context.Students
                 .Include(s => s.EducationalDegree)
-                .Include(s => s.BindAddDisciplines)
+                .Include(s => s.BindSelectiveDisciplines)
                 .Include(s => s.Faculty)
                 .FirstOrDefaultAsync(s => s.IdStudent == studentId);
 
@@ -23,16 +23,16 @@ namespace OlimpBack.Utils
 
             int currentCourse = student.Course;
 
-            var boundDisciplineIds = student.BindAddDisciplines
-                .Select(b => b.AddDisciplinesId)
+            var boundDisciplineIds = student.BindSelectiveDisciplines
+                .Select(b => b.SelectiveDisciplinesId)
                 .Where(id => id.HasValue)
                 .Select(id => id!.Value)
                 .ToHashSet();
 
 // Исправлено сравнение BitArray с int на проверку первого бита (InProcess)
-            var disciplineCounts = await _context.BindAddDisciplines
-                .Where(b => b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] && b.AddDisciplinesId != null)
-                .GroupBy(b => b.AddDisciplinesId!.Value)
+            var disciplineCounts = await _context.BindSelectiveDisciplines
+                .Where(b => b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] && b.SelectiveDisciplinesId != null)
+                .GroupBy(b => b.SelectiveDisciplinesId!.Value)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
 
@@ -45,9 +45,9 @@ namespace OlimpBack.Utils
                 DisciplineCounts = disciplineCounts
             };
         }
-        public static bool IsDisciplineAvailable(AddDiscipline discipline, DisciplineAvailabilityContext context)
+        public static bool IsDisciplineAvailable(SelectiveDiscipline discipline, DisciplineAvailabilityContext context)
         {
-            if (discipline.IdAddDisciplines == null || context.BoundDisciplineIds.Contains(discipline.IdAddDisciplines))
+            if (discipline.IdSelectiveDisciplines == null || context.BoundDisciplineIds.Contains(discipline.IdSelectiveDisciplines))
                 return false;
 
             if (discipline.DegreeLevel != null &&
@@ -65,14 +65,14 @@ namespace OlimpBack.Utils
 
             if (discipline.MinCountPeople.HasValue)
             {
-                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines!, out var count) ? count : 0;
+                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdSelectiveDisciplines!, out var count) ? count : 0;
                 if (currentCount < discipline.MinCountPeople.Value)
                     return false;
             }
 
             if (discipline.MaxCountPeople.HasValue)
             {
-                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdAddDisciplines!, out var count) ? count : 0;
+                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdSelectiveDisciplines!, out var count) ? count : 0;
                 if (currentCount >= discipline.MaxCountPeople.Value)
                     return false;
             }

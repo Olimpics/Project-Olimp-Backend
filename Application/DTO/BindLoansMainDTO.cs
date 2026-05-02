@@ -5,10 +5,10 @@ namespace OlimpBack.Application.DTO
     public class BindLoansMainDto
     {
         public int IdBindLoan { get; set; }
-        public int AddDisciplinesId { get; set; }
+        public int SelectiveDisciplinesId { get; set; }
         public int EducationalProgramId { get; set; }
-        public string CodeAddDisciplines { get; set; }
-        public string AddDisciplineName { get; set; }
+        public string CodeSelectiveDisciplines { get; set; }
+        public string SelectiveDisciplineName { get; set; }
         public string SpecialityCode { get; set; }
         public string EducationalProgramName { get; set; }
        
@@ -16,7 +16,7 @@ namespace OlimpBack.Application.DTO
 
     public class CreateBindLoansMainDto
     {
-        public int AddDisciplinesId { get; set; }
+        public int SelectiveDisciplinesId { get; set; }
         public int EducationalProgramId { get; set; }
     }
 
@@ -32,7 +32,7 @@ namespace OlimpBack.Application.DTO
         public string? Search { get; set; }
 
         // “ип≥зован≥ списки зам≥сть string з≥ Split(',')
-        public List<int>? AddDisciplinesIds { get; set; }
+        public List<int>? SelectiveDisciplinesIds { get; set; }
         public List<int>? EducationalProgramIds { get; set; }
 
         public string? Faculties { get; set; }

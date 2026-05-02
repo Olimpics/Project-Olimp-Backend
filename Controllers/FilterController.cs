@@ -53,8 +53,8 @@ namespace OlimpBack.Controllers
                 .Select(g => new SpecialityFilterDto
                 {
                     Id = g.First().IdEducationalProgram,
-                    Code = g.First().SpecialityCode ?? "",
-                    Name = g.Key ?? ""
+                    Code = g.First().Speciality != null && g.First().Speciality.Code.HasValue ? g.First().Speciality.Code.Value.ToString() : "",
+                    Name = g.First().Speciality.Name ?? ""
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -98,14 +98,14 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("add-disciplines")]
-        public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetAddDisciplines([FromQuery] string? search = null)
+        public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetSelectiveDisciplines([FromQuery] string? search = null)
         {
-            var query = _context.AddDisciplines
+            var query = _context.SelectiveDisciplines
                 .Select(ad => new SpecialityFilterDto
                 {
-                    Id = ad.IdAddDisciplines,
-                    Code = ad.CodeAddDisciplines ?? "",
-                    Name = ad.NameAddDisciplines ?? ""
+                    Id = ad.IdSelectiveDisciplines,
+                    Code = ad.CodeSelectiveDisciplines ?? "",
+                    Name = ad.NameSelectiveDisciplines ?? ""
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -124,10 +124,10 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("add-disciplines-paged")]
-        public async Task<ActionResult<PaginatedResponseDto<SpecialityFilterDto>>> GetAddDisciplinesPaged(
-            [FromQuery] AddDisciplineFilterQueryDto queryDto)
+        public async Task<ActionResult<PaginatedResponseDto<SpecialityFilterDto>>> GetSelectiveDisciplinesPaged(
+            [FromQuery] SelectiveDisciplineFilterQueryDto queryDto)
         {
-            var result = await _filterService.GetAddDisciplinesPagedAsync(queryDto);
+            var result = await _filterService.GetSelectiveDisciplinesPagedAsync(queryDto);
             return Ok(result);
         }
 

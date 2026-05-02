@@ -71,11 +71,11 @@ public class AuthController : ControllerBase
 
     // ===== SELECT (S) =====
     new() { TypePermission = "S", TableName = "Achievement" },
-    new() { TypePermission = "S", TableName = "AddDetails" },
-    new() { TypePermission = "S", TableName = "AddDisciplines" },
+    new() { TypePermission = "S", TableName = "SelectiveDetails" },
+    new() { TypePermission = "S", TableName = "SelectiveDisciplines" },
     new() { TypePermission = "S", TableName = "AdminLogs" },
     new() { TypePermission = "S", TableName = "AdminsPersonal" },
-    new() { TypePermission = "S", TableName = "BindAddDisciplines" },
+    new() { TypePermission = "S", TableName = "BindSelectiveDisciplines" },
     new() { TypePermission = "S", TableName = "BindEvents" },
     new() { TypePermission = "S", TableName = "BindExtraActivity" },
     new() { TypePermission = "S", TableName = "BindLoansMain" },
@@ -103,10 +103,10 @@ public class AuthController : ControllerBase
 
     // ===== INSERT (I) =====
     new() { TypePermission = "I", TableName = "Achievement" },
-    new() { TypePermission = "I", TableName = "AddDetails" },
-    new() { TypePermission = "I", TableName = "AddDisciplines" },
+    new() { TypePermission = "I", TableName = "SelectiveDetails" },
+    new() { TypePermission = "I", TableName = "SelectiveDisciplines" },
     new() { TypePermission = "I", TableName = "AdminsPersonal" },
-    new() { TypePermission = "I", TableName = "BindAddDisciplines" },
+    new() { TypePermission = "I", TableName = "BindSelectiveDisciplines" },
     new() { TypePermission = "I", TableName = "BindEvents" },
     new() { TypePermission = "I", TableName = "BindExtraActivity" },
     new() { TypePermission = "I", TableName = "BindLoansMain" },
@@ -134,10 +134,10 @@ public class AuthController : ControllerBase
 
     // ===== UPDATE (A) =====
     new() { TypePermission = "U", TableName = "Achievement" },
-    new() { TypePermission = "U", TableName = "AddDetails" },
-    new() { TypePermission = "U", TableName = "AddDisciplines" },
+    new() { TypePermission = "U", TableName = "SelectiveDetails" },
+    new() { TypePermission = "U", TableName = "SelectiveDisciplines" },
     new() { TypePermission = "U", TableName = "AdminsPersonal" },
-    new() { TypePermission = "U", TableName = "BindAddDisciplines" },
+    new() { TypePermission = "U", TableName = "BindSelectiveDisciplines" },
     new() { TypePermission = "U", TableName = "BindEvents" },
     new() { TypePermission = "U", TableName = "BindExtraActivity" },
     new() { TypePermission = "U", TableName = "BindLoansMain" },
@@ -165,10 +165,10 @@ public class AuthController : ControllerBase
 
     // ===== DELETE (D) =====
     new() { TypePermission = "D", TableName = "Achievement" },
-    new() { TypePermission = "D", TableName = "AddDetails" },
-    new() { TypePermission = "D", TableName = "AddDisciplines" },
+    new() { TypePermission = "D", TableName = "SelectiveDetails" },
+    new() { TypePermission = "D", TableName = "SelectiveDisciplines" },
     new() { TypePermission = "D", TableName = "AdminsPersonal" },
-    new() { TypePermission = "D", TableName = "BindAddDisciplines" },
+    new() { TypePermission = "D", TableName = "BindSelectiveDisciplines" },
     new() { TypePermission = "D", TableName = "BindEvents" },
     new() { TypePermission = "D", TableName = "BindExtraActivity" },
     new() { TypePermission = "D", TableName = "BindLoansMain" },
@@ -214,9 +214,9 @@ public class AuthController : ControllerBase
             {
                 // ===== SELECT (S) =====
     new() { TypePermission = "S", TableName = "Achievement" },
-    new() { TypePermission = "S", TableName = "AddDetails" },
-    new() { TypePermission = "S", TableName = "AddDisciplines" },
-    new() { TypePermission = "S", TableName = "BindAddDisciplines" },
+    new() { TypePermission = "S", TableName = "SelectiveDetails" },
+    new() { TypePermission = "S", TableName = "SelectiveDisciplines" },
+    new() { TypePermission = "S", TableName = "BindSelectiveDisciplines" },
     new() { TypePermission = "S", TableName = "Department" },
     new() { TypePermission = "S", TableName = "EducationalDegree" },
     new() { TypePermission = "S", TableName = "EducationalProgram" },

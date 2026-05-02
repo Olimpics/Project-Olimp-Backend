@@ -7,13 +7,9 @@ public partial class MainDiscipline
 {
     public int IdBindMainDisciplines { get; set; }
 
-    public int IdMainDisciplines { get => IdBindMainDisciplines; set => IdBindMainDisciplines = value; }
-
     public string? CodeMainDisciplines { get; set; }
 
     public string? NameBindMainDisciplines { get; set; }
-
-    public string? NameMainDisciplines { get => NameBindMainDisciplines; set => NameBindMainDisciplines = value; }
 
     public int? Loans { get; set; }
 

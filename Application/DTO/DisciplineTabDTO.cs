@@ -14,16 +14,16 @@ namespace OlimpBack.Application.DTO
 
     public class SimpleDisciplineDto
     {
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
     }
 
     public class FullDisciplineDto
     {
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
         public int FacultyId { get; set; }
         public string FacultyAbbreviation { get; set; } = null!;
         public int? MaxCountPeople { get; set; }
@@ -36,7 +36,7 @@ namespace OlimpBack.Application.DTO
     }
 
    
-    public class AddDisciplineBindDto
+    public class SelectiveDisciplineBindDto
     {
         public int StudentId { get; set; }
         public int DisciplineId { get; set; }
@@ -60,9 +60,9 @@ namespace OlimpBack.Application.DTO
     public class FullDisciplineWithDetailsDto
     {
         // Basic discipline info
-        public int IdAddDisciplines { get; set; }
-        public string NameAddDisciplines { get; set; } = null!;
-        public string CodeAddDisciplines { get; set; } = null!;
+        public int IdSelectiveDisciplines { get; set; }
+        public string NameSelectiveDisciplines { get; set; } = null!;
+        public string CodeSelectiveDisciplines { get; set; } = null!;
 
         public string? FacultyAbbreviation { get; set; }
         public int? MinCountPeople { get; set; }
@@ -72,7 +72,7 @@ namespace OlimpBack.Application.DTO
         public sbyte? IsEven { get; set; }
         public string DegreeLevelName { get; set; } = null!;
         
-        // Details from AddDetail
+        // Details from SelectiveDetail
         public string DepartmentName { get; set; } = null!;
         public string? Teacher { get; set; }
         public string? Recomend { get; set; }

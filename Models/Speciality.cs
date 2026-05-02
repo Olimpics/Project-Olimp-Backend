@@ -23,15 +23,11 @@ public partial class Speciality
 
     public string? Description { get; set; }
 
+    public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
+
     public virtual Branch? IdBranchNavigation { get; set; }
 
-    public virtual Department? IdDepartmentNavigation { get; set; }
-
-    public virtual Department? DepartmentNavigation
-    {
-        get => IdDepartmentNavigation;
-        set => IdDepartmentNavigation = value;
-    }
+    public virtual Department? Department { get; set; }
 
     public virtual ICollection<Specialization> Specializations { get; set; } = new List<Specialization>();
 }

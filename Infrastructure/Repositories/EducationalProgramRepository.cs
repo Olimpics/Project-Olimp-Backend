@@ -35,9 +35,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         {
             var lowerSearch = search.Trim().ToLower();
             query = query.Where(ep =>
-                EF.Functions.Like(ep.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(ep.SpecialityCode.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(ep.Speciality.ToLower(), $"%{lowerSearch}%"));
+                EF.Functions.Like((ep.NameEducationalProgram ?? "").ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "").ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Name != null ? ep.Speciality.Name : "").ToLower(), $"%{lowerSearch}%"));
         }
 
         return await query
@@ -58,8 +58,8 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(ep =>
-                EF.Functions.Like(ep.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(ep.SpecialityCode.ToLower(), $"%{lowerSearch}%"));
+                EF.Functions.Like((ep.NameEducationalProgram ?? "").ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "").ToLower(), $"%{lowerSearch}%"));
         }
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
@@ -73,10 +73,10 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         {
             1 => query.OrderBy(ep => ep.NameEducationalProgram),
             2 => query.OrderByDescending(ep => ep.NameEducationalProgram),
-            3 => query.OrderByDescending(ep => ep.SpecialityCode),
+            3 => query.OrderByDescending(ep => ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : ""),
             4 => query.OrderBy(ep => ep.StudentsAmount),
             5 => query.OrderByDescending(ep => ep.StudentsAmount),
-            _ => query.OrderBy(ep => ep.SpecialityCode)
+            _ => query.OrderBy(ep => ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "")
         };
 
         var items = await query
@@ -88,8 +88,8 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
                 DegreeId = ep.DegreeId ?? 0,
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
-                SpecialityCode = ep.SpecialityCode ?? "",
-                Speciality = ep.Speciality ?? "",
+                SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
+                Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
                 StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
                 DisciplinesCount = ep.MainDisciplines.Count()
@@ -110,8 +110,8 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
                 DegreeId = ep.DegreeId ?? 0,
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
-                SpecialityCode = ep.SpecialityCode ?? "",
-                Speciality = ep.Speciality ?? "",
+                SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
+                Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
                 StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
                 DisciplinesCount = ep.MainDisciplines.Count()

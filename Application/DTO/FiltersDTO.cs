@@ -49,7 +49,7 @@ namespace OlimpBack.Application.DTO
         public string Name { get; set; } = null!;
     }
 
-    public class AddDisciplineFilterQueryDto
+    public class SelectiveDisciplineFilterQueryDto
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 20;

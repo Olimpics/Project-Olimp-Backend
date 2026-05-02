@@ -5,7 +5,7 @@ namespace OlimpBack.Application.Services;
 
 public interface IFilterService
 {
-    Task<PaginatedResponseDto<SpecialityFilterDto>> GetAddDisciplinesPagedAsync(AddDisciplineFilterQueryDto queryDto);
+    Task<PaginatedResponseDto<SpecialityFilterDto>> GetSelectiveDisciplinesPagedAsync(SelectiveDisciplineFilterQueryDto queryDto);
 }
 
 public class FilterService : IFilterService
@@ -17,12 +17,12 @@ public class FilterService : IFilterService
         _repository = repository;
     }
 
-    public async Task<PaginatedResponseDto<SpecialityFilterDto>> GetAddDisciplinesPagedAsync(AddDisciplineFilterQueryDto queryDto)
+    public async Task<PaginatedResponseDto<SpecialityFilterDto>> GetSelectiveDisciplinesPagedAsync(SelectiveDisciplineFilterQueryDto queryDto)
     {
         var page = queryDto.Page <= 0 ? 1 : queryDto.Page;
         var pageSize = queryDto.PageSize <= 0 ? 20 : queryDto.PageSize;
 
-        var normalized = new AddDisciplineFilterQueryDto
+        var normalized = new SelectiveDisciplineFilterQueryDto
         {
             Page = page,
             PageSize = pageSize,
@@ -30,7 +30,7 @@ public class FilterService : IFilterService
             CatalogYearId = queryDto.CatalogYearId
         };
 
-        var (totalCount, items) = await _repository.GetAddDisciplinesPagedAsync(normalized);
+        var (totalCount, items) = await _repository.GetSelectiveDisciplinesPagedAsync(normalized);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         return new PaginatedResponseDto<SpecialityFilterDto>
