@@ -182,12 +182,12 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.IdRole, opt => opt.MapFrom(src => src.IdRole))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameRole))
                 .ForMember(dest => dest.PermissionsMask, opt => opt.Ignore())
-                .ForMember(dest => dest.ParentRoleId, opt => opt.Ignore())
+                .ForMember(dest => dest.ParentRoleId, opt => opt.Ignore());
                 //.ForMember(dest => dest.ChildRoles, opt => opt.Ignore())
                 //.ForMember(dest => dest.RolePermissions, opt => opt.Ignore())
-                .ForMember(dest => dest.Permissions, opt => opt.Ignore())
+                //.ForMember(dest => dest.Permissions, opt => opt.Ignore());
                 //.ForMember(dest => dest.UserRoles, opt => opt.Ignore())
-                .ForMember(dest => dest.Users, opt => opt.Ignore());
+                //.ForMember(dest => dest.Users, opt => opt.Ignore());
 
             //StudyForm
             CreateMap<StudyForm, StudyFormDto>().ReverseMap();
@@ -240,7 +240,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.UsingIrl, opt => opt.MapFrom(src => src.details.UsingIrl))
                 .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.details.DisciplineTopics))
                 .ForMember(dest => dest.TypesOfTraining, opt => opt.MapFrom(src => src.details.TypesOfTraining))
-                .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.details.IdtypeofcontrollNavigation.Type));
+                .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.details.TypeOfControll.Type));
 
             //Department
             CreateMap<Department, DepartmentDto>()
@@ -288,17 +288,17 @@ namespace OlimpBack.MappingProfiles
 
             //Permission
             CreateMap<Permission, PermissionDto>()
-                .ForMember(dest => dest.IdPermissions, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.IdPermissions, opt => opt.MapFrom(src => src.IdPermission))
                 .ForMember(dest => dest.TypePermission, opt => opt.MapFrom(_ => "S"))
                 .ForMember(dest => dest.TableName, opt => opt.MapFrom(src => src.Code));
             CreateMap<PermissionDto, Permission>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdPermissions))
+                .ForMember(dest => dest.IdPermission, opt => opt.MapFrom(src => src.IdPermissions))
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => $"{src.TypePermission}:{src.TableName}"));
             CreateMap<CreatePermissionDto, Permission>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => $"{src.TypePermission}:{src.TableName}"))
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+                .ForMember(dest => dest.IdPermission, opt => opt.Ignore());
             CreateMap<UpdatePermissionDto, Permission>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdPermissions))
+                .ForMember(dest => dest.IdPermission, opt => opt.MapFrom(src => src.IdPermissions))
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => $"{src.TypePermission}:{src.TableName}"));
 
             //BindRolePermission

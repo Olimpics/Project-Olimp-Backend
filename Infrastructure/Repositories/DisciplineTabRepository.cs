@@ -123,7 +123,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
                 DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
                 TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
-                TypeOfControl = d.SelectiveDetail != null ? d.SelectiveDetail.IdtypeofcontrollNavigation != null ? d.SelectiveDetail.IdtypeofcontrollNavigation.Type.ToString() : "" : ""
+                TypeOfControl = d.SelectiveDetail != null ? d.SelectiveDetail.TypeOfControll != null ? d.SelectiveDetail.TypeOfControll.Type.ToString() : "" : ""
             })
             .FirstOrDefaultAsync();
     }

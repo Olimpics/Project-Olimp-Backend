@@ -62,7 +62,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
 
     public async Task<bool> ExistsPermissionAsync(int permissionId)
     {
-        return await _context.Permissions.AnyAsync(p => p.Id == permissionId);
+        return await _context.Permissions.AnyAsync(p => p.IdPermission == permissionId);
     }
 
     public async Task<bool> BindingExistsAsync(int roleId, int permissionId)

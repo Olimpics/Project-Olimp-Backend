@@ -11,9 +11,9 @@ public partial class Speciality
 
     public string? Name { get; set; }
 
-    public int? IdBranch { get; set; }
+    public int? BranchId { get; set; }
 
-    public int? IdDepartment { get; set; }
+    public int? DepartmentId { get; set; }
 
     public int? Accreditation { get; set; }
 
@@ -23,9 +23,11 @@ public partial class Speciality
 
     public string? Description { get; set; }
 
+    public virtual Branch? Branch { get; set; }
+
+    public virtual Department? Department { get; set; }
+
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 
-    public virtual Branch? IdBranchNavigation { get; set; }
-
-    public virtual Department? IdDepartmentNavigation { get; set; }
+    public virtual ICollection<RatingCalculationTime> RatingCalculationTimes { get; set; } = new List<RatingCalculationTime>();
 }

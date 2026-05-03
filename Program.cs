@@ -286,6 +286,10 @@ builder.Services.AddScoped<IStudyFormRepository, StudyFormRepository>();
 builder.Services.AddScoped<IStudyFormService, StudyFormService>();
 
 
+// Rating
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+builder.Services.AddScoped<IRatingService, RatingService>();
+
 builder.Services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
 builder.Services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
 

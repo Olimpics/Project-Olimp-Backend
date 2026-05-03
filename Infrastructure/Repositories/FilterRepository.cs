@@ -27,7 +27,7 @@ public class FilterRepository : IFilterRepository
 
         if (queryDto.CatalogYearId is > 0)
         {
-            query = query.Where(ad => ad.IdCatalog == queryDto.CatalogYearId.Value);
+            query = query.Where(ad => ad.CatalogId == queryDto.CatalogYearId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))

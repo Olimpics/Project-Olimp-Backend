@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -22,6 +23,10 @@ public partial class MainDiscipline
     public int? Hours { get; set; }
 
     public int? CatalogId { get; set; }
+
+    public BitArray? NeedFix { get; set; }
+
+    public string? NameDock { get; set; }
 
     public virtual BindMainDiscipline? BindMainDiscipline { get; set; }
 

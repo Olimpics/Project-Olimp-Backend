@@ -5,13 +5,13 @@ namespace OlimpBack.Models;
 
 public partial class Prerequisite
 {
-    public int Idprerequisites { get; set; }
+    public int IdPrerequisites { get; set; }
 
-    public int? Educationalprogramid { get; set; }
+    public int? EducationalProgramId { get; set; }
 
-    public int? Adddisciplensid { get; set; }
+    public int? SelectiveDisciplensId { get; set; }
 
-    public virtual SelectiveDiscipline? Adddisciplens { get; set; }
+    public virtual EducationalProgram? EducationalProgram { get; set; }
 
-    public virtual EducationalProgram? Educationalprogram { get; set; }
+    public virtual SelectiveDiscipline? SelectiveDisciplens { get; set; }
 }

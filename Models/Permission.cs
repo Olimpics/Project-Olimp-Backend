@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class Permission
 {
-    public int Id { get; set; }
+    public int IdPermission { get; set; }
 
     public string Code { get; set; } = null!;
 
     public int BitIndex { get; set; }
 
-    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+    public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 }

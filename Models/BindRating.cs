@@ -19,4 +19,6 @@ public partial class BindRating
     public BitArray? IsRedo { get; set; }
 
     public virtual Student? Student { get; set; }
+
+    public virtual CatalogYear? YearNavigation { get; set; }
 }

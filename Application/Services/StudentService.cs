@@ -48,7 +48,7 @@ public class StudentService : IStudentService
 
         if (queryDto.Specialities != null && queryDto.Specialities.Any())
         {
-            query = query.Where(s => s.EducationalProgram.SpeciaityId.HasValue && queryDto.Specialities.Contains(s.EducationalProgram.SpeciaityId.Value));
+            query = query.Where(s => s.EducationalProgram.SpecialityId.HasValue && queryDto.Specialities.Contains(s.EducationalProgram.SpecialityId.Value));
         }
 
         if (queryDto.GroupIds != null && queryDto.GroupIds.Any())

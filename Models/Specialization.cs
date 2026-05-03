@@ -11,7 +11,7 @@ public partial class Specialization
 
     public string? Name { get; set; }
 
-    public int? IdSpeciality { get; set; }
+    public int? SpecialityId { get; set; }
 
     public string? Description { get; set; }
 

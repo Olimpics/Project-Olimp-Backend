@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -31,15 +32,19 @@ public partial class SelectiveDiscipline
 
     public int? IsForseChange { get; set; }
 
-    public int? IdCatalog { get; set; }
+    public int? CatalogId { get; set; }
 
-    public List<int>? Idsimilar { get; set; }
+    public List<int>? SimilarId { get; set; }
 
     public int? ApprovalStatusId { get; set; }
 
     public string? Feedback { get; set; }
 
     public string? Recomendet { get; set; }
+
+    public BitArray? NeedFix { get; set; }
+
+    public string? NameDock { get; set; }
 
     public virtual Approval? ApprovalStatus { get; set; }
 
@@ -49,11 +54,11 @@ public partial class SelectiveDiscipline
 
     public virtual ICollection<BindTeachersSelective> BindTeachersSelectives { get; set; } = new List<BindTeachersSelective>();
 
+    public virtual CatalogYearsSelective? Catalog { get; set; }
+
     public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual Faculty? Faculty { get; set; }
-
-    public virtual CatalogYearsSelective? IdCatalogNavigation { get; set; }
 
     public virtual ICollection<Prerequisite> Prerequisites { get; set; } = new List<Prerequisite>();
 

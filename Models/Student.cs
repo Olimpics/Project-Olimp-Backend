@@ -34,13 +34,15 @@ public partial class Student
 
     public BitArray IsInSg { get; set; } = null!;
 
-    public List<int>? IdFav { get; set; }
+    public List<int>? FavId { get; set; }
 
     public int? DepartmentId { get; set; }
 
     public string? ReportCard { get; set; }
 
     public BitArray? IsFunded { get; set; }
+
+    public string? Notes { get; set; }
 
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 

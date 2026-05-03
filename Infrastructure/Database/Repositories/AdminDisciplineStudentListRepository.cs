@@ -37,7 +37,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         if (query.DepartmentId is > 0)
         {
-            baseQuery = baseQuery.Where(b => b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.IdDepartment == query.DepartmentId);
+            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.Speciality.Department.IdDepartment == query.DepartmentId);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -47,8 +47,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             baseQuery = baseQuery.Where(b =>
                 EF.Functions.Like(b.Student.NameStudent, $"%{search}%") ||
                 EF.Functions.Like(b.Student.Group.GroupCode, $"%{search}%") ||
-                (b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null &&
-                 EF.Functions.Like(b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.NameDepartment, $"%{search}%")) ||
+                (b.Student.Group.EducationalProgram.Speciality.Department != null &&
+                 EF.Functions.Like(b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment, $"%{search}%")) ||
                 EF.Functions.Like(b.Student.EducationalDegree.NameEducationalDegree, $"%{search}%"));
         }
 
@@ -61,10 +61,10 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             2 => baseQuery.OrderBy(b => b.Student.Group.GroupCode),
             3 => baseQuery.OrderByDescending(b => b.Student.Group.GroupCode),
             4 => baseQuery.OrderBy(b => b.Student.Group != null
-                ? b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.NameDepartment
+                ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
-            5 => baseQuery.OrderByDescending(b => b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.NameDepartment != null
-                ? b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.NameDepartment
+            5 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment != null
+                ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
             6 => baseQuery.OrderBy(b => b.Student.Course),
             7 => baseQuery.OrderByDescending(b => b.Student.Course),
@@ -84,8 +84,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 StudentName = b.Student.NameStudent,
                 GroupId = b.Student.GroupId,
                 GroupCode = b.Student.Group.GroupCode,
-                DepartmentName = b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null
-                    ? b.Student.Group.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.NameDepartment
+                DepartmentName = b.Student.Group.EducationalProgram.Speciality.Department != null
+                    ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                     : string.Empty,
                 Year = b.Student.Course,
                 EducationLevel = b.Student.EducationalDegree.NameEducationalDegree,

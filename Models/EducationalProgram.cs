@@ -18,9 +18,13 @@ public partial class EducationalProgram
 
     public List<int>? SelectiveDisciplineBySemestr { get; set; }
 
-    public int? SpeciaityId { get; set; }
+    public int? SpecialityId { get; set; }
 
     public BitArray? IsSpecialization { get; set; }
+
+    public BitArray? NeedFix { get; set; }
+
+    public string? NameDock { get; set; }
 
     public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
 

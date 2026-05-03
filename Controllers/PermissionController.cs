@@ -68,7 +68,7 @@ public class PermissionController : ControllerBase
         _context.Permissions.Add(permission);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetPermission), new { id = permission.Id }, ToDto(permission));
+        return CreatedAtAction(nameof(GetPermission), new { id = permission.IdPermission }, ToDto(permission));
     }
 
     [HttpPut("{id:int}")]
@@ -86,10 +86,10 @@ public class PermissionController : ControllerBase
             return NotFound();
 
         var newCode = BuildCode(permissionDto.TypePermission, permissionDto.TableName);
-        if (await _context.Permissions.AnyAsync(x => x.Id != id && x.Code == newCode))
+        if (await _context.Permissions.AnyAsync(x => x.IdPermission != id && x.Code == newCode))
             return BadRequest("Permission with this code already exists.");
 
-        if (await _context.Permissions.AnyAsync(x => x.Id != id && x.BitIndex == permissionDto.BitIndex))
+        if (await _context.Permissions.AnyAsync(x => x.IdPermission != id && x.BitIndex == permissionDto.BitIndex))
             return BadRequest("BitIndex is already used by another permission.");
 
         var affectedRoleIds = await _context.RolePermissions
@@ -136,7 +136,7 @@ public class PermissionController : ControllerBase
         var parts = permission.Code.Split('.', 2, StringSplitOptions.RemoveEmptyEntries);
         return new PermissionDto
         {
-            IdPermissions = permission.Id,
+            IdPermissions = permission.IdPermission,
             TableName = parts.Length > 0 ? parts[0] : permission.Code,
             TypePermission = parts.Length > 1 ? parts[1] : string.Empty,
             BitIndex = permission.BitIndex
