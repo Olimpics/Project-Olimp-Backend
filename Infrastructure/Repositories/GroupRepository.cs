@@ -45,17 +45,17 @@ public class GroupRepository : IGroupRepository
         }
 
         if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
-            query = query.Where(g => g.EducationalProgram != null && 
-                                     g.EducationalProgram.Speciality != null && 
-                                     g.EducationalProgram.Speciality.Department != null &&
-                                     g.EducationalProgram.Speciality.Department.FacultyId.HasValue &&
-                                     queryDto.FacultyIds.Contains(g.EducationalProgram.Speciality.Department.FacultyId.Value));
-
+            query = query.Where(g => g.IdEducationalProgramNavigation != null && 
+                                     g.IdEducationalProgramNavigation.Speciality != null && 
+                                     g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null &&
+                                     g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.FacultyId.HasValue &&
+                                     queryDto.FacultyIds.Contains(g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.FacultyId.Value));
         if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
-            query = query.Where(g => g.EducationalProgram != null && 
-                                     g.EducationalProgram.Speciality != null && 
-                                     g.EducationalProgram.Speciality.IdDepartment.HasValue &&
-                                     queryDto.DepartmentIds.Contains(g.EducationalProgram.Speciality.IdDepartment.Value));
+            query = query.Where(g => g.IdEducationalProgramNavigation != null && 
+                                     g.IdEducationalProgramNavigation.Speciality != null && 
+                                     g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null &&
+                                     g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.IdDepartment !=0 &&
+                                     queryDto.DepartmentIds.Contains(g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.IdDepartment));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
@@ -67,8 +67,8 @@ public class GroupRepository : IGroupRepository
         {
             1 => query.OrderBy(d => d.GroupCode),
             2 => query.OrderByDescending(d => d.GroupCode),
-            3 => query.OrderBy(d => d.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
-            4 => query.OrderByDescending(d => d.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
+            3 => query.OrderBy(d => d.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.Faculty.Abbreviation),
+            4 => query.OrderByDescending(d => d.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.Faculty.Abbreviation),
             5 => query.OrderBy(d => d.Course),
             6 => query.OrderByDescending(d => d.Course),
             _ => query.OrderBy(d => d.GroupCode)
@@ -101,19 +101,19 @@ public class GroupRepository : IGroupRepository
                 AdminId = g.AdminId,
                 DegreeId = g.DegreeId,
                 Course = g.Course,
-                FacultyId = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null 
-                            ? g.EducationalProgram.Speciality.Department.FacultyId : null,
-                FacultyName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null && g.EducationalProgram.Speciality.Department.Faculty != null
-                            ? g.EducationalProgram.Speciality.Department.Faculty.NameFaculty : null,
-                DepartmentId = g.EducationalProgram != null && g.EducationalProgram.Speciality != null 
-                             ? g.EducationalProgram.Speciality.IdDepartment : null,
-                DepartmentName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null
-                             ? g.EducationalProgram.Speciality.Department.NameDepartment : null,
+                FacultyId = g.IdEducationalProgramNavigation != null && g.IdEducationalProgramNavigation.Speciality != null && g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null 
+                            ? g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.FacultyId : null,
+                FacultyName = g.IdEducationalProgramNavigation != null && g.IdEducationalProgramNavigation.Speciality != null && g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null && g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.Faculty != null
+                            ? g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.Faculty.NameFaculty : null,
+                DepartmentId = g.IdEducationalProgramNavigation != null && g.IdEducationalProgramNavigation.Speciality != null 
+                             ? g.IdEducationalProgramNavigation.Speciality.IdDepartment : null,
+                DepartmentName = g.IdEducationalProgramNavigation != null && g.IdEducationalProgramNavigation.Speciality != null && g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation != null
+                             ? g.IdEducationalProgramNavigation.Speciality.IdDepartmentNavigation.NameDepartment : null,
                 IdEducationalProgram = g.IdEducationalProgram,
-                EducationalProgramName = g.EducationalProgram != null ? g.EducationalProgram.NameEducationalProgram : null,
-                IdSpeciality = g.EducationalProgram != null ? g.EducationalProgram.SpeciaityId : null,
-                SpecialityName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null 
-                               ? g.EducationalProgram.Speciality.Name : null,
+                EducationalProgramName = g.IdEducationalProgramNavigation != null ? g.IdEducationalProgramNavigation.NameEducationalProgram : null,
+                IdSpeciality = g.IdEducationalProgramNavigation != null ? g.IdEducationalProgramNavigation.SpeciaityId : null,
+                SpecialityName = g.IdEducationalProgramNavigation != null && g.IdEducationalProgramNavigation.Speciality != null 
+                               ? g.IdEducationalProgramNavigation.Speciality.Name : null,
                 AdmissionYear = g.Admissionyear.HasValue ? g.Admissionyear.Value.Year : null,
                 IdStudyForm = g.IdStudyForm,
                 IsAccelerated = g.IsAccelerated.Cast<bool>().FirstOrDefault()

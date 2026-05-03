@@ -39,11 +39,13 @@ public partial class SelectiveDiscipline
 
     public string? Feedback { get; set; }
 
+    public string? Recomendet { get; set; }
+
     public virtual Approval? ApprovalStatus { get; set; }
 
-    public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
-
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
+
+    public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
 
     public virtual ICollection<BindTeachersSelective> BindTeachersSelectives { get; set; } = new List<BindTeachersSelective>();
 

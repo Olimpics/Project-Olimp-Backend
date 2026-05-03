@@ -10,6 +10,10 @@ public interface IEducationalProgramService
 
     Task<EducationalProgramDto?> GetEducationalProgramAsync(int id);
 
+    Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto);
+
+    Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId);
+
     Task<EducationalProgramDto> CreateEducationalProgramAsync(CreateEducationalProgramDto dto);
 
     Task<(bool success, int statusCode, string? errorMessage)> UpdateEducationalProgramAsync(

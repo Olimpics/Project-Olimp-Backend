@@ -84,7 +84,7 @@ namespace OlimpBack.Application.DTO
         public string? UsingIrl { get; set; }
         public string? DisciplineTopics { get; set; }
         public string TypesOfTraining { get; set; } = null!;
-        public string TypeOfControll { get; set; } = null!;
+        public string TypeOfControl { get; set; } = null!;
     }
 
 

@@ -200,7 +200,7 @@ builder.Services.AddAuthentication(options =>
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
+//builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
 // TEMPORARY: Redis is disabled for local development until Redis is available.
 // builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 // {
@@ -213,8 +213,8 @@ builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
 // ==========================================
 
 // Auth
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IAuthAppService, AuthAppService>();
+//builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+//builder.Services.AddScoped<IAuthAppService, AuthAppService>();
 
 // BindLoansMain
 builder.Services.AddScoped<IBindLoansMainRepository, BindLoansMainRepository>();

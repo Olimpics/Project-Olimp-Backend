@@ -22,6 +22,8 @@ public partial class BindSelectiveDiscipline
 
     public string? CreatedAt { get; set; }
 
+    public BitArray? IsRedo { get; set; }
+
     public virtual SelectiveDiscipline? SelectiveDisciplines { get; set; }
 
     public virtual Student? Student { get; set; }

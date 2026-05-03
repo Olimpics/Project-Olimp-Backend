@@ -15,7 +15,7 @@ public partial class Event
 
     public int? RegulationId { get; set; }
 
-    public int? CeatorId { get; set; }
+    public int? CreatorId { get; set; }
 
     public int? SubdivisionSgid { get; set; }
 
@@ -23,9 +23,7 @@ public partial class Event
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
-    public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
-
-    public virtual User? Ceator { get; set; }
+    public virtual User? Creator { get; set; }
 
     public virtual RegulationOnAddPoint? Regulation { get; set; }
 

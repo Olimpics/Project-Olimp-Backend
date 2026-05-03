@@ -40,17 +40,19 @@ public partial class Student
 
     public string? ReportCard { get; set; }
 
-    public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
+    public BitArray? IsFunded { get; set; }
 
-    public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
+    public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
-    public virtual ICollection<BindEvent> BindEvents { get; set; } = new List<BindEvent>();
-
     public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 
+    public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
+
     public virtual ICollection<BindRating> BindRatings { get; set; } = new List<BindRating>();
+
+    public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
 
     public virtual Department? Department { get; set; }
 

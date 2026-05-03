@@ -7,7 +7,7 @@ public partial class EducationalDegree
 {
     public int IdEducationalDegree { get; set; }
 
-    public string? NameEducationalDegreec { get; set; }
+    public string? NameEducationalDegree { get; set; }
 
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 

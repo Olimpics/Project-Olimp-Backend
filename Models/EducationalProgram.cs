@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -15,11 +16,13 @@ public partial class EducationalProgram
 
     public string? AccreditationType { get; set; }
 
-    public int? StudentsAmount { get; set; }
-
     public List<int>? SelectiveDisciplineBySemestr { get; set; }
 
     public int? SpeciaityId { get; set; }
+
+    public BitArray? IsSpecialization { get; set; }
+
+    public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 

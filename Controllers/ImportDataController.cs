@@ -154,7 +154,7 @@ namespace OlimpBack.Controllers
                         if (!string.IsNullOrWhiteSpace(det.Content.UsingIrl)) discipline.SelectiveDetail.UsingIrl = det.Content.UsingIrl;
                         if (!string.IsNullOrWhiteSpace(det.Content.DisciplineTopics)) discipline.SelectiveDetail.DisciplineTopics = det.Content.DisciplineTopics;
                         if (!string.IsNullOrWhiteSpace(det.Content.TypesOfTraining)) discipline.SelectiveDetail.TypesOfTraining = det.Content.TypesOfTraining;
-                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.SelectiveDetail.TypeOfControlNavigation.Type= det.Content.TypeOfControll;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.SelectiveDetail.IdtypeofcontrollNavigation.Type= det.Content.TypeOfControll;
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -201,7 +201,6 @@ namespace OlimpBack.Controllers
                     if (dto.SpecialityId != 0) program.SpeciaityId = dto.SpecialityId;
                     if (dto.Accreditation != 0) program.Accreditation = dto.Accreditation;
                     if (!string.IsNullOrWhiteSpace(dto.AccreditationType)) program.AccreditationType = dto.AccreditationType;
-                    if (dto.StudentsAmount != 0) program.StudentsAmount = (int?)dto.StudentsAmount;
                 }
                 await _context.SaveChangesAsync();
                 results.Add(_mapper.Map<EducationalProgramDto>(program));

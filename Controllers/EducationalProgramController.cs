@@ -38,6 +38,24 @@ namespace OlimpBack.Controllers
             return Ok(program);
         }
 
+        [HttpGet("{id}/students")]
+        [RequirePermission(RbacPermissions.EducationalProgramsRead)]
+        public async Task<ActionResult<PaginatedResponseDto<ProgramStudentDto>>> GetProgramStudents(
+            int id,
+            [FromQuery] ProgramStudentQueryDto query)
+        {
+            var result = await _educationalProgramService.GetStudentsPagedAsync(id, query);
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/disciplines")]
+        [RequirePermission(RbacPermissions.EducationalProgramsRead)]
+        public async Task<ActionResult<List<ProgramDisciplinesBySemesterDto>>> GetProgramDisciplines(int id)
+        {
+            var result = await _educationalProgramService.GetMainDisciplinesGroupedBySemesterAsync(id);
+            return Ok(result);
+        }
+
         [Authorize]
         [HttpPost]
         [RequirePermission(RbacPermissions.EducationalProgramsCreate)]

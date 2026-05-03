@@ -15,5 +15,5 @@ public partial class Specialization
 
     public string? Description { get; set; }
 
-    public virtual Speciality? IdSpecialityNavigation { get; set; }
+    public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
 }

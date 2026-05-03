@@ -38,6 +38,24 @@ public class EducationalProgramService : IEducationalProgramService
     public async Task<EducationalProgramDto?> GetEducationalProgramAsync(int id) =>
         await _repository.GetDtoByIdAsync(id);
 
+    public async Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto)
+    {
+        var (totalCount, items) = await _repository.GetStudentsPagedAsync(programId, queryDto);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)queryDto.PageSize);
+
+        return new PaginatedResponseDto<ProgramStudentDto>
+        {
+            TotalItems = totalCount,
+            TotalPages = totalPages,
+            CurrentPage = queryDto.Page,
+            PageSize = queryDto.PageSize,
+            Items = items
+        };
+    }
+
+    public async Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId) =>
+        await _repository.GetMainDisciplinesGroupedBySemesterAsync(programId);
+
     public async Task<EducationalProgramDto> CreateEducationalProgramAsync(CreateEducationalProgramDto dto)
     {
         var program = _mapper.Map<EducationalProgram>(dto);

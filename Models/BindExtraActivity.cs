@@ -13,6 +13,8 @@ public partial class BindExtraActivity
 
     public int? Points { get; set; }
 
+    public string? NameExtraActivity { get; set; }
+
     public virtual RegulationOnAddPoint? Regulation { get; set; }
 
     public virtual Student? Student { get; set; }

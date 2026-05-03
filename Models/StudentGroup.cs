@@ -30,7 +30,7 @@ public partial class StudentGroup
 
     public virtual EducationalDegree? Degree { get; set; }
 
-    public virtual EducationalProgram? EducationalProgram { get; set; }
+    public virtual EducationalProgram? IdEducationalProgramNavigation { get; set; }
 
     public virtual StudyForm? IdStudyFormNavigation { get; set; }
 

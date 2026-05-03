@@ -111,7 +111,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 MinCourse = d.MinCourse,
                 MaxCourse = d.MaxCourse,
                 IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
-                DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec : "",
+                DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
                 DepartmentName = d.SelectiveDetail != null && d.SelectiveDetail.Department != null ? d.SelectiveDetail.Department.NameDepartment : "",
                 Teacher = d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
                 Recomend = d.SelectiveDetail != null ? d.SelectiveDetail.Recomend : null,
@@ -123,7 +123,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
                 DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
                 TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
-                TypeOfControll = d.SelectiveDetail != null ? d.SelectiveDetail.TypeOfControl.Value.ToString() : ""
+                TypeOfControl = d.SelectiveDetail != null ? d.SelectiveDetail.IdtypeofcontrollNavigation != null ? d.SelectiveDetail.IdtypeofcontrollNavigation.Type.ToString() : "" : ""
             })
             .FirstOrDefaultAsync();
     }

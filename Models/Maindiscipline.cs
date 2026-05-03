@@ -13,23 +13,23 @@ public partial class MainDiscipline
 
     public int? Loans { get; set; }
 
-    public string? FormControll { get; set; }
+    public string? FormControl { get; set; }
 
     public int? Semestr { get; set; }
 
     public int? EducationalProgramId { get; set; }
 
-    public string? Teachers { get; set; }
-
     public int? Hours { get; set; }
 
-    public int? Idcataloog { get; set; }
+    public int? CatalogId { get; set; }
+
+    public virtual BindMainDiscipline? BindMainDiscipline { get; set; }
 
     public virtual ICollection<BindTeacherMain> BindTeacherMains { get; set; } = new List<BindTeacherMain>();
 
-    public virtual EducationalProgram? EducationalProgram { get; set; }
+    public virtual CatalogYearsMain? Catalog { get; set; }
 
-    public virtual CatalogYearsMain? IdcataloogNavigation { get; set; }
+    public virtual EducationalProgram? EducationalProgram { get; set; }
 
     public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
 }

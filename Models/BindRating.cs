@@ -16,5 +16,7 @@ public partial class BindRating
 
     public float? FinalScore { get; set; }
 
+    public BitArray? IsRedo { get; set; }
+
     public virtual Student? Student { get; set; }
 }

@@ -5,13 +5,13 @@ namespace OlimpBack.Application.DTO
     public class EducationalDegreeDto
     {
         public int IdEducationalDegree { get; set; }
-        public string NameEducationalDegreec { get; set; } = null!;
+        public string NameEducationalDegree { get; set; } = null!;
         public int StudentsCount { get; set; }
     }
 
     public class CreateEducationalDegreeDto
     {
-        public string NameEducationalDegreec { get; set; } = null!;
+        public string NameEducationalDegree { get; set; } = null!;
     }
 
     public class UpdateEducationalDegreeDto : CreateEducationalDegreeDto

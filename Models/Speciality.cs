@@ -27,7 +27,5 @@ public partial class Speciality
 
     public virtual Branch? IdBranchNavigation { get; set; }
 
-    public virtual Department? Department { get; set; }
-
-    public virtual ICollection<Specialization> Specializations { get; set; } = new List<Specialization>();
+    public virtual Department? IdDepartmentNavigation { get; set; }
 }

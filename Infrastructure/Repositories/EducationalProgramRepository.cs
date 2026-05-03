@@ -12,6 +12,8 @@ public interface IEducationalProgramRepository
     Task<(int TotalCount, List<EducationalProgramDto> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto);
     Task<EducationalProgramDto?> GetDtoByIdAsync(int id);
     Task<EducationalProgram?> GetEntityByIdAsync(int id);
+    Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto);
+    Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId);
     Task<bool> ExistsAsync(int id);
     Task AddAsync(EducationalProgram program);
     Task<int> DeleteAsync(int id);
@@ -74,8 +76,6 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             1 => query.OrderBy(ep => ep.NameEducationalProgram),
             2 => query.OrderByDescending(ep => ep.NameEducationalProgram),
             3 => query.OrderByDescending(ep => ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : ""),
-            4 => query.OrderBy(ep => ep.StudentsAmount),
-            5 => query.OrderByDescending(ep => ep.StudentsAmount),
             _ => query.OrderBy(ep => ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "")
         };
 
@@ -87,10 +87,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 IdEducationalProgram = ep.IdEducationalProgram,
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
                 DegreeId = ep.DegreeId ?? 0,
-                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
+                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
                 SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
                 Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
-                StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
                 DisciplinesCount = ep.MainDisciplines.Count()
             })
@@ -109,10 +108,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 IdEducationalProgram = ep.IdEducationalProgram,
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
                 DegreeId = ep.DegreeId ?? 0,
-                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegreec ?? "" : "",
+                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
                 SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
                 Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
-                StudentsAmount = (uint)(ep.StudentsAmount ?? 0),
                 StudentsCount = ep.Students.Count(),
                 DisciplinesCount = ep.MainDisciplines.Count()
             })
@@ -121,6 +119,90 @@ public class EducationalProgramRepository : IEducationalProgramRepository
 
     public async Task<EducationalProgram?> GetEntityByIdAsync(int id) =>
         await _context.EducationalPrograms.FindAsync(id);
+
+    public async Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto)
+    {
+        var query = _context.Students
+            .AsNoTracking()
+            .Where(s => s.EducationalProgramId == programId);
+
+        if (!string.IsNullOrWhiteSpace(queryDto.Search))
+        {
+            var lowerSearch = queryDto.Search.Trim().ToLower();
+            query = query.Where(s => EF.Functions.Like((s.NameStudent ?? "").ToLower(), $"%{lowerSearch}%"));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        if (!string.IsNullOrWhiteSpace(queryDto.SortBy))
+        {
+            query = queryDto.SortBy.ToLower() switch
+            {
+                "group" => queryDto.IsDescending ? query.OrderByDescending(s => s.Group.GroupCode) : query.OrderBy(s => s.Group.GroupCode),
+                "isshort" => queryDto.IsDescending ? query.OrderByDescending(s => s.IsShort) : query.OrderBy(s => s.IsShort),
+                "status" => queryDto.IsDescending ? query.OrderByDescending(s => s.EducationStatus.NameEducationStatus) : query.OrderBy(s => s.EducationStatus.NameEducationStatus),
+                "educationstart" => queryDto.IsDescending ? query.OrderByDescending(s => s.EducationStart) : query.OrderBy(s => s.EducationStart),
+                "name" => queryDto.IsDescending ? query.OrderByDescending(s => s.NameStudent) : query.OrderBy(s => s.NameStudent),
+                _ => query.OrderBy(s => s.NameStudent)
+            };
+        }
+        else
+        {
+            query = query.OrderBy(s => s.NameStudent);
+        }
+
+        var items = await query
+            .Skip((queryDto.Page - 1) * queryDto.PageSize)
+            .Take(queryDto.PageSize)
+            .Select(s => new ProgramStudentDto
+            {
+                IdStudent = s.IdStudent,
+                NameStudent = s.NameStudent ?? "",
+                GroupName = s.Group.GroupCode ?? "",
+                IsShort = s.IsShort != 0,
+                Status = s.EducationStatus.NameEducationStatus ?? "",
+                EducationStart = s.EducationStart
+            })
+            .ToListAsync();
+
+        return (totalCount, items);
+    }
+
+    public async Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId)
+    {
+        var disciplines = await _context.MainDisciplines
+            .AsNoTracking()
+            .Where(d => d.EducationalProgramId == programId)
+            .Select(d => new
+            {
+                d.IdBindMainDisciplines,
+                d.CodeMainDisciplines,
+                d.NameBindMainDisciplines,
+                d.FormControl,
+                Loans = d.Loans ?? 0,
+                Hours = d.Hours ?? 0,
+                Semester = d.Semestr ?? 0
+            })
+            .ToListAsync();
+
+        return disciplines
+            .GroupBy(d => d.Semester)
+            .Select(g => new ProgramDisciplinesBySemesterDto
+            {
+                Semester = g.Key,
+                Disciplines = g.Select(d => new ProgramMainDisciplineDto
+                {
+                    Id = d.IdBindMainDisciplines,
+                    Code = d.CodeMainDisciplines ?? "",
+                    Name = d.NameBindMainDisciplines ?? "",
+                    FormControl = d.FormControl,
+                    Loans = d.Loans,
+                    Hours = d.Hours
+                }).ToList()
+            })
+            .OrderBy(g => g.Semester)
+            .ToList();
+    }
 
     public async Task<bool> ExistsAsync(int id) =>
         await _context.EducationalPrograms.AnyAsync(e => e.IdEducationalProgram == id);

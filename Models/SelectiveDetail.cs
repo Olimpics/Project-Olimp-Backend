@@ -29,11 +29,11 @@ public partial class SelectiveDetail
 
     public string? TypesOfTraining { get; set; }
 
-    public int? TypeOfControl { get; set; }
+    public int? Idtypeofcontroll { get; set; }
 
     public virtual Department? Department { get; set; }
 
     public virtual SelectiveDiscipline IdSelectiveDetailsNavigation { get; set; } = null!;
 
-    public virtual TypeOfControl? TypeOfControlNavigation { get; set; }
+    public virtual TypeOfControl? IdtypeofcontrollNavigation { get; set; }
 }

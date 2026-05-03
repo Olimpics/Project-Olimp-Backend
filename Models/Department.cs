@@ -13,8 +13,6 @@ public partial class Department
 
     public string? Abbreviation { get; set; }
 
-    public string? Metadata { get; set; }
-
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
     public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();

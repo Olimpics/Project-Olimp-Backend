@@ -81,7 +81,7 @@ namespace OlimpBack.Migrations
                     b.Property<string>("Teachers")
                         .HasColumnType("json");
 
-                    b.Property<string>("TypeOfControll")
+                    b.Property<string>("TypeOfControl")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -655,11 +655,11 @@ namespace OlimpBack.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("idEducationalDegree");
 
-                    b.Property<string>("NameEducationalDegreec")
+                    b.Property<string>("NameEducationalDegree")
                         .IsRequired()
                         .HasMaxLength(45)
                         .HasColumnType("character varying(45)")
-                        .HasColumnName("nameEducationalDegreec");
+                        .HasColumnName("NameEducationalDegree");
 
                     b.HasKey("IdEducationalDegree");
 

@@ -110,7 +110,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 MinCourse = d.MinCourse,
                 MaxCourse = d.MaxCourse,
                 IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
-                DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegreec ?? "" : "",
+                DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree ?? "" : "",
                 CountOfPeople = d.BindSelectiveDisciplines.Count, // ?ќќќќ ќќќќќќ Include!
                 IsAvailable = false // ќќќ ќќќќ-ќќќќќ ќќ ќќќќ ќќќќќќќќ ќќќќќќќќќќќ, ќќќ ќќќќќ ќќќќќќќ true
             })
@@ -166,7 +166,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
                 s.EducationalDegreeId,
-                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegreec : "",
+                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegree : "",
                 s.EducationalProgram,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
@@ -216,7 +216,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             s.Group != null ? s.Group.GroupCode : "",
             s.Course,
             s.EducationalDegreeId,
-            s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegreec : "",
+            s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegree : "",
             s.EducationalProgram,
             s.BindSelectiveDisciplines
                 .Where(b => queryDto.IsNew == 0 || periodStart == null)
@@ -344,7 +344,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
                 s.EducationalDegreeId,
-                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegreec : "",
+                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegree : "",
                 s.EducationalProgram,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
