@@ -31,4 +31,32 @@ public class RatingController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
+    [HttpGet("status")]
+    public async Task<ActionResult<RatingStatusResponseDto>> GetRatingStatus([FromQuery] RatingStatusQueryDto query)
+    {
+        try
+        {
+            var result = await _ratingService.GetRatingStatusAsync(query);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    [HttpGet("list")]
+    public async Task<ActionResult<PaginatedResponseDto<RatingStudentDto>>> GetRatingList([FromQuery] RatingListQueryDto query)
+    {
+        try
+        {
+            var result = await _ratingService.GetPaginatedRatingsAsync(query);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 }

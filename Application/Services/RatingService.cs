@@ -12,6 +12,8 @@ namespace OlimpBack.Application.Services;
 public interface IRatingService
 {
     Task GenerateRatingAsync(GenerateRatingQueryDto query);
+    Task<RatingStatusResponseDto> GetRatingStatusAsync(RatingStatusQueryDto query);
+    Task<PaginatedResponseDto<RatingStudentDto>> GetPaginatedRatingsAsync(RatingListQueryDto query);
 }
 
 public class RatingService : IRatingService
@@ -37,6 +39,7 @@ public class RatingService : IRatingService
         var selectiveGrades = await _repository.GetSelectiveGradesAsync(studentIds, targetSemester);
 
         var academicScores = new Dictionary<int, double>();
+        var studentRedoMap = new Dictionary<int, bool>();
 
         foreach (var student in students)
         {
@@ -44,18 +47,36 @@ public class RatingService : IRatingService
             var studentSelectiveGrades = selectiveGrades.Where(sg => sg.StudentId == student.IdStudent).ToList();
 
             int totalCourses = studentMainGrades.Count + studentSelectiveGrades.Count;
+            bool hasRedo = false;
+
             if (totalCourses == 0)
             {
                 academicScores[student.IdStudent] = 0;
+                studentRedoMap[student.IdStudent] = false;
                 continue;
             }
 
             double sumGrades = 0;
-            foreach (var mg in studentMainGrades) sumGrades += ParseGrade(mg.MainGrade1);
-            foreach (var sg in studentSelectiveGrades) sumGrades += ParseGrade(sg.Grade);
+            foreach (var mg in studentMainGrades)
+            {
+                sumGrades += ParseGrade(mg.MainGrade1);
+                if (mg.MainDisciplines?.BindMainDiscipline?.IsRedo != null && mg.MainDisciplines.BindMainDiscipline.IsRedo.Cast<bool>().FirstOrDefault())
+                {
+                    hasRedo = true;
+                }
+            }
+            foreach (var sg in studentSelectiveGrades)
+            {
+                sumGrades += ParseGrade(sg.Grade);
+                if (sg.IsRedo != null && sg.IsRedo.Cast<bool>().FirstOrDefault())
+                {
+                    hasRedo = true;
+                }
+            }
 
             double averageGrade = sumGrades / totalCourses;
             academicScores[student.IdStudent] = averageGrade * 0.9;
+            studentRedoMap[student.IdStudent] = hasRedo;
         }
 
         // 3. Calculate extra points
@@ -67,6 +88,7 @@ public class RatingService : IRatingService
         {
             double academicScore = academicScores.ContainsKey(student.IdStudent) ? academicScores[student.IdStudent] : 0;
             double extraScore = extraPointsMap.ContainsKey(student.IdStudent) ? extraPointsMap[student.IdStudent] : 0;
+            bool isRedo = studentRedoMap.ContainsKey(student.IdStudent) && studentRedoMap[student.IdStudent];
 
             ratings.Add(new BindRating
             {
@@ -74,7 +96,7 @@ public class RatingService : IRatingService
                 Year = query.CatalogYearId,
                 Semestr = new BitArray(new bool[] { query.SemesterType == 2 }),
                 FinalScore = (float)(academicScore + extraScore),
-                IsRedo = new BitArray(new bool[] { false })
+                IsRedo = new BitArray(new bool[] { isRedo })
             });
         }
 
@@ -91,12 +113,40 @@ public class RatingService : IRatingService
             YearId = query.CatalogYearId
         };
         
-        // If specialityId is null from student, try to get it from program if possible.
-        // Actually, we can just use query.EducationalProgramId and look up the speciality if needed,
-        // but speciality is linked to program.
-
         await _repository.AddCalculationTimeAsync(calcTime);
         await _repository.SaveChangesAsync();
+    }
+
+    public async Task<RatingStatusResponseDto> GetRatingStatusAsync(RatingStatusQueryDto query)
+    {
+        var calcTime = await _repository.GetCalculationTimeAsync(query.SpecialityId, query.Course, query.Semester, query.CatalogYearId, query.IsAccelerated);
+        
+        return new RatingStatusResponseDto
+        {
+            Exists = calcTime != null,
+            CalculationTime = calcTime?.Date?.ToDateTime(TimeOnly.MinValue)
+        };
+    }
+
+    public async Task<PaginatedResponseDto<RatingStudentDto>> GetPaginatedRatingsAsync(RatingListQueryDto query)
+    {
+        var (items, totalCount) = await _repository.GetPaginatedRatingsAsync(query);
+
+        var studentDtos = items.Select(r => new RatingStudentDto
+        {
+            FullName = r.Student?.NameStudent ?? "Unknown",
+            GroupName = r.Student?.Group?.GroupCode ?? "Unknown",
+            Score = r.FinalScore ?? 0
+        }).ToList();
+
+        return new PaginatedResponseDto<RatingStudentDto>
+        {
+            Items = studentDtos,
+            TotalItems = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize),
+            CurrentPage = query.Page,
+            PageSize = query.PageSize
+        };
     }
 
     private async Task<Dictionary<int, double>> CalculateExtraPointsAsync(List<Student> students)

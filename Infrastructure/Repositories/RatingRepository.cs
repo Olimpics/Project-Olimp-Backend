@@ -17,6 +17,8 @@ public interface IRatingRepository
     Task<Dictionary<int, int>> GetSgPointsMapAsync(List<int> studentIds);
     Task AddRatingsAsync(List<BindRating> ratings);
     Task AddCalculationTimeAsync(RatingCalculationTime calculationTime);
+    Task<RatingCalculationTime?> GetCalculationTimeAsync(int specialityId, int course, int semester, int yearId, bool isAccelerated);
+    Task<(List<BindRating> Items, int TotalCount)> GetPaginatedRatingsAsync(RatingListQueryDto query);
     Task SaveChangesAsync();
 }
 
@@ -42,6 +44,7 @@ public class RatingRepository : IRatingRepository
     {
         return await _context.MainGrades
             .Include(mg => mg.MainDisciplines)
+                .ThenInclude(md => md!.BindMainDiscipline)
             .Where(mg => mg.StudentId.HasValue && studentIds.Contains(mg.StudentId.Value) && 
                          mg.MainDisciplines != null && mg.MainDisciplines.Semestr == semester)
             .ToListAsync();
@@ -114,6 +117,52 @@ public class RatingRepository : IRatingRepository
         calculationTime.IdRatingCalculatioTime = nextId;
 
         await _context.RatingCalculationTimes.AddAsync(calculationTime);
+    }
+
+    public async Task<RatingCalculationTime?> GetCalculationTimeAsync(int specialityId, int course, int semester, int yearId, bool isAccelerated)
+    {
+        return await _context.RatingCalculationTimes
+            .Where(rct => rct.SpecialityId == specialityId &&
+                          rct.Course == course &&
+                          rct.Semestr == semester &&
+                          rct.YearId == yearId &&
+                          rct.IsShorted != null && rct.IsShorted.Cast<bool>().FirstOrDefault() == isAccelerated)
+            .OrderByDescending(rct => rct.Date)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<(List<BindRating> Items, int TotalCount)> GetPaginatedRatingsAsync(RatingListQueryDto query)
+    {
+        var bitSemester = new BitArray(new bool[] { query.Semester == 2 });
+        
+        var baseQuery = _context.BindRatings
+            .Include(r => r.Student)
+                .ThenInclude(s => s.Group)
+            .Where(r => r.Year == query.CatalogYearId &&
+                        r.Semestr == bitSemester &&
+                        r.Student != null &&
+                        r.Student.EducationalProgram.SpecialityId == query.SpecialityId &&
+                        r.Student.Course == query.Course &&
+                        r.Student.IsShort == (short)(query.IsAccelerated ? 1 : 0));
+
+        if (query.IsFundedOnly == true)
+        {
+            baseQuery = baseQuery.Where(r => r.Student!.IsFunded != null && r.Student.IsFunded.Cast<bool>().FirstOrDefault());
+        }
+
+        if (query.NoRetakesOnly == true)
+        {
+            baseQuery = baseQuery.Where(r => r.IsRedo != null && !r.IsRedo.Cast<bool>().FirstOrDefault());
+        }
+
+        int totalCount = await baseQuery.CountAsync();
+        var items = await baseQuery
+            .OrderByDescending(r => r.FinalScore)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task SaveChangesAsync()
