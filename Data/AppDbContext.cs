@@ -102,6 +102,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<SelectiveDiscipline> SelectiveDisciplines { get; set; }
 
+    public virtual DbSet<SemestersStart> SemestersStarts { get; set; }
+
     public virtual DbSet<Speciality> Specialities { get; set; }
 
     public virtual DbSet<Specialization> Specializations { get; set; }
@@ -1120,6 +1122,18 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Type).WithMany(p => p.SelectiveDisciplines)
                 .HasForeignKey(d => d.TypeId)
                 .HasConstraintName("adddisciplines_typeofdiscipline_fk");
+        });
+
+        modelBuilder.Entity<SemestersStart>(entity =>
+        {
+            entity.HasKey(e => e.IdSemestersStart).HasName("semestersstart_pk");
+
+            entity.ToTable("SemestersStart");
+
+            entity.Property(e => e.IdSemestersStart)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("idSemestersStart");
+            entity.Property(e => e.StartDate).HasColumnName("startDate");
         });
 
         modelBuilder.Entity<Speciality>(entity =>
