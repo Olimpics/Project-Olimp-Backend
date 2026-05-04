@@ -154,7 +154,7 @@ namespace OlimpBack.Controllers
                         if (!string.IsNullOrWhiteSpace(det.Content.UsingIrl)) discipline.SelectiveDetail.UsingIrl = det.Content.UsingIrl;
                         if (!string.IsNullOrWhiteSpace(det.Content.DisciplineTopics)) discipline.SelectiveDetail.DisciplineTopics = det.Content.DisciplineTopics;
                         if (!string.IsNullOrWhiteSpace(det.Content.TypesOfTraining)) discipline.SelectiveDetail.TypesOfTraining = det.Content.TypesOfTraining;
-                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.SelectiveDetail.TypeOfControll.Type= det.Content.TypeOfControll;
+                        if (!string.IsNullOrWhiteSpace(det.Content.TypeOfControll)) discipline.SelectiveDetail.TypeOfControl.Type= det.Content.TypeOfControll;
                     }
                 }
                 await _context.SaveChangesAsync();

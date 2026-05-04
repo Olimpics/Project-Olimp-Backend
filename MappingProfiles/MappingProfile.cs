@@ -240,7 +240,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.UsingIrl, opt => opt.MapFrom(src => src.details.UsingIrl))
                 .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.details.DisciplineTopics))
                 .ForMember(dest => dest.TypesOfTraining, opt => opt.MapFrom(src => src.details.TypesOfTraining))
-                .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.details.TypeOfControll.Type));
+                .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.details.TypeOfControl.Type));
 
             //Department
             CreateMap<Department, DepartmentDto>()

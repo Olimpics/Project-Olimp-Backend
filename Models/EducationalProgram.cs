@@ -26,9 +26,13 @@ public partial class EducationalProgram
 
     public string? NameDock { get; set; }
 
+    public int? CatalogId { get; set; }
+
     public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
+
+    public virtual CatalogYearsMain? Catalog { get; set; }
 
     public virtual EducationalDegree? Degree { get; set; }
 

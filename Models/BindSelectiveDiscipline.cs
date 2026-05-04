@@ -12,8 +12,6 @@ public partial class BindSelectiveDiscipline
 
     public int? SelectiveDisciplinesId { get; set; }
 
-    public int? Semestr { get; set; }
-
     public int? Loans { get; set; }
 
     public BitArray? InProcess { get; set; }
@@ -24,7 +22,13 @@ public partial class BindSelectiveDiscipline
 
     public BitArray? IsRedo { get; set; }
 
+    public int? Semestr { get; set; }
+
+    public int? Year { get; set; }
+
     public virtual SelectiveDiscipline? SelectiveDisciplines { get; set; }
 
     public virtual Student? Student { get; set; }
+
+    public virtual CatalogYear? YearNavigation { get; set; }
 }

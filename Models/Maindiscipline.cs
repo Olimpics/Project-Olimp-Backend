@@ -22,8 +22,6 @@ public partial class MainDiscipline
 
     public int? Hours { get; set; }
 
-    public int? CatalogId { get; set; }
-
     public BitArray? NeedFix { get; set; }
 
     public string? NameDock { get; set; }
@@ -31,8 +29,6 @@ public partial class MainDiscipline
     public virtual BindMainDiscipline? BindMainDiscipline { get; set; }
 
     public virtual ICollection<BindTeacherMain> BindTeacherMains { get; set; } = new List<BindTeacherMain>();
-
-    public virtual CatalogYearsMain? Catalog { get; set; }
 
     public virtual EducationalProgram? EducationalProgram { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -10,6 +11,8 @@ public partial class BindTeachersSelective
     public int? AdminId { get; set; }
 
     public int? SelectiveDisciplinesId { get; set; }
+
+    public BitArray? IsHead { get; set; }
 
     public virtual AdminsPersonal? Admin { get; set; }
 

@@ -12,5 +12,5 @@ public partial class CatalogYearsMain
 
     public BitArray? IsFormed { get; set; }
 
-    public virtual ICollection<MainDiscipline> MainDisciplines { get; set; } = new List<MainDiscipline>();
+    public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 }
