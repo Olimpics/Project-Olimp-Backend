@@ -15,21 +15,40 @@ public class RoleMaskService : IRoleMaskService
 
     public async Task<long> RecalculateRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
     {
-        var role = await _context.Roles
-            .Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-            .FirstOrDefaultAsync(r => r.IdRole == roleId, cancellationToken);
+        var roleExists = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                WHERE r.""idRole"" = {roleId}")
+            .AsNoTracking()
+            .AnyAsync(cancellationToken);
 
-        if (role == null)
+        if (!roleExists)
             return 0;
 
-        var newMask = PermissionMaskHelper.BuildMask(
-            role.RolePermissions
-                .Where(rp => rp.Permission != null)
-                .Select(rp => rp.Permission.BitIndex));
+        var bitIndexes = await _context.Permissions
+            .FromSqlInterpolated($@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p
+                INNER JOIN ""RolePermissions"" rp ON rp.""PermissionId"" = p.""idPermission""
+                WHERE rp.""RoleId"" = {roleId}")
+            .AsNoTracking()
+            .Select(permission => permission.BitIndex)
+            .ToListAsync(cancellationToken);
 
-        role.PermissionsMask = newMask;
-        await _context.SaveChangesAsync(cancellationToken);
+        var newMask = PermissionMaskHelper.BuildMask(bitIndexes);
+
+        await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE ""Roles""
+            SET ""permissionsMask"" = {newMask}
+            WHERE ""idRole"" = {roleId}", cancellationToken);
 
         // TEMPORARY: Redis cache is disabled for local development until Redis is available.
         // await _cache.SetLongAsync(GetRoleMaskKey(roleId), newMask, RoleMaskTtl, cancellationToken);
@@ -47,8 +66,15 @@ public class RoleMaskService : IRoleMaskService
         //     return cached.Value;
 
         var roleMask = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                WHERE r.""idRole"" = {roleId}")
             .AsNoTracking()
-            .Where(r => r.IdRole == roleId)
             .Select(r => r.PermissionsMask ?? 0L)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -65,10 +91,18 @@ public class RoleMaskService : IRoleMaskService
         // if (cached.HasValue)
         //     return cached.Value;
 
-        var roleIds = await _context.UserRoles
+        var roleIds = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                INNER JOIN ""UserRoles"" ur ON ur.""RoleId"" = r.""idRole""
+                WHERE ur.""UserId"" = {userId}")
             .AsNoTracking()
-            .Where(ur => ur.UserId == userId)
-            .Select(ur => ur.RoleId)
+            .Select(role => role.IdRole)
             .Distinct()
             .ToListAsync(cancellationToken);
 
@@ -90,8 +124,15 @@ public class RoleMaskService : IRoleMaskService
         while (visited.Add(currentRoleId))
         {
             var roleInfo = await _context.Roles
+                .FromSqlInterpolated($@"
+                    SELECT
+                        r.""idRole"" AS id_role,
+                        r.name,
+                        r.""parentRoleId"" AS parent_role_id,
+                        r.""permissionsMask"" AS permissions_mask
+                    FROM ""Roles"" r
+                    WHERE r.""idRole"" = {currentRoleId}")
                 .AsNoTracking()
-                .Where(r => r.IdRole == currentRoleId)
                 .Select(r => new
                 {
                     Mask = r.PermissionsMask ?? 0L,

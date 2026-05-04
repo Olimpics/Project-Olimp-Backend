@@ -38,7 +38,7 @@ public class AuthAppService : IAuthAppService
         if (user == null)
             return (null, null, null, StatusCodes.Status404NotFound, "This user doesn't exist");
 
-        var roles = GetOrderedRoles(user);
+        var roles = GetOrderedRoles(await _repository.GetUserRolesAsync(user.IdUser));
         var primaryRole = roles.FirstOrDefault();
         if (primaryRole == null)
             return (null, null, null, StatusCodes.Status404NotFound, "User has no role assigned.");
@@ -96,7 +96,7 @@ public class AuthAppService : IAuthAppService
         if (user == null)
             return (null, null, StatusCodes.Status404NotFound, "User not found");
 
-        var roles = GetOrderedRoles(user);
+        var roles = GetOrderedRoles(await _repository.GetUserRolesAsync(user.IdUser));
         var primaryRole = roles.FirstOrDefault();
         if (primaryRole == null)
             return (null, null, StatusCodes.Status404NotFound, "User has no role assigned.");
@@ -187,11 +187,9 @@ public class AuthAppService : IAuthAppService
         return byId.Values.OrderBy(p => p.BitIndex).ToList();
     }
 
-    private static List<Role> GetOrderedRoles(User user)
+    private static List<Role> GetOrderedRoles(IEnumerable<Role> roles)
     {
-        return user.UserRoles
-            .Select(ur => ur.Role)
-            .Where(role => role != null)
+        return roles
             .OrderByDescending(IsAdminRole)
             .ThenBy(role => role.IdRole)
             .ToList();

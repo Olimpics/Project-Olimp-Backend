@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Data;
 
@@ -31,14 +31,12 @@ namespace OlimpBack.Utils
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            if (await _context.Roles.AnyAsync(r => r.IdRole == roleId))
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.IdRole == roleId);
+            if (role != null)
             {
-                _context.UserRoles.Add(new Models.UserRole
-                {
-                    UserId = user.IdUser,
-                    RoleId = roleId
-                });
-                await _context.SaveChangesAsync();
+                await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                    INSERT INTO ""UserRoles"" (""UserId"", ""RoleId"")
+                    VALUES ({user.IdUser}, {role.IdRole})");
             }
 
             return user.IdUser;

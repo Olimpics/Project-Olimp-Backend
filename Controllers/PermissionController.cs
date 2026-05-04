@@ -26,6 +26,12 @@ public class PermissionController : ControllerBase
     public async Task<ActionResult<IEnumerable<PermissionDto>>> GetPermissions()
     {
         var permissions = await _context.Permissions
+            .FromSqlRaw(@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p")
             .AsNoTracking()
             .OrderBy(p => p.BitIndex)
             .Select(p => ToDto(p))
@@ -38,7 +44,7 @@ public class PermissionController : ControllerBase
     [RequirePermission(RbacPermissions.PermissionsRead)]
     public async Task<ActionResult<PermissionDto>> GetPermission(int id)
     {
-        var permission = await _context.Permissions.FindAsync(id);
+        var permission = await GetPermissionEntityAsync(id);
         if (permission == null)
             return NotFound();
 
@@ -53,22 +59,19 @@ public class PermissionController : ControllerBase
             return BadRequest($"BitIndex must be in range [{PermissionMaskHelper.MinBitIndex}, {PermissionMaskHelper.MaxBitIndex}].");
 
         var code = BuildCode(permissionDto.TypePermission, permissionDto.TableName);
-        if (await _context.Permissions.AnyAsync(x => x.Code == code))
+        if (await PermissionCodeExistsAsync(code))
             return BadRequest("Permission with this code already exists.");
 
-        if (await _context.Permissions.AnyAsync(x => x.BitIndex == permissionDto.BitIndex))
+        if (await PermissionBitIndexExistsAsync(permissionDto.BitIndex))
             return BadRequest("BitIndex is already used by another permission.");
 
-        var permission = new Permission
-        {
-            Code = code,
-            BitIndex = permissionDto.BitIndex
-        };
+        await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            INSERT INTO ""Permissions"" (code, ""bitIndex"")
+            VALUES ({code}, {permissionDto.BitIndex})");
 
-        _context.Permissions.Add(permission);
-        await _context.SaveChangesAsync();
+        var permission = await GetPermissionByCodeAsync(code);
 
-        return CreatedAtAction(nameof(GetPermission), new { id = permission.Id }, ToDto(permission));
+        return CreatedAtAction(nameof(GetPermission), new { id = permission!.Id }, ToDto(permission));
     }
 
     [HttpPut("{id:int}")]
@@ -81,26 +84,35 @@ public class PermissionController : ControllerBase
         if (permissionDto.BitIndex < PermissionMaskHelper.MinBitIndex || permissionDto.BitIndex > PermissionMaskHelper.MaxBitIndex)
             return BadRequest($"BitIndex must be in range [{PermissionMaskHelper.MinBitIndex}, {PermissionMaskHelper.MaxBitIndex}].");
 
-        var permission = await _context.Permissions.FindAsync(id);
+        var permission = await GetPermissionEntityAsync(id);
         if (permission == null)
             return NotFound();
 
         var newCode = BuildCode(permissionDto.TypePermission, permissionDto.TableName);
-        if (await _context.Permissions.AnyAsync(x => x.Id != id && x.Code == newCode))
+        if (await PermissionCodeExistsAsync(newCode, id))
             return BadRequest("Permission with this code already exists.");
 
-        if (await _context.Permissions.AnyAsync(x => x.Id != id && x.BitIndex == permissionDto.BitIndex))
+        if (await PermissionBitIndexExistsAsync(permissionDto.BitIndex, id))
             return BadRequest("BitIndex is already used by another permission.");
 
-        var affectedRoleIds = await _context.RolePermissions
-            .Where(x => x.PermissionId == id)
-            .Select(x => x.RoleId)
+        var affectedRoleIds = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                INNER JOIN ""RolePermissions"" rp ON rp.""RoleId"" = r.""idRole""
+                WHERE rp.""PermissionId"" = {id}")
+            .Select(role => role.IdRole)
             .Distinct()
             .ToListAsync();
 
-        permission.Code = newCode;
-        permission.BitIndex = permissionDto.BitIndex;
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE ""Permissions""
+            SET code = {newCode}, ""bitIndex"" = {permissionDto.BitIndex}
+            WHERE ""idPermission"" = {id}");
 
         foreach (var roleId in affectedRoleIds)
             await _roleMaskService.RecalculateRoleMaskAsync(roleId);
@@ -112,18 +124,27 @@ public class PermissionController : ControllerBase
     [RequirePermission(RbacPermissions.PermissionsDelete)]
     public async Task<IActionResult> DeletePermission(int id)
     {
-        var permission = await _context.Permissions.FindAsync(id);
+        var permission = await GetPermissionEntityAsync(id);
         if (permission == null)
             return NotFound();
 
-        var affectedRoleIds = await _context.RolePermissions
-            .Where(x => x.PermissionId == id)
-            .Select(x => x.RoleId)
+        var affectedRoleIds = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                INNER JOIN ""RolePermissions"" rp ON rp.""RoleId"" = r.""idRole""
+                WHERE rp.""PermissionId"" = {id}")
+            .Select(role => role.IdRole)
             .Distinct()
             .ToListAsync();
 
-        _context.Permissions.Remove(permission);
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            DELETE FROM ""Permissions""
+            WHERE ""idPermission"" = {id}");
 
         foreach (var roleId in affectedRoleIds)
             await _roleMaskService.RecalculateRoleMaskAsync(roleId);
@@ -149,5 +170,55 @@ public class PermissionController : ControllerBase
             return tableName;
 
         return $"{tableName}.{typePermission}";
+    }
+
+    private async Task<Permission?> GetPermissionEntityAsync(int id)
+    {
+        return await _context.Permissions
+            .FromSqlInterpolated($@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p
+                WHERE p.""idPermission"" = {id}")
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+    }
+
+    private async Task<Permission?> GetPermissionByCodeAsync(string code)
+    {
+        return await _context.Permissions
+            .FromSqlInterpolated($@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p
+                WHERE p.code = {code}")
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+    }
+
+    private async Task<bool> PermissionCodeExistsAsync(string code, int? exceptId = null)
+    {
+        var permission = await GetPermissionByCodeAsync(code);
+        return permission != null && permission.Id != exceptId;
+    }
+
+    private async Task<bool> PermissionBitIndexExistsAsync(int bitIndex, int? exceptId = null)
+    {
+        var permission = await _context.Permissions
+            .FromSqlInterpolated($@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p
+                WHERE p.""bitIndex"" = {bitIndex}")
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+
+        return permission != null && permission.Id != exceptId;
     }
 }

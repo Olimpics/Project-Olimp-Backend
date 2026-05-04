@@ -14,9 +14,9 @@ namespace OlimpBack.MappingProfiles
             CreateMap<User, UserRoleDto>()
                 .ForMember(dest => dest.IdUsers, opt => opt.MapFrom(src => src.IdUser))
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src =>
-                    src.UserRoles
-                        .OrderBy(ur => ur.RoleId)
-                        .Select(ur => ur.Role.Name)
+                    src.Roles
+                        .OrderBy(role => role.IdRole)
+                        .Select(role => role.Name)
                         .FirstOrDefault() ?? string.Empty));
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>()
@@ -29,9 +29,9 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src =>
-                    src.User.UserRoles
-                        .OrderBy(ur => ur.RoleId)
-                        .Select(ur => ur.RoleId)
+                    src.User.Roles
+                        .OrderBy(role => role.IdRole)
+                        .Select(role => role.IdRole)
                         .FirstOrDefault()))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
@@ -44,9 +44,9 @@ namespace OlimpBack.MappingProfiles
             CreateMap<AdminsPersonal, LoginResponseAdminDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src =>
-                    src.User!.UserRoles
-                        .OrderBy(ur => ur.RoleId)
-                        .Select(ur => ur.RoleId)
+                    src.User!.Roles
+                        .OrderBy(role => role.IdRole)
+                        .Select(role => role.IdRole)
                         .FirstOrDefault()))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAdmin))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));

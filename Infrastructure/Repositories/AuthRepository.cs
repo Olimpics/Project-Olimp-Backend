@@ -33,41 +33,54 @@ public class AuthRepository : IAuthRepository
     public async Task<User?> GetUserByEmailTrackedAsync(string email)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<User?> GetUserByIdTrackedAsync(int userId)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.IdUser == userId);
     }
 
     public async Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId)
     {
-        return await _context.RolePermissions
+        var permissions = await _context.Permissions
+            .FromSqlInterpolated($@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p
+                INNER JOIN ""RolePermissions"" rp ON rp.""PermissionId"" = p.""idPermission""
+                WHERE rp.""RoleId"" = {roleId}")
             .AsNoTracking()
-            .Where(rp => rp.RoleId == roleId)
-            .Select(rp => new PermissionDto
-            {
-                IdPermissions = rp.Permission.Id,
-                TypePermission = GetPermissionAction(rp.Permission.Code),
-                TableName = GetPermissionResource(rp.Permission.Code),
-                BitIndex = rp.Permission.BitIndex
-            })
-            .OrderBy(p => p.BitIndex)
+            .OrderBy(permission => permission.BitIndex)
             .ToListAsync();
+
+        return permissions
+            .Select(permission => new PermissionDto
+            {
+                IdPermissions = permission.Id,
+                TypePermission = GetPermissionAction(permission.Code),
+                TableName = GetPermissionResource(permission.Code),
+                BitIndex = permission.BitIndex
+            })
+            .ToList();
     }
 
     public async Task<List<Role>> GetUserRolesAsync(int userId)
     {
-        return await _context.UserRoles
+        return await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                INNER JOIN ""UserRoles"" ur ON ur.""RoleId"" = r.""idRole""
+                WHERE ur.""UserId"" = {userId}")
             .AsNoTracking()
-            .Where(ur => ur.UserId == userId)
-            .Select(ur => ur.Role)
             .OrderBy(r => r.IdRole)
             .ToListAsync();
     }
@@ -90,8 +103,6 @@ public class AuthRepository : IAuthRepository
             .Include(x => x.EducationalProgram)
             .Include(x => x.EducationalDegree)
             .Include(x => x.User)
-                .ThenInclude(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
@@ -101,8 +112,6 @@ public class AuthRepository : IAuthRepository
             .AsNoTracking()
             .Include(x => x.Faculty)
             .Include(x => x.User)
-                .ThenInclude(u => u!.UserRoles)
-                    .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
