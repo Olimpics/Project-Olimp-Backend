@@ -4,120 +4,145 @@ using OlimpBack.Utils;
 
 namespace OlimpBack.Application.Permissions;
 
-//public class RoleMaskService : IRoleMaskService
-//{
-//    private readonly AppDbContext _context;
+public class RoleMaskService : IRoleMaskService
+{
+    private readonly AppDbContext _context;
 
-//    public RoleMaskService(AppDbContext context)
-//    {
-//        _context = context;
-//    }
+    public RoleMaskService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-//    //public async Task<long> RecalculateRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
-//    //{
-//    //    var role = await _context.Roles
-//    //        .Include(r => r.RolePermissions)
-//    //            .ThenInclude(rp => rp.Permission)
-//    //        .FirstOrDefaultAsync(r => r.IdRole == roleId, cancellationToken);
+    public async Task<long> RecalculateRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
+    {
+        var roleExists = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                WHERE r.""idRole"" = {roleId}")
+            .AsNoTracking()
+            .AnyAsync(cancellationToken);
 
-//    //    if (role == null)
-//    //        return 0;
+        if (!roleExists)
+            return 0;
 
-//    //    var newMask = PermissionMaskHelper.BuildMask(
-//    //        role.RolePermissions
-//    //            .Where(rp => rp.Permission != null)
-//    //            .Select(rp => rp.Permission.BitIndex));
+        var bitIndexes = await _context.Permissions
+            .FromSqlInterpolated($@"
+                SELECT
+                    p.""idPermission"" AS id,
+                    p.code,
+                    p.""bitIndex"" AS bit_index
+                FROM ""Permissions"" p
+                INNER JOIN ""RolePermissions"" rp ON rp.""PermissionId"" = p.""idPermission""
+                WHERE rp.""RoleId"" = {roleId}")
+            .AsNoTracking()
+            .Select(permission => permission.BitIndex)
+            .ToListAsync(cancellationToken);
 
-//    //    role.PermissionsMask = newMask;
-//    //    await _context.SaveChangesAsync(cancellationToken);
+        var newMask = PermissionMaskHelper.BuildMask(bitIndexes);
 
-//    //    // TEMPORARY: Redis cache is disabled for local development until Redis is available.
-//    //    // await _cache.SetLongAsync(GetRoleMaskKey(roleId), newMask, RoleMaskTtl, cancellationToken);
-//    //    // await InvalidateUserMaskCacheByRoleAsync(roleId, cancellationToken);
+        await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE ""Roles""
+            SET ""permissionsMask"" = {newMask}
+            WHERE ""idRole"" = {roleId}", cancellationToken);
 
-//    //    return newMask;
-//    //}
+        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
+        // await _cache.SetLongAsync(GetRoleMaskKey(roleId), newMask, RoleMaskTtl, cancellationToken);
+        // await InvalidateUserMaskCacheByRoleAsync(roleId, cancellationToken);
 
-//    public async Task<long> GetRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
-//    {
-//        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
-//        // var cacheKey = GetRoleMaskKey(roleId);
-//        // var cached = await _cache.GetLongAsync(cacheKey, cancellationToken);
-//        // if (cached.HasValue)
-//        //     return cached.Value;
+        return newMask;
+    }
 
-//        var roleMask = await _context.Roles
-//            .AsNoTracking()
-//            .Where(r => r.IdRole == roleId)
-//            .Select(r => r.PermissionsMask ?? 0L)
-//            .FirstOrDefaultAsync(cancellationToken);
+    public async Task<long> GetRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
+    {
+        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
+        // var cacheKey = GetRoleMaskKey(roleId);
+        // var cached = await _cache.GetLongAsync(cacheKey, cancellationToken);
+        // if (cached.HasValue)
+        //     return cached.Value;
 
-//        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
-//        // await _cache.SetLongAsync(cacheKey, roleMask, RoleMaskTtl, cancellationToken);
-//        return roleMask;
-//    }
+        var roleMask = await _context.Roles
+            .FromSqlInterpolated($@"
+                SELECT
+                    r.""idRole"" AS id_role,
+                    r.name,
+                    r.""parentRoleId"" AS parent_role_id,
+                    r.""permissionsMask"" AS permissions_mask
+                FROM ""Roles"" r
+                WHERE r.""idRole"" = {roleId}")
+            .AsNoTracking()
+            .Select(r => r.PermissionsMask ?? 0L)
+            .FirstOrDefaultAsync(cancellationToken);
 
-//    public async Task<long> GetUserPermissionsMaskAsync(int userId, CancellationToken cancellationToken = default)
-//    {
-//        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
-//        // var cacheKey = GetUserMaskKey(userId);
-//        // var cached = await _cache.GetLongAsync(cacheKey, cancellationToken);
-//        // if (cached.HasValue)
-//        //     return cached.Value;
+        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
+        // await _cache.SetLongAsync(cacheKey, roleMask, RoleMaskTtl, cancellationToken);
+        return roleMask;
+    }
 
-//        var roleIds = await _context.UserRoles
-//            .AsNoTracking()
-//            .Where(ur => ur.UserId == userId)
-//            .Select(ur => ur.RoleId)
-//            .Distinct()
-//            .ToListAsync(cancellationToken);
+    public async Task<long> GetUserPermissionsMaskAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
+        // var cacheKey = GetUserMaskKey(userId);
+        // var cached = await _cache.GetLongAsync(cacheKey, cancellationToken);
+        // if (cached.HasValue)
+        //     return cached.Value;
 
-//        long combined = 0;
-//        foreach (var roleId in roleIds)
-//            combined |= await GetRoleMaskWithAncestorsAsync(roleId, cancellationToken);
+        var roleIds = await _context.UserRoles
+    .Where(ur => ur.UserId == userId)
+    .Select(ur => ur.RoleId)
+    .Distinct()
+    .ToListAsync(cancellationToken);
 
-//        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
-//        // await _cache.SetLongAsync(cacheKey, combined, UserMaskTtl, cancellationToken);
-//        return combined;
-//    }
+        long combined = 0;
+        foreach (var roleId in roleIds)
+            combined |= await GetRoleMaskWithAncestorsAsync(roleId, cancellationToken);
 
-//    private async Task<long> GetRoleMaskWithAncestorsAsync(int roleId, CancellationToken cancellationToken)
-//    {
-//        long mask = 0;
-//        var currentRoleId = roleId;
-//        var visited = new HashSet<int>();
+        // TEMPORARY: Redis cache is disabled for local development until Redis is available.
+        // await _cache.SetLongAsync(cacheKey, combined, UserMaskTtl, cancellationToken);
+        return combined;
+    }
 
-//        while (visited.Add(currentRoleId))
-//        {
-//            var roleInfo = await _context.Roles
-//                .AsNoTracking()
-//                .Where(r => r.IdRole == currentRoleId)
-//                .Select(r => new
-//                {
-//                    Mask = r.PermissionsMask ?? 0L,
-//                    r.ParentRoleId
-//                })
-//                .FirstOrDefaultAsync(cancellationToken);
+    private async Task<long> GetRoleMaskWithAncestorsAsync(int roleId, CancellationToken cancellationToken)
+    {
+        long mask = 0;
+        var currentRoleId = roleId;
+        var visited = new HashSet<int>();
 
-//            if (roleInfo == null)
-//                break;
+        while (visited.Add(currentRoleId))
+        {
+            var roleInfo = await _context.Roles
+    .AsNoTracking()
+    .Where(r => r.IdRole == currentRoleId)
+    .Select(r => new
+    {
+        Mask = r.PermissionsMask ?? 0L,
+        r.ParentRoleId
+    })
+    .FirstOrDefaultAsync(cancellationToken);
 
-//            mask |= roleInfo.Mask;
+            if (roleInfo == null)
+                break;
 
-//            if (!roleInfo.ParentRoleId.HasValue)
-//                break;
+            mask |= roleInfo.Mask;
 
-//            currentRoleId = roleInfo.ParentRoleId.Value;
-//        }
+            if (!roleInfo.ParentRoleId.HasValue)
+                break;
 
-//        return mask;
-//    }
+            currentRoleId = roleInfo.ParentRoleId.Value;
+        }
 
-//    // TEMPORARY: Redis cache helpers are disabled for local development until Redis is available.
-//    // private async Task InvalidateUserMaskCacheByRoleAsync(int roleId, CancellationToken cancellationToken) { ... }
-//    // private static string GetRoleMaskKey(int roleId) => $"rbac:role_mask:{roleId}";
-//    // private static string GetUserMaskKey(int userId) => $"rbac:user_mask:{userId}";
-//}
+        return mask;
+    }
+
+    // TEMPORARY: Redis cache helpers are disabled for local development until Redis is available.
+    // private async Task InvalidateUserMaskCacheByRoleAsync(int roleId, CancellationToken cancellationToken) { ... }
+    // private static string GetRoleMaskKey(int roleId) => $"rbac:role_mask:{roleId}";
+    // private static string GetUserMaskKey(int userId) => $"rbac:user_mask:{userId}";
+}
 //using Microsoft.EntityFrameworkCore;
 //using OlimpBack.Infrastructure.Database;
 //using OlimpBack.Infrastructure.Redis;

@@ -29,7 +29,10 @@ namespace OlimpBack.Controllers
         [RequirePermission(RbacPermissions.RolesRead)]
         public async Task<ActionResult<IEnumerable<RoleDto>>> GetRoles()
         {
-            var roles = await _context.Roles.ToListAsync();
+            var roles = await GetRolesQuery()
+                .OrderBy(role => role.IdRole)
+                .ToListAsync();
+
             return Ok(_mapper.Map<IEnumerable<RoleDto>>(roles));
         }
 
@@ -38,7 +41,7 @@ namespace OlimpBack.Controllers
         [RequirePermission(RbacPermissions.RolesRead)]
         public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
-            var role = await _context.Roles.FindAsync(id);
+            var role = await GetRoleEntityAsync(id);
             if (role == null)
                 return NotFound();
 
@@ -50,10 +53,22 @@ namespace OlimpBack.Controllers
         [RequirePermission(RbacPermissions.RolesCreate)]
         public async Task<ActionResult<RoleDto>> CreateRole(RoleDto roleDto)
         {
-            var role = _mapper.Map<Role>(roleDto);
-            _context.Roles.Add(role);
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                INSERT INTO ""Roles"" (name, ""parentRoleId"", ""permissionsMask"")
+                VALUES ({roleDto.NameRole}, NULL, 0)");
 
+            var role = await _context.Roles
+                .FromSqlInterpolated($@"
+                    SELECT
+                        r.""idRole"" AS id_role,
+                        r.name,
+                        r.""parentRoleId"" AS parent_role_id,
+                        r.""permissionsMask"" AS permissions_mask
+                    FROM ""Roles"" r
+                    WHERE r.name = {roleDto.NameRole}
+                    ORDER BY r.""idRole"" DESC")
+                .AsNoTracking()
+                .FirstAsync();
             var resultDto = _mapper.Map<RoleDto>(role);
             return CreatedAtAction(nameof(GetRole), new { id = role.IdRole }, resultDto);
         }
@@ -66,12 +81,14 @@ namespace OlimpBack.Controllers
             if (id != roleDto.IdRole)
                 return BadRequest();
 
-            var role = await _context.Roles.FindAsync(id);
+            var role = await GetRoleEntityAsync(id);
             if (role == null)
                 return NotFound();
 
-            _mapper.Map(roleDto, role);
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE ""Roles""
+                SET name = {roleDto.NameRole}
+                WHERE ""idRole"" = {id}");
 
             return NoContent();
         }
@@ -81,16 +98,44 @@ namespace OlimpBack.Controllers
         [RequirePermission(RbacPermissions.RolesDelete)]
         public async Task<IActionResult> DeleteRole(int id)
         {
-            var role = await _context.Roles.FindAsync(id);
+            var role = await GetRoleEntityAsync(id);
             if (role == null)
                 return NotFound();
 
-            _context.Roles.Remove(role);
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                DELETE FROM ""Roles""
+                WHERE ""idRole"" = {id}");
 
             return NoContent();
         }
 
+        private IQueryable<Role> GetRolesQuery()
+        {
+            return _context.Roles
+                .FromSqlRaw(@"
+                    SELECT
+                        r.""idRole"" AS id_role,
+                        r.name,
+                        r.""parentRoleId"" AS parent_role_id,
+                        r.""permissionsMask"" AS permissions_mask
+                    FROM ""Roles"" r")
+                .AsNoTracking();
+        }
+
+        private async Task<Role?> GetRoleEntityAsync(int id)
+        {
+            return await _context.Roles
+                .FromSqlInterpolated($@"
+                    SELECT
+                        r.""idRole"" AS id_role,
+                        r.name,
+                        r.""parentRoleId"" AS parent_role_id,
+                        r.""permissionsMask"" AS permissions_mask
+                    FROM ""Roles"" r
+                    WHERE r.""idRole"" = {id}")
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+        }
     }
 
 }
