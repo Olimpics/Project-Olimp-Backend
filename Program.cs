@@ -301,6 +301,10 @@ builder.Services.AddScoped<INormativeService, NormativeService>();
 builder.Services.AddScoped<ITypeOfDisciplineRepository, TypeOfDisciplineRepository>();
 builder.Services.AddScoped<ITypeOfDisciplineService, TypeOfDisciplineService>();
 
+// Grade
+builder.Services.AddScoped<IGradeRepository, GradeRepository>();
+builder.Services.AddScoped<IGradeService, GradeService>();
+
 // ==========================================
 // СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)
 // ==========================================
