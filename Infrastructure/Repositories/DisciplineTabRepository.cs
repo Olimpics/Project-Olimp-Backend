@@ -33,7 +33,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
     {
         var query = _context.SelectiveDisciplines
             .Include(d => d.DegreeLevel)
-            .Include(d => d.Faculty)
+            .Include(d => d.Department.Faculty)
             .AsNoTracking()
             .AsQueryable();
 
@@ -46,12 +46,11 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(d => d.FacultyId.HasValue && queryDto.Faculties.Contains(d.FacultyId.Value));
+            query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(d =>
-                (!d.MinCourse.HasValue || queryDto.Courses.Contains(d.MinCourse.Value)) &&
-                (!d.MaxCourse.HasValue || queryDto.Courses.Contains(d.MaxCourse.Value)));
+                (!d.Courses.Any() || queryDto.Courses.Any(c => d.Courses.Contains(c))));
 
         if (queryDto.IsEvenSemester.HasValue)
         {
@@ -105,16 +104,15 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 IdSelectiveDisciplines = d.IdSelectiveDisciplines,
                 NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
                 CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? "",
-                FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation : null,
+                FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
                 MinCountPeople = d.MinCountPeople,
                 MaxCountPeople = d.MaxCountPeople,
-                MinCourse = d.MinCourse,
-                MaxCourse = d.MaxCourse,
+                Courses = d.Courses != null ? d.Courses.ToList() : new List<int>(),
                 IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
-                DepartmentName = d.SelectiveDetail != null && d.SelectiveDetail.Department != null ? d.SelectiveDetail.Department.NameDepartment : "",
+                DepartmentName = d.Department != null ? d.Department.NameDepartment : "",
                 Teacher = d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
-                Recomend = d.SelectiveDetail != null ? d.SelectiveDetail.Recomend : null,
+                Recomend = d.SelectiveDetail != null ? d.Recomended : null,
                 Prerequisites = d.SelectiveDetail != null ? d.SelectiveDetail.Prerequisites : null,
                 Language = d.SelectiveDetail != null ? d.SelectiveDetail.Language : null,
                 Provision = d.SelectiveDetail != null ? d.SelectiveDetail.Provision : null,

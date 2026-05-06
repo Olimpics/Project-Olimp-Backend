@@ -27,8 +27,7 @@ namespace OlimpBack.Application.DTO
         public int FacultyId { get; set; }
         public string FacultyAbbreviation { get; set; } = null!;
         public int? MaxCountPeople { get; set; }
-        public int? MinCourse { get; set; }
-        public int? MaxCourse { get; set; }
+        public List<int> Courses { get; set; } = new List<int>();
         public sbyte? IsEven { get; set; }
         public string DegreeLevelName { get; set; }
         public bool IsAvailable { get; set; }
@@ -67,8 +66,7 @@ namespace OlimpBack.Application.DTO
         public string? FacultyAbbreviation { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
-        public int? MinCourse { get; set; }
-        public int? MaxCourse { get; set; }
+        public List<int> Courses { get; set; } = new List<int>();
         public sbyte? IsEven { get; set; }
         public string DegreeLevelName { get; set; } = null!;
         

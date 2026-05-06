@@ -17,7 +17,5 @@ public partial class Faculty
 
     public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
 
-    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
-
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

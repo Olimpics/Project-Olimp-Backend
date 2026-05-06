@@ -7,10 +7,6 @@ public partial class SelectiveDetail
 {
     public int IdSelectiveDetails { get; set; }
 
-    public string? Recomend { get; set; }
-
-    public int? DepartmentId { get; set; }
-
     public string? Teachers { get; set; }
 
     public string? Language { get; set; }
@@ -30,8 +26,6 @@ public partial class SelectiveDetail
     public string? TypesOfTraining { get; set; }
 
     public int? TypeOfControlId { get; set; }
-
-    public virtual Department? Department { get; set; }
 
     public virtual SelectiveDiscipline IdSelectiveDetailsNavigation { get; set; } = null!;
 

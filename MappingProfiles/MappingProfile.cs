@@ -77,8 +77,8 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<SelectiveDiscipline, FullDisciplineDto>()
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree))
-                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
-                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Faculty.Abbreviation));
+                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Department.FacultyId))
+                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Department.Faculty.Abbreviation));
 
             CreateMap<SelectiveDiscipline, FullForAdminDisciplineDto>()
               .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree));
@@ -222,16 +222,15 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.IdSelectiveDisciplines, opt => opt.MapFrom(src => src.discipline.IdSelectiveDisciplines))
                 .ForMember(dest => dest.NameSelectiveDisciplines, opt => opt.MapFrom(src => src.discipline.NameSelectiveDisciplines))
                 .ForMember(dest => dest.CodeSelectiveDisciplines, opt => opt.MapFrom(src => src.discipline.CodeSelectiveDisciplines))
-                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.discipline.Faculty.Abbreviation))
+                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.discipline.Department.Faculty.Abbreviation))
                 .ForMember(dest => dest.MinCountPeople, opt => opt.MapFrom(src => src.discipline.MinCountPeople))
                 .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
-                .ForMember(dest => dest.MinCourse, opt => opt.MapFrom(src => src.discipline.MinCourse))
-                .ForMember(dest => dest.MaxCourse, opt => opt.MapFrom(src => src.discipline.MaxCourse))
+                .ForMember(dest => dest.Courses, opt => opt.MapFrom(src => src.discipline.Courses))
                 .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegree))
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.details.Department.NameDepartment))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.discipline.Department.NameDepartment))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teachers))
-                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recomend))
+                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.discipline.Recomended))
                 .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.details.Language))
                 .ForMember(dest => dest.Provision , opt => opt.MapFrom(src => src.details.Provision))
@@ -269,7 +268,6 @@ namespace OlimpBack.MappingProfiles
             CreateMap<SelectiveDetail, DetailContentDto>();
 
             CreateMap<SelectiveDetail, SelectiveDetailDto>()
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.NameDepartment))
                 // ������: "������� �� ������� ���� � ���������� Content"
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src));
 

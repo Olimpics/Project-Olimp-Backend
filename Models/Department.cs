@@ -19,7 +19,7 @@ public partial class Department
 
     public virtual Faculty? Faculty { get; set; }
 
-    public virtual ICollection<SelectiveDetail> SelectiveDetails { get; set; } = new List<SelectiveDetail>();
+    public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 
     public virtual ICollection<Speciality> Specialities { get; set; } = new List<Speciality>();
 

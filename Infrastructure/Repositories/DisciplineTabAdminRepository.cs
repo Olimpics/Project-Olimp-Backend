@@ -57,15 +57,13 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         // 2. ?ќќќќќќќќ ќќ ќќќќќќќќќќќ
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
-            query = query.Where(d => d.FacultyId.HasValue && queryDto.Faculties.Contains(d.FacultyId.Value));
+            query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
         }
 
         // 3. ?ќќќќќќќќ ќќ ќќќќќќќќќќќ
         if (queryDto.Courses != null && queryDto.Courses.Any())
         {
-            query = query.Where(d =>
-                (!d.MinCourse.HasValue || queryDto.Courses.Contains(d.MinCourse.Value)) &&
-                (!d.MaxCourse.HasValue || queryDto.Courses.Contains(d.MaxCourse.Value)));
+            query = query.Where(d => (!d.Courses.Any() || queryDto.Courses.Any(c => d.Courses.Contains(c))));
         }
 
         // 4. ?ќќќќќќќќ ќќ ќќќќќќќќ
@@ -104,11 +102,10 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 IdSelectiveDisciplines = d.IdSelectiveDisciplines,
                 NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
                 CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? "",
-                FacultyId = d.FacultyId ?? 0,
-                FacultyAbbreviation = d.Faculty != null ? d.Faculty.Abbreviation ?? "" : "",
+                FacultyId = d.Department.FacultyId ?? 0,
+                FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation ?? "" : "",
                 MaxCountPeople = d.MaxCountPeople,
-                MinCourse = d.MinCourse,
-                MaxCourse = d.MaxCourse,
+                Courses = d.Courses,
                 IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree ?? "" : "",
                 CountOfPeople = d.BindSelectiveDisciplines.Count, // ?ќќќќ ќќќќќќ Include!
@@ -279,7 +276,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(d => d.FacultyId.HasValue && queryDto.Faculties.Contains(d.FacultyId.Value));
+            query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
 
         if (queryDto.IsFaculty.HasValue)
             query = query.Where(d => d.IsFaculty == queryDto.IsFaculty.Value);
@@ -291,15 +288,15 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             d.IdSelectiveDisciplines,
             d.NameSelectiveDisciplines ?? "",
             d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
-            d.SelectiveDetail != null && d.SelectiveDetail.Department != null ? d.SelectiveDetail.Department.NameDepartment : null,
+            d.Department != null && d.Department != null ? d.Department.NameDepartment : null,
             d.MinCountPeople,
             d.MaxCountPeople,
             (sbyte)(d.IsForseChange ?? 0),
             d.Type != null ? d.Type.TypeName ?? "" : "",
             d.DegreeLevelId,
             (sbyte)(d.IsFaculty ?? 0),
-            d.FacultyId ?? 0,
-            d.Faculty != null ? d.Faculty.Abbreviation : null,
+            d.Department.FacultyId ?? 0,
+            d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
             d.BindSelectiveDisciplines.Select(b => b.CreatedAt).ToList()
         )).ToListAsync();
     }

@@ -1039,13 +1039,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Provision)
                 .HasMaxLength(256)
                 .HasColumnName("provision");
-            entity.Property(e => e.Recomend)
-                .HasMaxLength(64)
-                .HasColumnName("recomend");
             entity.Property(e => e.ResultEducation)
                 .HasMaxLength(64)
                 .HasColumnName("resultEducation");
-            entity.Property(e => e.Teachers).HasMaxLength(50);
+            entity.Property(e => e.Teachers).HasColumnType("jsonb");
             entity.Property(e => e.TypesOfTraining)
                 .HasMaxLength(50)
                 .HasColumnName("typesOfTraining");
@@ -1055,10 +1052,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.WhyInterestingDetermination)
                 .HasMaxLength(50)
                 .HasColumnName("whyInterestingDetermination");
-
-            entity.HasOne(d => d.Department).WithMany(p => p.SelectiveDetails)
-                .HasForeignKey(d => d.DepartmentId)
-                .HasConstraintName("adddetails_department_fk");
 
             entity.HasOne(d => d.IdSelectiveDetailsNavigation).WithOne(p => p.SelectiveDetail)
                 .HasForeignKey<SelectiveDetail>(d => d.IdSelectiveDetails)
@@ -1080,6 +1073,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodeSelectiveDisciplines)
                 .HasMaxLength(50)
                 .HasColumnName("codeSelectiveDisciplines");
+            entity.Property(e => e.Courses).HasColumnName("courses");
             entity.Property(e => e.Feedback)
                 .HasColumnType("jsonb")
                 .HasColumnName("feedback");
@@ -1087,9 +1081,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsFaculty).HasColumnName("isFaculty");
             entity.Property(e => e.IsForseChange).HasColumnName("isForseChange");
             entity.Property(e => e.MaxCountPeople).HasColumnName("maxCountPeople");
-            entity.Property(e => e.MaxCourse).HasColumnName("maxCourse");
             entity.Property(e => e.MinCountPeople).HasColumnName("minCountPeople");
-            entity.Property(e => e.MinCourse).HasColumnName("minCourse");
             entity.Property(e => e.NameDock)
                 .HasColumnType("character varying")
                 .HasColumnName("nameDock");
@@ -1099,9 +1091,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NeedFix)
                 .HasColumnType("bit(1)")
                 .HasColumnName("needFix");
-            entity.Property(e => e.Recomendet)
+            entity.Property(e => e.Recomended)
                 .HasColumnType("jsonb")
-                .HasColumnName("recomendet");
+                .HasColumnName("recomended");
 
             entity.HasOne(d => d.ApprovalStatus).WithMany(p => p.SelectiveDisciplines)
                 .HasForeignKey(d => d.ApprovalStatusId)
@@ -1115,9 +1107,9 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.DegreeLevelId)
                 .HasConstraintName("adddisciplines_educationaldegree_fk");
 
-            entity.HasOne(d => d.Faculty).WithMany(p => p.SelectiveDisciplines)
-                .HasForeignKey(d => d.FacultyId)
-                .HasConstraintName("adddisciplines_faculties_fk");
+            entity.HasOne(d => d.Department).WithMany(p => p.SelectiveDisciplines)
+                .HasForeignKey(d => d.DepartmentId)
+                .HasConstraintName("selectivedisciplines_department_fk");
 
             entity.HasOne(d => d.Type).WithMany(p => p.SelectiveDisciplines)
                 .HasForeignKey(d => d.TypeId)

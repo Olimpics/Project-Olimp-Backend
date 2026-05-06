@@ -125,11 +125,10 @@ namespace OlimpBack.Controllers
                 {
                     if (!string.IsNullOrWhiteSpace(dto.NameSelectiveDisciplines)) discipline.NameSelectiveDisciplines = dto.NameSelectiveDisciplines;
                     if (!string.IsNullOrWhiteSpace(dto.CodeSelectiveDisciplines)) discipline.CodeSelectiveDisciplines = dto.CodeSelectiveDisciplines;
-                    if (dto.FacultyId != 0) discipline.FacultyId = dto.FacultyId;
+                    if (dto.FacultyId != 0) discipline.Department.FacultyId = dto.FacultyId;
                     if (dto.MinCountPeople.HasValue) discipline.MinCountPeople = dto.MinCountPeople;
                     if (dto.MaxCountPeople.HasValue) discipline.MaxCountPeople = dto.MaxCountPeople;
-                    if (dto.MinCourse.HasValue) discipline.MinCourse = dto.MinCourse;
-                    if (dto.MaxCourse.HasValue) discipline.MaxCourse = dto.MaxCourse;
+                    if (dto.Courses != null && dto.Courses.Any()) discipline.Courses = dto.Courses;
                     if (dto.IsEven.HasValue && dto.IsEven >= sbyte.MinValue && dto.IsEven <= sbyte.MaxValue)
                         discipline.IsEven = (sbyte)dto.IsEven.Value;
                     if (dto.DegreeLevelId.HasValue) discipline.DegreeLevelId = dto.DegreeLevelId;
@@ -143,9 +142,9 @@ namespace OlimpBack.Controllers
                     else if (dto.Details != null)
                     {
                         var det = dto.Details;
-                        if (det.DepartmentId.HasValue) discipline.SelectiveDetail.DepartmentId = det.DepartmentId;
+                        if (det.DepartmentId.HasValue) discipline.DepartmentId = det.DepartmentId;
                         if (!string.IsNullOrWhiteSpace(det.Content.Teacher)) discipline.SelectiveDetail.Teachers = det.Content.Teacher;
-                        if (!string.IsNullOrWhiteSpace(det.Content.Recomend)) discipline.SelectiveDetail.Recomend = det.Content.Recomend;
+                        if (!string.IsNullOrWhiteSpace(det.Content.Recomend)) discipline.Recomended = det.Content.Recomend;
                         if (!string.IsNullOrWhiteSpace(det.Content.Prerequisites)) discipline.SelectiveDetail.Prerequisites = det.Content.Prerequisites;
                         if (!string.IsNullOrWhiteSpace(det.Content.Language)) discipline.SelectiveDetail.Language = det.Content.Language;
                         if (!string.IsNullOrWhiteSpace(det.Content.Provision )) discipline.SelectiveDetail.Provision = det.Content.Provision ;

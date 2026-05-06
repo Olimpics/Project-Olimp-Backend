@@ -54,15 +54,11 @@ namespace OlimpBack.Utils
                 discipline.DegreeLevel != context.Student.EducationalDegree)
                 return false;
 
-            if (discipline.FacultyId != context.Student.FacultyId)
+            if (discipline.Department.FacultyId != context.Student.FacultyId)
                 return false;
 
-            if (discipline.MinCourse.HasValue && context.CurrentCourse < discipline.MinCourse.Value)
+            if (discipline.Courses.Count <= 0 && !discipline.Courses.Contains(context.CurrentCourse))
                 return false;
-
-            if (discipline.MaxCourse.HasValue && context.CurrentCourse > discipline.MaxCourse.Value)
-                return false;
-
             if (discipline.MinCountPeople.HasValue)
             {
                 var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdSelectiveDisciplines!, out var count) ? count : 0;

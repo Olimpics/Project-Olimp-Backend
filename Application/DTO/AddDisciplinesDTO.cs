@@ -24,8 +24,7 @@ namespace OlimpBack.Application.DTO
         public int FacultyId { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
-        public int? MinCourse { get; set; }
-        public int? MaxCourse { get; set; }
+        public List<int>? Courses { get; set; }
         public int? IsEven { get; set; }
         public int? DegreeLevelId { get; set; }
     }

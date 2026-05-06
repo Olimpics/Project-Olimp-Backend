@@ -14,15 +14,9 @@ public partial class SelectiveDiscipline
 
     public int? IsFaculty { get; set; }
 
-    public int? FacultyId { get; set; }
-
     public int? MinCountPeople { get; set; }
 
     public int? MaxCountPeople { get; set; }
-
-    public int? MinCourse { get; set; }
-
-    public int? MaxCourse { get; set; }
 
     public int? IsEven { get; set; }
 
@@ -40,11 +34,15 @@ public partial class SelectiveDiscipline
 
     public string? Feedback { get; set; }
 
-    public string? Recomendet { get; set; }
+    public string? Recomended { get; set; }
 
     public BitArray? NeedFix { get; set; }
 
     public string? NameDock { get; set; }
+
+    public int? DepartmentId { get; set; }
+
+    public List<int>? Courses { get; set; }
 
     public virtual Approval? ApprovalStatus { get; set; }
 
@@ -58,7 +56,7 @@ public partial class SelectiveDiscipline
 
     public virtual EducationalDegree? DegreeLevel { get; set; }
 
-    public virtual Faculty? Faculty { get; set; }
+    public virtual Department? Department { get; set; }
 
     public virtual ICollection<Prerequisite> Prerequisites { get; set; } = new List<Prerequisite>();
 
