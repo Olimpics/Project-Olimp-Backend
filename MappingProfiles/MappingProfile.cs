@@ -73,17 +73,20 @@ namespace OlimpBack.MappingProfiles
 
             //SelectiveDisciplines
             CreateMap<SelectiveDiscipline, SelectiveDisciplineDto>()
-                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree));
+                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree))
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven != null && src.IsEven.Length > 0 ? (src.IsEven[0] ? 1 : 0) : (int?)null));
 
             CreateMap<SelectiveDiscipline, FullDisciplineDto>()
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Department.FacultyId))
-                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Department.Faculty.Abbreviation));
+                .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Department.Faculty.Abbreviation))
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven != null && src.IsEven.Length > 0 ? (src.IsEven[0] ? 1 : 0) : (int?)null));
 
             CreateMap<SelectiveDiscipline, FullForAdminDisciplineDto>()
               .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree));
             CreateMap<CreateSelectiveDisciplineDto, SelectiveDiscipline>()
-                .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId));
+                .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId))
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven != null ? new System.Collections.BitArray(new[] { src.IsEven == 1 }) : null));
             CreateMap<SelectiveDiscipline, SimpleDisciplineDto>();
 
             CreateMap<CreateSelectiveDisciplineWithDetailsDto, SelectiveDiscipline>()
@@ -226,11 +229,11 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.MinCountPeople, opt => opt.MapFrom(src => src.discipline.MinCountPeople))
                 .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
                 .ForMember(dest => dest.Courses, opt => opt.MapFrom(src => src.discipline.Courses))
-                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven))
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven != null && src.discipline.IsEven.Length > 0 ? (src.discipline.IsEven[0] ? 1 : 0) : (int?)null))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegree))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.discipline.Department.NameDepartment))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teachers))
-                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.discipline.Recomended))
+                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recommended))
                 .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.details.Language))
                 .ForMember(dest => dest.Provision , opt => opt.MapFrom(src => src.details.Provision))
@@ -239,7 +242,10 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.UsingIrl, opt => opt.MapFrom(src => src.details.UsingIrl))
                 .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.details.DisciplineTopics))
                 .ForMember(dest => dest.TypesOfTraining, opt => opt.MapFrom(src => src.details.TypesOfTraining))
-                .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.details.TypeOfControl.Type));
+                .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.discipline.TypeOfControl.Type))
+                .ForMember(dest => dest.CatalogId, opt => opt.MapFrom(src => src.discipline.CatalogId))
+                .ForMember(dest => dest.ApprovalStatusId, opt => opt.MapFrom(src => src.discipline.ApprovalStatusId))
+                .ForMember(dest => dest.TypeOfControlId, opt => opt.MapFrom(src => src.discipline.TypeOfControlId));
 
             //Department
             CreateMap<Department, DepartmentDto>()

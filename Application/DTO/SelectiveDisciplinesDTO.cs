@@ -10,11 +10,13 @@ namespace OlimpBack.Application.DTO
         public int FacultyId { get; set; }
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
-        public int? MinCourse { get; set; }
-        public int? MaxCourse { get; set; }
-        public sbyte? AddSemestr { get; set; } // make IsEven
-        public string DegreeLevelId { get; set; }
-        public string DegreeLevelName { get; set; }
+        public List<int>? Courses { get; set; }
+        public int? IsEven { get; set; }
+        public int? DegreeLevelId { get; set; }
+        public string DegreeLevelName { get; set; } = null!;
+        public int? CatalogId { get; set; }
+        public int? ApprovalStatusId { get; set; }
+        public int? TypeOfControlId { get; set; }
     }
 
     public class CreateSelectiveDisciplineDto 
@@ -27,12 +29,18 @@ namespace OlimpBack.Application.DTO
         public List<int>? Courses { get; set; }
         public int? IsEven { get; set; }
         public int? DegreeLevelId { get; set; }
+        public int? CatalogId { get; set; }
+        public int? ApprovalStatusId { get; set; }
+        public int? TypeOfControlId { get; set; }
     }
 
     public class CreateSelectiveDisciplineWithDetailsDto : CreateSelectiveDisciplineDto
     {
         public CreateSelectiveDetailDto Details { get; set; } = null!;
 
+        public List<int>? AdminIds { get; set; }
+
+        public List<int>? RecomendationCourses { get; set; }
         public List<int>? RecomendationSpeciality { get; set; }
         public List<int>? RecomendationEducationalProgram { get; set; }
     }

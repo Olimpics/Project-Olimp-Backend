@@ -24,6 +24,8 @@ public partial class DisciplineChoicePeriod
 
     public string? EndDate { get; set; }
 
+    public BitArray? IsForOnSemestr { get; set; }
+
     public virtual Department? Department { get; set; }
 
     public virtual Faculty? Faculty { get; set; }

@@ -105,5 +105,19 @@ namespace OlimpBack.Controllers
             }
             return NoContent();
         }
+
+        [HttpPut("UpdateApprovalStatus/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
+        public async Task<IActionResult> UpdateApprovalStatus(int id, [FromQuery] int statusId)
+        {
+            var (success, error) = await _service.UpdateDisciplineStatusAsync(id, statusId);
+            if (!success)
+            {
+                if (error == "Discipline not found")
+                    return NotFound("Discipline not found");
+                return BadRequest(error);
+            }
+            return NoContent();
+        }
     }
 }

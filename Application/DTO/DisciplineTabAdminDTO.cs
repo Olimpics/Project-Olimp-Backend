@@ -92,7 +92,7 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
 
-        // ˜˜˜˜˜˜ string? ˜˜˜˜˜˜˜˜˜˜˜˜˜ List<int> (˜˜˜˜˜˜ ˜˜˜˜˜˜)
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ string? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ List<int> (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
         public List<int>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
         public List<int>? StudentGroups { get; set; }
@@ -116,11 +116,13 @@ namespace OlimpBack.Application.DTO
         public string Faculty { get; set; } = null!;
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
-        public int? MinCourse { get; set; }
-        public int? MaxCourse { get; set; }
-        public sbyte? AddSemestr { get; set; }
-        public string DegreeLevelName { get; set; }
+        public List<int>? Courses { get; set; }
+        public int? IsEven { get; set; }
+        public string DegreeLevelName { get; set; } = null!;
         public int CountOfPeople { get; set; }
+        public int? CatalogId { get; set; }
+        public int? ApprovalStatusId { get; set; }
+        public int? TypeOfControlId { get; set; }
     }
 
     public class GetAllDisciplinesAdminQueryDto
@@ -132,6 +134,8 @@ namespace OlimpBack.Application.DTO
         public List<int>? Courses { get; set; }
         public bool? IsEvenSemester { get; set; }
         public List<int>? DegreeLevelIds { get; set; }
+        public List<int>? TypeOfControlIds { get; set; }
+        public List<int>? ApprovalStatusIds { get; set; }
         public int SortOrder { get; set; } = 0;
     }
 
@@ -144,17 +148,18 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
 
-        // ˜˜˜˜˜˜ string? ˜˜˜˜˜˜˜˜˜˜˜˜˜ List<int>? (˜˜˜˜˜˜ ˜˜˜˜˜˜)
         public List<int>? Faculties { get; set; }
         public sbyte? IsFaculty { get; set; }
         public List<int>? DegreeLevelIds { get; set; }
+        public List<int>? TypeOfControlIds { get; set; }
+        public List<int>? ApprovalStatusIds { get; set; }
 
         public int? StatusFilter { get; set; }
         public int SortOrder { get; set; } = 0;
     }
 
 
-    // ˜˜ ˜˜˜˜˜˜˜˜ DTO ˜˜˜ ˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜/˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DTO ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public class UpdateChoiceResponseDto
     {
         public List<ChoiceResultDto> Results { get; set; } = new();
@@ -166,7 +171,7 @@ namespace OlimpBack.Application.DTO
         public string Message { get; set; } = null!;
         public int BindId { get; set; }
         public string? DisciplineName { get; set; }
-        public int? NotificationId { get; set; } // Nullable, ˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜
+        public int? NotificationId { get; set; } // Nullable, ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     }
 
     public class ChoiceErrorDto
@@ -183,7 +188,7 @@ namespace OlimpBack.Application.DTO
         public int IsForceChange { get; set; }
     }
 
-    // ˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public record StudentChoicesProjection(int IdStudent, 
         string NameStudent, 
         string FacultyName, 

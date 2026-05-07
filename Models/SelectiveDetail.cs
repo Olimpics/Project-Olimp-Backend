@@ -25,9 +25,7 @@ public partial class SelectiveDetail
 
     public string? TypesOfTraining { get; set; }
 
-    public int? TypeOfControlId { get; set; }
+    public string? Recommended { get; set; }
 
     public virtual SelectiveDiscipline IdSelectiveDetailsNavigation { get; set; } = null!;
-
-    public virtual TypeOfControl? TypeOfControl { get; set; }
 }

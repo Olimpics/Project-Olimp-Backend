@@ -43,47 +43,67 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     }
     public async Task<(int TotalCount, List<FullDisciplineDto> Items)> GetAllDisciplinesPagedAsync(GetAllDisciplinesAdminQueryDto queryDto)
     {
-        var query = _context.SelectiveDisciplines.AsNoTracking().AsQueryable();
+        var query = _context.SelectiveDisciplines
+            .Include(d => d.SelectiveDetail)
+            .AsNoTracking()
+            .AsQueryable();
 
-        // 1. ?ќќќќќќќќ ќќ ќќќќќќ
+        // 1. Search
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(d =>
                 EF.Functions.Like(d.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(d.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"));
+                EF.Functions.Like(d.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                (d.SelectiveDetail != null && EF.Functions.Like(d.SelectiveDetail.Teachers.ToLower(), $"%{lowerSearch}%")));
         }
 
-        // 2. ?ќќќќќќќќ ќќ ќќќќќќќќќќќ
+        // 2. Faculties
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
             query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
         }
 
-        // 3. ?ќќќќќќќќ ќќ ќќќќќќќќќќќ
+        // 3. Courses
         if (queryDto.Courses != null && queryDto.Courses.Any())
         {
             query = query.Where(d => (!d.Courses.Any() || queryDto.Courses.Any(c => d.Courses.Contains(c))));
         }
 
-        // 4. ?ќќќќќќќќ ќќ ќќќќќќќќ
+        // 4. IsEven
         if (queryDto.IsEvenSemester.HasValue)
         {
-            query = query.Where(d => d.IsEven.HasValue &&
-                ((queryDto.IsEvenSemester.Value && d.IsEven.Value % 2 == 0) ||
-                 (!queryDto.IsEvenSemester.Value && d.IsEven.Value % 2 == 1)));
+            if (queryDto.IsEvenSemester.Value) // Paired
+            {
+                query = query.Where(d => d.IsEven == null || d.IsEven[0] == true);
+            }
+            else // Unpaired
+            {
+                query = query.Where(d => d.IsEven == null || d.IsEven[0] == false);
+            }
         }
 
-        // 5. ?ќќќќќќќќ ќќ ќќќќќќќќ
+        // 5. DegreeLevel
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
             query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
         }
 
-        // ?ќќќќќќќќ ќќќќќќќќ ќќќќҡКќќ ќќ ќќќќќќќќ
+        // TypeOfControl
+        if (queryDto.TypeOfControlIds != null && queryDto.TypeOfControlIds.Any())
+        {
+            query = query.Where(d => d.TypeOfControlId.HasValue && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId.Value));
+        }
+
+        // ApprovalStatus
+        if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
+        {
+            query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+        }
+
         var totalCount = await query.CountAsync();
 
-        // 6. ќќќќќќќќќќ ќќ ќќќќ ќќ
+        // 6. Sorting
         query = queryDto.SortOrder switch
         {
             1 => query.OrderBy(d => d.NameSelectiveDisciplines),
@@ -93,7 +113,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             _ => query.OrderBy(d => d.IdSelectiveDisciplines)
         };
 
-        // 7. ќќќќќќќќ (ќќќќ: EF Core ќќќќќќќќќќќ BindSelectiveDisciplines.Count ќќ ќќќќќќќ SELECT COUNT(*))
+        // 7. Pagination and Projection
         var items = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
@@ -105,11 +125,14 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 FacultyId = d.Department.FacultyId ?? 0,
                 FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation ?? "" : "",
                 MaxCountPeople = d.MaxCountPeople,
-                Courses = d.Courses,
-                IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
+                Courses = d.Courses ?? new List<int>(),
+                IsEven = d.IsEven != null && d.IsEven.Length > 0 ? (d.IsEven[0] ? 1 : 0) : (int?)null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree ?? "" : "",
-                CountOfPeople = d.BindSelectiveDisciplines.Count, // ?ќќќќ ќќќќќќ Include!
-                IsAvailable = false // ќќќ ќќќќ-ќќќќќ ќќ ќќќќ ќќќќќќќќ ќќќќќќќќќќќ, ќќќ ќќќќќ ќќќќќќќ true
+                CountOfPeople = d.BindSelectiveDisciplines.Count,
+                IsAvailable = false,
+                CatalogId = d.CatalogId,
+                ApprovalStatusId = d.ApprovalStatusId,
+                TypeOfControlId = d.TypeOfControlId
             })
             .ToListAsync();
 
@@ -272,7 +295,10 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
-            query = query.Where(d => EF.Functions.Like(d.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") || EF.Functions.Like(d.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"));
+            query = query.Where(d => 
+                EF.Functions.Like(d.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") || 
+                EF.Functions.Like(d.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                (d.SelectiveDetail != null && EF.Functions.Like(d.SelectiveDetail.Teachers.ToLower(), $"%{lowerSearch}%")));
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
@@ -284,11 +310,17 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
             query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
 
+        if (queryDto.TypeOfControlIds != null && queryDto.TypeOfControlIds.Any())
+            query = query.Where(d => d.TypeOfControlId.HasValue && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId.Value));
+
+        if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
+            query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+
         return await query.Select(d => new DisciplineStatusProjection(
             d.IdSelectiveDisciplines,
             d.NameSelectiveDisciplines ?? "",
             d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
-            d.Department != null && d.Department != null ? d.Department.NameDepartment : null,
+            d.Department != null ? d.Department.NameDepartment : null,
             d.MinCountPeople,
             d.MaxCountPeople,
             (sbyte)(d.IsForseChange ?? 0),

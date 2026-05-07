@@ -16,4 +16,5 @@ public interface IDisciplineTabService
 
     Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateSelectiveDisciplineWithDetailsDto dto);
 
+    Task<(bool success, string? error)> UpdateDisciplineStatusAsync(int id, int statusId);
 }

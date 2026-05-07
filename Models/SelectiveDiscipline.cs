@@ -18,7 +18,7 @@ public partial class SelectiveDiscipline
 
     public int? MaxCountPeople { get; set; }
 
-    public int? IsEven { get; set; }
+    public BitArray? IsEven { get; set; }
 
     public int? DegreeLevelId { get; set; }
 
@@ -34,8 +34,6 @@ public partial class SelectiveDiscipline
 
     public string? Feedback { get; set; }
 
-    public string? Recomended { get; set; }
-
     public BitArray? NeedFix { get; set; }
 
     public string? NameDock { get; set; }
@@ -43,6 +41,10 @@ public partial class SelectiveDiscipline
     public int? DepartmentId { get; set; }
 
     public List<int>? Courses { get; set; }
+
+    public int? TypeOfControlId { get; set; }
+
+    public List<int>? RecommendedEp { get; set; }
 
     public virtual Approval? ApprovalStatus { get; set; }
 
@@ -63,4 +65,6 @@ public partial class SelectiveDiscipline
     public virtual SelectiveDetail? SelectiveDetail { get; set; }
 
     public virtual TypeOfDiscipline? Type { get; set; }
+
+    public virtual TypeOfControl? TypeOfControl { get; set; }
 }

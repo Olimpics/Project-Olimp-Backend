@@ -34,6 +34,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         var query = _context.SelectiveDisciplines
             .Include(d => d.DegreeLevel)
             .Include(d => d.Department.Faculty)
+            .Include(d => d.SelectiveDetail)
             .AsNoTracking()
             .AsQueryable();
 
@@ -42,7 +43,8 @@ public class DisciplineTabRepository : IDisciplineTabRepository
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(d =>
                 EF.Functions.Like(d.NameSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like(d.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"));
+                EF.Functions.Like(d.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%") ||
+                (d.SelectiveDetail != null && EF.Functions.Like(d.SelectiveDetail.Teachers.ToLower(), $"%{lowerSearch}%")));
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
@@ -54,22 +56,41 @@ public class DisciplineTabRepository : IDisciplineTabRepository
 
         if (queryDto.IsEvenSemester.HasValue)
         {
-            var semesterValue = queryDto.IsEvenSemester.Value ? (sbyte)0 : (sbyte)1;
-            query = query.Where(d => d.IsEven == semesterValue);
+            if (queryDto.IsEvenSemester.Value) // Paired
+            {
+                query = query.Where(d => d.IsEven == null || d.IsEven[0] == true);
+            }
+            else // Unpaired
+            {
+                query = query.Where(d => d.IsEven == null || d.IsEven[0] == false);
+            }
         }
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
             query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
 
+        if (queryDto.TypeOfControlIds != null && queryDto.TypeOfControlIds.Any())
+            query = query.Where(d => d.TypeOfControlId.HasValue && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId.Value));
+
+        if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
+            query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+
         return await query.ToListAsync();
     }
     public async Task<List<SelectiveDiscipline>> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto)
     {
-        var isEven = queryDto.IsEvenSemester ? (sbyte)0 : (sbyte)1;
-
-        return await _context.SelectiveDisciplines
-            .Where(d => d.IsEven == isEven)
-            .ToListAsync();
+        if (queryDto.IsEvenSemester) // Paired
+        {
+            return await _context.SelectiveDisciplines
+                .Where(d => d.IsEven == null || d.IsEven[0] == true)
+                .ToListAsync();
+        }
+        else // Unpaired
+        {
+            return await _context.SelectiveDisciplines
+                .Where(d => d.IsEven == null || d.IsEven[0] == false)
+                .ToListAsync();
+        }
     }
     public async Task<bool> IsChoicePeriodActiveAsync(int facultyId, DateTime now)
     {
@@ -108,11 +129,11 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 MinCountPeople = d.MinCountPeople,
                 MaxCountPeople = d.MaxCountPeople,
                 Courses = d.Courses != null ? d.Courses.ToList() : new List<int>(),
-                IsEven = d.IsEven.HasValue ? (sbyte?)d.IsEven.Value : null,
+                IsEven = d.IsEven != null && d.IsEven.Length > 0 ? (d.IsEven[0] ? 1 : 0) : (int?)null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
                 DepartmentName = d.Department != null ? d.Department.NameDepartment : "",
                 Teacher = d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
-                Recomend = d.SelectiveDetail != null ? d.Recomended : null,
+                Recomend = d.SelectiveDetail != null ? d.SelectiveDetail.Recommended : null,
                 Prerequisites = d.SelectiveDetail != null ? d.SelectiveDetail.Prerequisites : null,
                 Language = d.SelectiveDetail != null ? d.SelectiveDetail.Language : null,
                 Provision = d.SelectiveDetail != null ? d.SelectiveDetail.Provision : null,
@@ -121,7 +142,10 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
                 DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
                 TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
-                TypeOfControl = d.SelectiveDetail != null ? d.SelectiveDetail.TypeOfControl != null ? d.SelectiveDetail.TypeOfControl.Type.ToString() : "" : ""
+                TypeOfControl = d.TypeOfControl != null ? d.TypeOfControl.Type : "",
+                CatalogId = d.CatalogId,
+                ApprovalStatusId = d.ApprovalStatusId,
+                TypeOfControlId = d.TypeOfControlId
             })
             .FirstOrDefaultAsync();
     }

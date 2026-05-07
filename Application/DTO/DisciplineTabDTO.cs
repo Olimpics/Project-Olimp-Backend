@@ -28,10 +28,13 @@ namespace OlimpBack.Application.DTO
         public string FacultyAbbreviation { get; set; } = null!;
         public int? MaxCountPeople { get; set; }
         public List<int> Courses { get; set; } = new List<int>();
-        public sbyte? IsEven { get; set; }
+        public int? IsEven { get; set; }
         public string DegreeLevelName { get; set; }
         public bool IsAvailable { get; set; }
         public int CountOfPeople { get; set; }
+        public int? CatalogId { get; set; }
+        public int? ApprovalStatusId { get; set; }
+        public int? TypeOfControlId { get; set; }
     }
 
    
@@ -67,8 +70,11 @@ namespace OlimpBack.Application.DTO
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
         public List<int> Courses { get; set; } = new List<int>();
-        public sbyte? IsEven { get; set; }
+        public int? IsEven { get; set; }
         public string DegreeLevelName { get; set; } = null!;
+        public int? CatalogId { get; set; }
+        public int? ApprovalStatusId { get; set; }
+        public int? TypeOfControlId { get; set; }
         
         // Details from SelectiveDetail
         public string DepartmentName { get; set; } = null!;
@@ -98,10 +104,12 @@ namespace OlimpBack.Application.DTO
         public bool OnlyAvailable { get; set; } = false;
         public string? Search { get; set; }
 
-        // Замість string? використовуємо типізовані списки
+        // пїЅпїЅпїЅпїЅпїЅпїЅ string? пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         public List<int>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
         public List<int>? DegreeLevelIds { get; set; }
+        public List<int>? TypeOfControlIds { get; set; }
+        public List<int>? ApprovalStatusIds { get; set; }
 
         public bool? IsEvenSemester { get; set; }
         public int SortOrder { get; set; } = 0;

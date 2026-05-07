@@ -59,7 +59,7 @@ public class RatingRepository : IRatingRepository
                          bsd.Semestr == semester &&
                          bsd.SelectiveDisciplines != null && 
                          bsd.SelectiveDisciplines.SelectiveDetail != null && 
-                         bsd.SelectiveDisciplines.SelectiveDetail.TypeOfControlId > 1)
+                         bsd.SelectiveDisciplines.TypeOfControlId > 1)
             .ToListAsync();
     }
 

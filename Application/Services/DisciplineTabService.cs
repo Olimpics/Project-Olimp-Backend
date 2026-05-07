@@ -3,8 +3,9 @@ using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
-using OlimpBack.Utils; // ˜˜˜ DisciplineAvailabilityService
+using OlimpBack.Utils; // ï¿½ï¿½ï¿½ DisciplineAvailabilityService
 using OlimpBack.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace OlimpBack.Application.Services;
 
@@ -12,7 +13,7 @@ public class DisciplineTabService : IDisciplineTabService
 {
     private readonly IDisciplineTabRepository _repository;
     private readonly IMapper _mapper;
-    private readonly AppDbContext _context; // ˜˜˜˜˜˜˜˜˜ ˜˜˜ BuildAvailabilityContext, ˜˜˜˜ ˜˜˜˜ ˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜
+    private readonly AppDbContext _context; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ BuildAvailabilityContext, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
     public DisciplineTabService(IDisciplineTabRepository repository, IMapper mapper, AppDbContext context)
     {
@@ -149,7 +150,13 @@ public class DisciplineTabService : IDisciplineTabService
         await _repository.SelectiveDisciplineAsync(discipline);
         await _repository.SaveChangesAsync();
 
-        return _mapper.Map<FullDisciplineWithDetailsDto>((discipline, details));
+        // Sync teachers and recommendations after we have the ID
+        await SyncTeachersJsonAsync(discipline, dto.AdminIds);
+        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationCourses, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram);
+        
+        await _repository.SaveChangesAsync();
+
+        return await _repository.GetDisciplineWithDetailsDtoAsync(discipline.IdSelectiveDisciplines);
     }
 
     public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateSelectiveDisciplineWithDetailsDto dto)
@@ -166,14 +173,90 @@ public class DisciplineTabService : IDisciplineTabService
         if (discipline.SelectiveDetail == null)
         {
             discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
-            // EF Core track-˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜
         }
 
         _mapper.Map(dto, discipline, opts => opts.Items["DbContext"] = _context);
         _mapper.Map(dto.Details, discipline.SelectiveDetail);
 
+        await SyncTeachersJsonAsync(discipline, dto.AdminIds);
+        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationCourses, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram);
+
         await _repository.SaveChangesAsync();
 
         return (true, null);
+    }
+
+    public async Task<(bool success, string? error)> UpdateDisciplineStatusAsync(int id, int statusId)
+    {
+        var discipline = await _repository.GetDisciplineWithDetailEntityAsync(id);
+        if (discipline == null) return (false, "Discipline not found");
+
+        discipline.ApprovalStatusId = statusId;
+        await _repository.SaveChangesAsync();
+        return (true, null);
+    }
+
+    private async Task SyncTeachersJsonAsync(SelectiveDiscipline discipline, List<int>? adminIds)
+    {
+        if (adminIds == null) return;
+
+        // Remove old bindings
+        var oldBindings = _context.BindTeachersSelectives.Where(b => b.SelectiveDisciplinesId == discipline.IdSelectiveDisciplines);
+        _context.BindTeachersSelectives.RemoveRange(oldBindings);
+
+        // Add new bindings
+        var newBindings = adminIds.Select(id => new BindTeachersSelective
+        {
+            AdminId = id,
+            SelectiveDisciplinesId = discipline.IdSelectiveDisciplines,
+            IsHead = new System.Collections.BitArray(1, false)
+        });
+        await _context.BindTeachersSelectives.AddRangeAsync(newBindings);
+
+        // Get names and build JSON
+        var admins = await _context.AdminsPersonals
+            .Where(a => adminIds.Contains(a.IdAdmins))
+            .Select(a => new { Id = a.IdAdmins, Name = a.NameAdmin })
+            .ToListAsync();
+
+        if (discipline.SelectiveDetail == null)
+        {
+            discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
+        }
+        discipline.SelectiveDetail.Teachers = System.Text.Json.JsonSerializer.Serialize(admins);
+    }
+
+    private async Task SyncRecommendedJsonAndEpAsync(SelectiveDiscipline discipline, List<int>? courseIds, List<int>? specialtyIds, List<int>? epIds)
+    {
+        var recommendedEpIds = new HashSet<int>();
+        var recommendedJson = new Dictionary<string, List<string>>();
+
+        if (epIds != null && epIds.Any())
+        {
+            var eps = await _context.EducationalPrograms.Where(ep => epIds.Contains(ep.IdEducationalProgram)).ToListAsync();
+            foreach (var id in epIds) recommendedEpIds.Add(id);
+            recommendedJson["EducationalPrograms"] = eps.Select(ep => ep.NameEducationalProgram ?? "").ToList();
+        }
+
+        if (specialtyIds != null && specialtyIds.Any())
+        {
+            var epsFromSpecs = await _context.EducationalPrograms.Where(ep => ep.SpecialityId.HasValue && specialtyIds.Contains(ep.SpecialityId.Value)).ToListAsync();
+            foreach (var ep in epsFromSpecs) recommendedEpIds.Add(ep.IdEducationalProgram);
+
+            var specs = await _context.Specialities.Where(s => specialtyIds.Contains(s.IdSpeciality)).ToListAsync();
+            recommendedJson["Specialties"] = specs.Select(s => s.Name ?? "").ToList();
+        }
+
+        if (courseIds != null && courseIds.Any())
+        {
+            recommendedJson["Courses"] = courseIds.Select(c => $"{c} course").ToList();
+        }
+
+        discipline.RecommendedEp = recommendedEpIds.ToList();
+        if (discipline.SelectiveDetail == null)
+        {
+            discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
+        }
+        discipline.SelectiveDetail.Recommended = System.Text.Json.JsonSerializer.Serialize(recommendedJson);
     }
 }

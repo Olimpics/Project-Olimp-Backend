@@ -28,6 +28,8 @@ public partial class EducationalProgram
 
     public int? CatalogId { get; set; }
 
+    public List<int>? MinUniSelectiveDisciplineBySemestr { get; set; }
+
     public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();

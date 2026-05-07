@@ -380,6 +380,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("bit(1)")
                 .HasColumnName("isRedo");
             entity.Property(e => e.Loans).HasColumnName("loans");
+            entity.Property(e => e.NeedReview)
+                .HasColumnType("bit(1)")
+                .HasColumnName("needReview");
             entity.Property(e => e.Semestr).HasColumnName("semestr");
             entity.Property(e => e.Year).HasColumnName("year");
 
@@ -559,6 +562,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsClose)
                 .HasColumnType("bit(1)")
                 .HasColumnName("isClose");
+            entity.Property(e => e.IsForOnSemestr)
+                .HasColumnType("bit(1)")
+                .HasColumnName("isForOnSemestr");
             entity.Property(e => e.PeriodCourse).HasColumnName("periodCourse");
             entity.Property(e => e.PeriodType)
                 .HasColumnType("bit(1)")
@@ -620,6 +626,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsSpecialization)
                 .HasColumnType("bit(1)")
                 .HasColumnName("isSpecialization");
+            entity.Property(e => e.MinUniSelectiveDisciplineBySemestr).HasColumnName("minUniSelectiveDisciplineBySemestr");
             entity.Property(e => e.NameDock)
                 .HasColumnType("character varying")
                 .HasColumnName("nameDock");
@@ -1039,6 +1046,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Provision)
                 .HasMaxLength(256)
                 .HasColumnName("provision");
+            entity.Property(e => e.Recommended)
+                .HasColumnType("jsonb")
+                .HasColumnName("recommended");
             entity.Property(e => e.ResultEducation)
                 .HasMaxLength(64)
                 .HasColumnName("resultEducation");
@@ -1057,10 +1067,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey<SelectiveDetail>(d => d.IdSelectiveDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("adddetails_adddisciplines_fk");
-
-            entity.HasOne(d => d.TypeOfControl).WithMany(p => p.SelectiveDetails)
-                .HasForeignKey(d => d.TypeOfControlId)
-                .HasConstraintName("adddetails_typeofcontrol_fk");
         });
 
         modelBuilder.Entity<SelectiveDiscipline>(entity =>
@@ -1077,7 +1083,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Feedback)
                 .HasColumnType("jsonb")
                 .HasColumnName("feedback");
-            entity.Property(e => e.IsEven).HasColumnName("isEven");
+            entity.Property(e => e.IsEven)
+                .HasColumnType("bit(1)")
+                .HasColumnName("isEven");
             entity.Property(e => e.IsFaculty).HasColumnName("isFaculty");
             entity.Property(e => e.IsForseChange).HasColumnName("isForseChange");
             entity.Property(e => e.MaxCountPeople).HasColumnName("maxCountPeople");
@@ -1091,9 +1099,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NeedFix)
                 .HasColumnType("bit(1)")
                 .HasColumnName("needFix");
-            entity.Property(e => e.Recomended)
-                .HasColumnType("jsonb")
-                .HasColumnName("recomended");
+            entity.Property(e => e.RecommendedEp).HasColumnName("recommendedEP");
 
             entity.HasOne(d => d.ApprovalStatus).WithMany(p => p.SelectiveDisciplines)
                 .HasForeignKey(d => d.ApprovalStatusId)
@@ -1114,6 +1120,10 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Type).WithMany(p => p.SelectiveDisciplines)
                 .HasForeignKey(d => d.TypeId)
                 .HasConstraintName("adddisciplines_typeofdiscipline_fk");
+
+            entity.HasOne(d => d.TypeOfControl).WithMany(p => p.SelectiveDisciplines)
+                .HasForeignKey(d => d.TypeOfControlId)
+                .HasConstraintName("selectivedisciplines_typeofcontrol_fk");
         });
 
         modelBuilder.Entity<SemestersStart>(entity =>
