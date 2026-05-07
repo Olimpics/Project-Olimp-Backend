@@ -13,9 +13,8 @@ namespace OlimpBack.Application.DTO
         public string? WhyInterestingDetermination { get; set; }
         public string? ResultEducation { get; set; }
         public string? UsingIrl { get; set; }
-
         public string TypesOfTraining { get; set; } = null!;
-        public string TypeOfControll { get; set; } = null!;
+        public string TypeOfControl { get; set; } = null!;
     }
 
     // DTO для читання (GET)
