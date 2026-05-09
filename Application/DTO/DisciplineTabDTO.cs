@@ -77,6 +77,7 @@ namespace OlimpBack.Application.DTO
         public int? TypeOfControlId { get; set; }
         
         // Details from SelectiveDetail
+        public string? NameSelectiveDisciplinesEng { get; set; }
         public string DepartmentName { get; set; } = null!;
         public string? Teacher { get; set; }
         public string? Recomend { get; set; }

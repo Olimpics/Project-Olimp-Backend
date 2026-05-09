@@ -1040,6 +1040,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Language)
                 .HasMaxLength(50)
                 .HasColumnName("language");
+            entity.Property(e => e.NameSelectiveDisciplinesEng)
+                .HasColumnType("character varying")
+                .HasColumnName("nameSelectiveDisciplinesEng");
             entity.Property(e => e.Prerequisites)
                 .HasMaxLength(50)
                 .HasColumnName("prerequisites");

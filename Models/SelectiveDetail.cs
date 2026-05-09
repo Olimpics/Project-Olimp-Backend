@@ -27,5 +27,7 @@ public partial class SelectiveDetail
 
     public string? Recommended { get; set; }
 
+    public string? NameSelectiveDisciplinesEng { get; set; }
+
     public virtual SelectiveDiscipline IdSelectiveDetailsNavigation { get; set; } = null!;
 }

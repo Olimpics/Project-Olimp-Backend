@@ -131,6 +131,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 Courses = d.Courses != null ? d.Courses.ToList() : new List<int>(),
                 IsEven = d.IsEven != null && d.IsEven.Length > 0 ? (d.IsEven[0] ? 1 : 0) : (int?)null,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
+                NameSelectiveDisciplinesEng = d.SelectiveDetail != null ? d.SelectiveDetail.NameSelectiveDisciplinesEng : null,
                 DepartmentName = d.Department != null ? d.Department.NameDepartment : "",
                 Teacher = d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
                 Recomend = d.SelectiveDetail != null ? d.SelectiveDetail.Recommended : null,

@@ -231,6 +231,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Courses, opt => opt.MapFrom(src => src.discipline.Courses))
                 .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven != null && src.discipline.IsEven.Length > 0 ? (src.discipline.IsEven[0] ? 1 : 0) : (int?)null))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegree))
+                .ForMember(dest => dest.NameSelectiveDisciplinesEng, opt => opt.MapFrom(src => src.details.NameSelectiveDisciplinesEng))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.discipline.Department.NameDepartment))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teachers))
                 .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recommended))
