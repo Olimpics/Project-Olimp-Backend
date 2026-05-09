@@ -315,6 +315,11 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 // Student
 builder.Services.AddScoped<IStudentService, StudentService>();
 
+// Import and AI Services
+builder.Services.AddScoped<IWordProcessingService, WordProcessingService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
+builder.Services.AddScoped<IImportService, ImportService>();
+
 // Authorization
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<FileCleanupService>();
