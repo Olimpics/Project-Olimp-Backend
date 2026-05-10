@@ -30,7 +30,7 @@ public class DepartmentRepository : IDepartmentRepository
         var query = _context.Departments.AsNoTracking().AsQueryable();
 
         if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
-            query = query.Where(d => d.FacultyId.HasValue && queryDto.FacultyIds.Contains(d.FacultyId.Value));
+            query = query.Where(d => d.FacultyId != null && queryDto.FacultyIds.Contains(d.FacultyId));
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
@@ -60,7 +60,7 @@ public class DepartmentRepository : IDepartmentRepository
             .Select(d => new DepartmentDto
             {
                 IdDepartment = d.IdDepartment,
-                FacultyId = d.FacultyId ?? 0,
+                FacultyId = d.FacultyId,
                 NameDepartment = d.NameDepartment ?? "",
                 Abbreviation = d.Abbreviation ?? "",
                 FacultyName = d.Faculty != null ? d.Faculty.NameFaculty ?? "" : ""
@@ -78,7 +78,7 @@ public class DepartmentRepository : IDepartmentRepository
             .Select(d => new DepartmentDto
             {
                 IdDepartment = d.IdDepartment,
-                FacultyId = d.FacultyId ?? 0,
+                FacultyId = d.FacultyId,
                 NameDepartment = d.NameDepartment ?? "",
                 Abbreviation = d.Abbreviation ?? "",
                 FacultyName = d.Faculty != null ? d.Faculty.NameFaculty ?? "" : ""

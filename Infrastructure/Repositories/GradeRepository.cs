@@ -38,8 +38,8 @@ public class GradeRepository : IGradeRepository
             IdBind = b.IdBindMainDisciplines,
             FullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
-            DepartmentName = b.Student != null && b.Student.Department != null ? b.Student.Department.NameDepartment ?? "" : "",
-            FacultyName = b.Student != null && b.Student.Faculty != null ? b.Student.Faculty.Abbreviation ?? "" : "",
+            DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
+            FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
             Score = b.Grade
         });
 
@@ -84,8 +84,8 @@ public class GradeRepository : IGradeRepository
             IdBind = b.IdBindSelectiveDisciplines,
             FullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
-            DepartmentName = b.Student != null && b.Student.Department != null ? b.Student.Department.NameDepartment ?? "" : "",
-            FacultyName = b.Student != null && b.Student.Faculty != null ? b.Student.Faculty.Abbreviation ?? "" : "",
+            DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
+            FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
             Score = b.Grade
         });
 

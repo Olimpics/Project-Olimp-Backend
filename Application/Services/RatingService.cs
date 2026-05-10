@@ -105,7 +105,7 @@ public class RatingService : IRatingService
         // 5. Record calculation time
         var calcTime = new RatingCalculationTime
         {
-            SpecialityId = students.First().EducationalProgram?.SpecialityId, 
+            SpecialityId = students.First().Group?.EducationalProgram?.SpecialityId, 
             Course = query.Course,
             Semestr = query.SemesterType,
             IsShorted = new BitArray(new bool[] { query.IsAccelerated }),

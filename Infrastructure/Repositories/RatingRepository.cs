@@ -35,8 +35,9 @@ public class RatingRepository : IRatingRepository
     {
         short isShortValue = (short)(isAccelerated ? 1 : 0);
         return await _context.Students
-            .Include(s => s.EducationalProgram)
-            .Where(s => s.EducationalProgramId == programId && s.Course == course && s.IsShort == isShortValue)
+            .Include(s => s.Group)
+                .ThenInclude(g => g.EducationalProgram)
+            .Where(s => s.Group.EducationalProgramId == programId && s.Course == course && s.IsShort == isShortValue)
             .ToListAsync();
     }
 
@@ -141,7 +142,9 @@ public class RatingRepository : IRatingRepository
             .Where(r => r.Year == query.CatalogYearId &&
                         r.Semestr == bitSemester &&
                         r.Student != null &&
-                        r.Student.EducationalProgram.SpecialityId == query.SpecialityId &&
+                        r.Student.Group != null &&
+                        r.Student.Group.EducationalProgram != null &&
+                        r.Student.Group.EducationalProgram.SpecialityId == query.SpecialityId &&
                         r.Student.Course == query.Course &&
                         r.Student.IsShort == (short)(query.IsAccelerated ? 1 : 0));
 

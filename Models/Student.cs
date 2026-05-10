@@ -18,15 +18,7 @@ public partial class Student
 
     public DateOnly EducationEnd { get; set; }
 
-    public int FacultyId { get; set; }
-
-    public int EducationalDegreeId { get; set; }
-
-    public int StudyFormId { get; set; }
-
     public short IsShort { get; set; }
-
-    public int EducationalProgramId { get; set; }
 
     public int Course { get; set; }
 
@@ -36,8 +28,9 @@ public partial class Student
 
     public List<int>? FavId { get; set; }
 
-    public int? DepartmentId { get; set; }
-
+    /// <summary>
+    /// Залікова книга
+    /// </summary>
     public string? ReportCard { get; set; }
 
     public BitArray? IsFunded { get; set; }
@@ -56,15 +49,7 @@ public partial class Student
 
     public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
 
-    public virtual Department? Department { get; set; }
-
     public virtual EducationStatus EducationStatus { get; set; } = null!;
-
-    public virtual EducationalDegree EducationalDegree { get; set; } = null!;
-
-    public virtual EducationalProgram EducationalProgram { get; set; } = null!;
-
-    public virtual Faculty Faculty { get; set; } = null!;
 
     public virtual StudentGroup Group { get; set; } = null!;
 
@@ -75,8 +60,6 @@ public partial class Student
     public virtual ICollection<MembersOfSg> MembersOfSgCreatedByNavigations { get; set; } = new List<MembersOfSg>();
 
     public virtual ICollection<MembersOfSg> MembersOfSgStudents { get; set; } = new List<MembersOfSg>();
-
-    public virtual StudyForm StudyForm { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

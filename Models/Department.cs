@@ -7,7 +7,7 @@ public partial class Department
 {
     public int IdDepartment { get; set; }
 
-    public int? FacultyId { get; set; }
+    public int FacultyId { get; set; }
 
     public string? NameDepartment { get; set; }
 
@@ -22,6 +22,4 @@ public partial class Department
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 
     public virtual ICollection<Speciality> Specialities { get; set; } = new List<Speciality>();
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

@@ -41,14 +41,14 @@ public class StudentService : IStudentService
 
             // Динамічний OR для факультетів
             query = query.Where(s =>
-                numericValues.Contains(s.FacultyId) ||
-                s.Faculty != null && textValues.Any(t => s.Faculty.NameFaculty.ToLower().Contains(t) || s.Faculty.Abbreviation.ToLower().Contains(t))
+                numericValues.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId) ||
+                s.Group.EducationalProgram.Speciality.Department.Faculty != null && textValues.Any(t => s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.ToLower().Contains(t) || s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation.ToLower().Contains(t))
             );
         }
 
         if (queryDto.Specialities != null && queryDto.Specialities.Any())
         {
-            query = query.Where(s => s.EducationalProgram.SpecialityId.HasValue && queryDto.Specialities.Contains(s.EducationalProgram.SpecialityId.Value));
+            query = query.Where(s => s.Group.EducationalProgram.SpecialityId.HasValue && queryDto.Specialities.Contains(s.Group.EducationalProgram.SpecialityId.Value));
         }
 
         if (queryDto.GroupIds != null && queryDto.GroupIds.Any())
@@ -58,10 +58,10 @@ public class StudentService : IStudentService
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
 
         if (queryDto.StudyFormIds != null && queryDto.StudyFormIds.Any())
-            query = query.Where(s => queryDto.StudyFormIds.Contains(s.StudyFormId));
+            query = query.Where(s => queryDto.StudyFormIds.Contains(s.Group.StudyFormId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.EducationalDegreeId));
+            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
 
         if (queryDto.IsShort.HasValue)
         {
@@ -72,8 +72,8 @@ public class StudentService : IStudentService
         query = queryDto.SortOrder switch
         {
             1 => query.OrderByDescending(d => d.NameStudent),
-            2 => query.OrderBy(d => d.Faculty.Abbreviation),
-            3 => query.OrderByDescending(d => d.Faculty.Abbreviation),
+            2 => query.OrderBy(d => d.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
+            3 => query.OrderByDescending(d => d.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
             4 => query.OrderBy(d => d.Group.GroupCode),
             5 => query.OrderByDescending(d => d.Group.GroupCode),
             _ => query.OrderBy(d => d.NameStudent)

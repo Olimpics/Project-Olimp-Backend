@@ -13,9 +13,9 @@ namespace OlimpBack.Utils
         public static async Task<DisciplineAvailabilityContext?> BuildAvailabilityContext(int studentId, AppDbContext _context)
         {
             var student = await _context.Students
-                .Include(s => s.EducationalDegree)
+                .Include(s => s.Group.Degree)
                 .Include(s => s.BindSelectiveDisciplines)
-                .Include(s => s.Faculty)
+                .Include(s => s.Group.EducationalProgram.Speciality.Department.Faculty)
                 .FirstOrDefaultAsync(s => s.IdStudent == studentId);
 
             if (student == null)
@@ -40,7 +40,7 @@ namespace OlimpBack.Utils
             {
                 Student = student,
                 CurrentCourse = currentCourse,
-                FacultyAbbreviation = student.Faculty?.Abbreviation,
+                FacultyAbbreviation = student.Group.EducationalProgram.Speciality.Department.Faculty?.Abbreviation,
                 BoundDisciplineIds = boundDisciplineIds,
                 DisciplineCounts = disciplineCounts
             };
@@ -51,10 +51,10 @@ namespace OlimpBack.Utils
                 return false;
 
             if (discipline.DegreeLevel != null &&
-                discipline.DegreeLevel != context.Student.EducationalDegree)
+                discipline.DegreeLevel != context.Student.Group.Degree)
                 return false;
 
-            if (discipline.Department.FacultyId != context.Student.FacultyId)
+            if (discipline.Department.FacultyId != context.Student.Group.EducationalProgram.Speciality.Department.FacultyId)
                 return false;
 
             if (discipline.Courses.Count <= 0 && !discipline.Courses.Contains(context.CurrentCourse))

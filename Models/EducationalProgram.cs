@@ -45,6 +45,4 @@ public partial class EducationalProgram
     public virtual Speciality? Speciality { get; set; }
 
     public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

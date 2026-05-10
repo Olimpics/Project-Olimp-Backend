@@ -90,7 +90,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
                 SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
                 Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
-                StudentsCount = ep.Students.Count(),
+                StudentsCount = ep.StudentGroups != null
+                    ? ep.StudentGroups.SelectMany(g => g.Students).Count()
+                    : 0,
                 DisciplinesCount = ep.MainDisciplines.Count()
             })
             .ToListAsync();
@@ -111,7 +113,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
                 SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
                 Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
-                StudentsCount = ep.Students.Count(),
+                StudentsCount = ep.StudentGroups != null
+                    ? ep.StudentGroups.SelectMany(g => g.Students).Count()
+                    : 0,
                 DisciplinesCount = ep.MainDisciplines.Count()
             })
             .FirstOrDefaultAsync();
@@ -124,7 +128,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
     {
         var query = _context.Students
             .AsNoTracking()
-            .Where(s => s.EducationalProgramId == programId);
+            .Where(s => s.Group.EducationalProgramId != null && s.Group.EducationalProgramId == programId);
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {

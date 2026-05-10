@@ -9,6 +9,8 @@ public partial class EducationalDegree
 
     public string? NameEducationalDegree { get; set; }
 
+    public virtual ICollection<DefaultUniNeed> DefaultUniNeeds { get; set; } = new List<DefaultUniNeed>();
+
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 
     public virtual ICollection<Normative> Normatives { get; set; } = new List<Normative>();
@@ -16,6 +18,4 @@ public partial class EducationalDegree
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 
     public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

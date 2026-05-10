@@ -8,7 +8,6 @@ namespace OlimpBack.Application.DTO
         public int DegreeId { get; set; }
         public string SpecialityCode { get; set; } = null!;
         public string Speciality { get; set; } = null!;
-        public uint StudentsAmount { get; set; }
         public int StudentsCount { get; set; }
         public int DisciplinesCount { get; set; }
     }

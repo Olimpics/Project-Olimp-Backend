@@ -28,6 +28,8 @@ public partial class BindSelectiveDiscipline
 
     public BitArray? NeedReview { get; set; }
 
+    public int? StudentAssessment { get; set; }
+
     public virtual SelectiveDiscipline? SelectiveDisciplines { get; set; }
 
     public virtual Student? Student { get; set; }

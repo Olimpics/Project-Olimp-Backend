@@ -31,7 +31,7 @@ public class StudentPageRepository : IStudentPageRepository
             {
                 s.IdStudent,
                 s.NameStudent,
-                MainDisciplines = s.EducationalProgram != null ? s.EducationalProgram.MainDisciplines : null,
+                MainDisciplines = s.Group != null && s.Group.EducationalProgram != null ? s.Group.EducationalProgram.MainDisciplines : null,
                 AdditionalDisciplines = s.BindSelectiveDisciplines
             })
             .FirstOrDefaultAsync();

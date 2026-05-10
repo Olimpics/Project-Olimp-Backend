@@ -46,6 +46,8 @@ public partial class SelectiveDiscipline
 
     public List<int>? RecommendedEp { get; set; }
 
+    public List<string>? Keys { get; set; }
+
     public virtual Approval? ApprovalStatus { get; set; }
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
@@ -59,6 +61,8 @@ public partial class SelectiveDiscipline
     public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual Department? Department { get; set; }
+
+    public virtual ICollection<GroupSimilarSelective> GroupSimilarSelectives { get; set; } = new List<GroupSimilarSelective>();
 
     public virtual ICollection<Prerequisite> Prerequisites { get; set; } = new List<Prerequisite>();
 

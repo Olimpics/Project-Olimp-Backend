@@ -8,20 +8,21 @@ public partial class StudentGroup
 {
     public int IdGroup { get; set; }
 
-    public string? GroupCode { get; set; }
-
-    public int? NumberOfStudents { get; set; }
+    public string GroupCode { get; set; }
 
     public int? AdminId { get; set; }
 
-    public int? DegreeId { get; set; }
+    public int DegreeId { get; set; }
 
     public int? Course { get; set; }
 
-    public int? EducationalProgramId { get; set; }
+    public int EducationalProgramId { get; set; }
 
-    public int? StudyFormId { get; set; }
+    public int StudyFormId { get; set; }
 
+    /// <summary>
+    /// Прискореники
+    /// </summary>
     public BitArray IsAccelerated { get; set; } = null!;
 
     public DateOnly? AdmissionYear { get; set; }

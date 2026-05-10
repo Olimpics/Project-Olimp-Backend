@@ -48,11 +48,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
-
-        if (queryDto.Courses != null && queryDto.Courses.Any())
-            query = query.Where(d =>
-                (!d.Courses.Any() || queryDto.Courses.Any(c => d.Courses.Contains(c))));
+            query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
 
         if (queryDto.IsEvenSemester.HasValue)
         {
@@ -74,6 +70,10 @@ public class DisciplineTabRepository : IDisciplineTabRepository
 
         if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
             query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+
+        if (queryDto.Courses != null && queryDto.Courses.Any())
+            query = query.Where(d =>
+                (!d.Courses.Any() || queryDto.Courses.Any(c => d.Courses.Contains(c))));
 
         return await query.ToListAsync();
     }

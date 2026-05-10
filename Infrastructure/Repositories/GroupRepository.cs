@@ -48,8 +48,8 @@ public class GroupRepository : IGroupRepository
             query = query.Where(g => g.EducationalProgram != null && 
                                      g.EducationalProgram.Speciality != null && 
                                      g.EducationalProgram.Speciality.Department != null &&
-                                     g.EducationalProgram.Speciality.Department.FacultyId.HasValue &&
-                                     queryDto.FacultyIds.Contains(g.EducationalProgram.Speciality.Department.FacultyId.Value));
+                                     g.EducationalProgram.Speciality.Department.FacultyId != null &&
+                                     queryDto.FacultyIds.Contains(g.EducationalProgram.Speciality.Department.FacultyId));
         if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
             query = query.Where(g => g.EducationalProgram != null && 
                                      g.EducationalProgram.Speciality != null && 
@@ -61,7 +61,7 @@ public class GroupRepository : IGroupRepository
             query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(g => g.DegreeId.HasValue && queryDto.DegreeLevelIds.Contains(g.DegreeId.Value));
+            query = query.Where(g => g.DegreeId != null && queryDto.DegreeLevelIds.Contains(g.DegreeId));
 
         query = queryDto.SortOrder switch
         {
@@ -97,7 +97,6 @@ public class GroupRepository : IGroupRepository
             {
                 IdGroup = g.IdGroup,
                 GroupCode = g.GroupCode,
-                NumberOfStudents = g.NumberOfStudents,
                 AdminId = g.AdminId,
                 DegreeId = g.DegreeId,
                 Course = g.Course,

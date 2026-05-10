@@ -79,7 +79,7 @@ public class DisciplineTabService : IDisciplineTabService
 
         var now = DateTime.UtcNow;
 
-        var isPeriodActive = await _repository.IsChoicePeriodActiveAsync(context.Student.FacultyId, now);
+        var isPeriodActive = await _repository.IsChoicePeriodActiveAsync(context.Student.Group.EducationalProgram.Speciality.Department.FacultyId, now);
         if (!isPeriodActive) return null;
 
         var disciplines = await _repository.GetDisciplinesBySemesterAsync(queryDto);

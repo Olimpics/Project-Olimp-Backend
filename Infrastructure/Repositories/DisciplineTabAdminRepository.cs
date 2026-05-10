@@ -61,7 +61,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         // 2. Faculties
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
-            query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
+            query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
         }
 
         // 3. Courses
@@ -122,7 +122,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 IdSelectiveDisciplines = d.IdSelectiveDisciplines,
                 NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
                 CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? "",
-                FacultyId = d.Department.FacultyId ?? 0,
+                FacultyId = d.Department.FacultyId,
                 FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation ?? "" : "",
                 MaxCountPeople = d.MaxCountPeople,
                 Courses = d.Courses ?? new List<int>(),
@@ -178,16 +178,16 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         return await _context.Students
             .AsNoTracking()
-            .Where(s => s.FacultyId == facultyId)
+            .Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId == facultyId)
             .Select(s => new StudentChoicesProjection(
                 s.IdStudent,
                 s.NameStudent ?? "",
-                s.Faculty != null ? s.Faculty.Abbreviation ?? s.Faculty.NameFaculty : "",
+                s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
-                s.EducationalDegreeId,
-                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegree : "",
-                s.EducationalProgram,
+                s.Group.DegreeId,
+                s.Group.Degree != null ? s.Group.Degree.NameEducationalDegree : "",
+                s.Group.EducationalProgram,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
@@ -210,12 +210,12 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(s =>
                 EF.Functions.Like(s.NameStudent.ToLower(), $"%{lowerSearch}%") ||
-                (s.Faculty != null && (EF.Functions.Like(s.Faculty.NameFaculty.ToLower(), $"%{lowerSearch}%") || EF.Functions.Like(s.Faculty.Abbreviation.ToLower(), $"%{lowerSearch}%"))) ||
+                (s.Group.EducationalProgram.Speciality.Department.Faculty != null && (EF.Functions.Like(s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.ToLower(), $"%{lowerSearch}%") || EF.Functions.Like(s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation.ToLower(), $"%{lowerSearch}%"))) ||
                 (s.Group != null && EF.Functions.Like(s.Group.GroupCode.ToLower(), $"%{lowerSearch}%")));
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(s => queryDto.Faculties.Contains(s.FacultyId));
+            query = query.Where(s => queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
@@ -224,20 +224,20 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             query = query.Where(s => queryDto.StudentGroups.Contains(s.GroupId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.EducationalDegreeId));
+            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
 
         if (queryDto.IsNew == 1 && queryDto.FacultyId > 0)
-            query = query.Where(s => s.FacultyId == queryDto.FacultyId);
+            query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId == queryDto.FacultyId);
 
         return await query.Select(s => new StudentChoicesProjection(
             s.IdStudent,
             s.NameStudent ?? "",
-            s.Faculty != null ? s.Faculty.Abbreviation ?? s.Faculty.NameFaculty : "",
+            s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
             s.Group != null ? s.Group.GroupCode : "",
             s.Course,
-            s.EducationalDegreeId,
-            s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegree : "",
-            s.EducationalProgram,
+            s.Group.DegreeId,
+            s.Group.Degree != null ? s.Group.Degree.NameEducationalDegree : "",
+            s.Group.EducationalProgram,
             s.BindSelectiveDisciplines
                 .Where(b => queryDto.IsNew == 0 || periodStart == null)
                 .Select(b => new StudentSelectedDisciplineDto
@@ -302,7 +302,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(d => d.Department.FacultyId.HasValue && queryDto.Faculties.Contains(d.Department.FacultyId.Value));
+            query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
 
         if (queryDto.IsFaculty.HasValue)
             query = query.Where(d => d.IsFaculty == queryDto.IsFaculty.Value);
@@ -327,7 +327,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             d.Type != null ? d.Type.TypeName ?? "" : "",
             d.DegreeLevelId,
             (sbyte)(d.IsFaculty ?? 0),
-            d.Department.FacultyId ?? 0,
+            d.Department.FacultyId,
             d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
             d.BindSelectiveDisciplines.Select(b => b.CreatedAt).ToList()
         )).ToListAsync();
@@ -369,12 +369,14 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .Select(s => new StudentChoicesProjection(
                 s.IdStudent,
                 s.NameStudent ?? "",
-                s.Faculty != null ? s.Faculty.Abbreviation ?? s.Faculty.NameFaculty : "",
+                s.Group != null && s.Group.EducationalProgram != null && s.Group.EducationalProgram.Speciality != null && s.Group.EducationalProgram.Speciality.Department != null && s.Group.EducationalProgram.Speciality.Department.Faculty != null
+                    ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty
+                    : "",
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
-                s.EducationalDegreeId,
-                s.EducationalDegree != null ? s.EducationalDegree.NameEducationalDegree : "",
-                s.EducationalProgram,
+                s.Group != null ? s.Group.DegreeId : 0,
+                s.Group != null && s.Group.Degree != null ? s.Group.Degree.NameEducationalDegree : "",
+                s.Group != null ? s.Group.EducationalProgram : null,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,

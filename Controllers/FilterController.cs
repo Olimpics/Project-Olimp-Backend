@@ -79,8 +79,7 @@ namespace OlimpBack.Controllers
                 .Select(g => new GroupFilterDto
                 {
                     Id = g.IdGroup,
-                    Code = g.GroupCode,
-                    StudentsCount = g.NumberOfStudents
+                    Code = g.GroupCode
                 });
 
             if (!string.IsNullOrWhiteSpace(search))
