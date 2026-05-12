@@ -10,7 +10,7 @@ namespace OlimpBack.Application.DTO
         public string? Prerequisites { get; set; }
         public string? Language { get; set; }
         public string? Provision { get; set; }
-        public string? DisciplineTopics { get; set; }
+        public List<string>? DisciplineTopics { get; set; }
         public string? WhyInterestingDetermination { get; set; }
         public string? ResultEducation { get; set; }
         public string? UsingIrl { get; set; }

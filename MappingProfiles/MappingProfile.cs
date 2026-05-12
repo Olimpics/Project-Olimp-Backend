@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
+using System.Text.Json;
 
 namespace OlimpBack.MappingProfiles
 {
@@ -268,7 +269,8 @@ namespace OlimpBack.MappingProfiles
             CreateMap<UpdateBindLoansMainDto, BindLoansMain>();
 
             //SelectiveDetail
-            CreateMap<DetailContentDto, SelectiveDetail>();
+            CreateMap<DetailContentDto, SelectiveDetail>()
+                .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.DisciplineTopics != null ? JsonSerializer.Serialize(src.DisciplineTopics, (JsonSerializerOptions)null) : null));
 
             // 2. ����� ������ CreateSelectiveDetailDto �� SelectiveDetail
             CreateMap<CreateSelectiveDetailDto, SelectiveDetail>()
@@ -276,7 +278,10 @@ namespace OlimpBack.MappingProfiles
                 .IncludeMembers(src => src.Content);
 
             // 3. � ��� ���� � ��������� �� (���� ����� ������ � �� � DTO)
-            CreateMap<SelectiveDetail, DetailContentDto>();
+            CreateMap<SelectiveDetail, DetailContentDto>()
+                .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.DisciplineTopics) ? JsonSerializer.Deserialize<List<string>>(src.DisciplineTopics, (JsonSerializerOptions)null) : null))
+                .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.Teachers))
+                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.Recommended));
 
             CreateMap<SelectiveDetail, SelectiveDetailDto>()
                 // ������: "������� �� ������� ���� � ���������� Content"

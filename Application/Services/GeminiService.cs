@@ -101,9 +101,10 @@ Return ONLY a valid JSON array of objects. No markdown, no conversational filler
     public GeminiService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromMinutes(7);
         _configuration = configuration;
         _apiKey = _configuration["Gemini:ApiKey"] ?? "";
-        _apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_apiKey}";
+        _apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
     }
 
     public async Task<List<GeminiSelectiveDisciplineDto>> ProcessSelectiveDisciplinesAsync(List<SelectiveDisciplineWordContentDto> batch)

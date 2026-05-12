@@ -135,6 +135,42 @@ public class ImportService : IImportService
             departmentId = dept?.IdDepartment;
         }
 
+        // Recommended and RecommendedEp preparation
+        var recommendedEpIds = new HashSet<int>();
+        var recommendedJson = new Dictionary<string, List<string>>();
+
+        if (dto.Recommended != null)
+        {
+            if (dto.Recommended.EducationalPrograms != null && dto.Recommended.EducationalPrograms.Any())
+            {
+                var eps = await _context.EducationalPrograms
+                    .Where(ep => dto.Recommended.EducationalPrograms.Contains(ep.NameEducationalProgram))
+                    .ToListAsync();
+                foreach (var ep in eps) recommendedEpIds.Add(ep.IdEducationalProgram);
+                recommendedJson["EducationalPrograms"] = dto.Recommended.EducationalPrograms;
+            }
+
+            if (dto.Recommended.Specialities != null && dto.Recommended.Specialities.Any())
+            {
+                var specs = await _context.Specialities
+                    .Where(s => dto.Recommended.Specialities.Contains(s.Name))
+                    .ToListAsync();
+                
+                var specIds = specs.Select(s => s.IdSpeciality).ToList();
+                var epsFromSpecs = await _context.EducationalPrograms
+                    .Where(ep => ep.SpecialityId.HasValue && specIds.Contains(ep.SpecialityId.Value))
+                    .ToListAsync();
+                
+                foreach (var ep in epsFromSpecs) recommendedEpIds.Add(ep.IdEducationalProgram);
+                recommendedJson["Specialties"] = dto.Recommended.Specialities;
+            }
+
+            if (dto.Recommended.Branches != null && dto.Recommended.Branches.Any())
+            {
+                recommendedJson["Branches"] = dto.Recommended.Branches;
+            }
+        }
+
         // Create SelectiveDiscipline
         var discipline = new SelectiveDiscipline
         {
@@ -152,8 +188,37 @@ public class ImportService : IImportService
             DepartmentId = departmentId,
             NameDock = uniqueFileName,
             Courses = dto.Courses,
-            NeedFix = new System.Collections.BitArray(new[] { dto.NeedFix })
+            NeedFix = new System.Collections.BitArray(new[] { dto.NeedFix }),
+            RecommendedEp = recommendedEpIds.ToList()
         };
+
+        // Teachers Binding and JSON preparation
+        var teachersJson = new List<object>();
+        if (dto.Teachers != null && dto.Teachers.Any())
+        {
+            foreach (var teacherName in dto.Teachers)
+            {
+                var admin = await _context.AdminsPersonals
+                    .FirstOrDefaultAsync(a => a.NameAdmin != null && a.NameAdmin.Contains(teacherName));
+                
+                if (admin != null)
+                {
+                    teachersJson.Add(new { Id = admin.IdAdmins, Name = admin.NameAdmin });
+                    _context.BindTeachersSelectives.Add(new BindTeachersSelective
+                    {
+                        IdBindTeacherSelective = await GenerateNextBindTeacherId(),
+                        AdminId = admin.IdAdmins,
+                        SelectiveDisciplinesId = discipline.IdSelectiveDisciplines,
+                        IsHead = new System.Collections.BitArray(new[] { true }) // Defaulting to head for simplicity
+                    });
+                }
+                else
+                {
+                    // If teacher not found in DB, just add the name
+                    teachersJson.Add(new { Id = 0, Name = teacherName });
+                }
+            }
+        }
 
         // Create SelectiveDetail
         var detail = new SelectiveDetail
@@ -166,35 +231,14 @@ public class ImportService : IImportService
             Provision = dto.Provision,
             UsingIrl = dto.UsingIrl,
             ResultEducation = dto.ResultEducation,
-            DisciplineTopics = dto.DisciplineTopics != null ? string.Join("; ", dto.DisciplineTopics) : null,
+            DisciplineTopics = dto.DisciplineTopics != null ? JsonSerializer.Serialize(dto.DisciplineTopics) : null,
             TypesOfTraining = dto.TypesOfTraining,
-            Recommended = JsonSerializer.Serialize(dto.Recommended),
-            Teachers = JsonSerializer.Serialize(dto.Teachers)
+            Recommended = recommendedJson.Any() ? JsonSerializer.Serialize(recommendedJson) : null,
+            Teachers = teachersJson.Any() ? JsonSerializer.Serialize(teachersJson) : null
         };
 
         _context.SelectiveDisciplines.Add(discipline);
         _context.SelectiveDetails.Add(detail);
-
-        // Teachers Binding
-        if (dto.Teachers != null && dto.Teachers.Any())
-        {
-            foreach (var teacherName in dto.Teachers)
-            {
-                var admin = await _context.AdminsPersonals
-                    .FirstOrDefaultAsync(a => a.NameAdmin != null && a.NameAdmin.Contains(teacherName));
-                
-                if (admin != null)
-                {
-                    _context.BindTeachersSelectives.Add(new BindTeachersSelective
-                    {
-                        IdBindTeacherSelective = await GenerateNextBindTeacherId(),
-                        AdminId = admin.IdAdmins,
-                        SelectiveDisciplinesId = discipline.IdSelectiveDisciplines,
-                        IsHead = new System.Collections.BitArray(new[] { true }) // Defaulting to head for simplicity
-                    });
-                }
-            }
-        }
 
         await _context.SaveChangesAsync();
     }
