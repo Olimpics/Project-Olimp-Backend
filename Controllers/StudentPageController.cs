@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 using System.Threading.Tasks;
 
@@ -18,6 +18,7 @@ public class StudentPageController : ControllerBase
     }
 
     [HttpGet("educational-program/{studentId}")]
+    [RequirePermission(RbacPermissions.StudentsRead)]
     public async Task<ActionResult<StudentEducationalProgramDto>> GetStudentEducationalProgram(int studentId)
     {
         var result = await _service.GetStudentEducationalProgramAsync(studentId);
@@ -31,6 +32,7 @@ public class StudentPageController : ControllerBase
     }
 
     [HttpGet("add-disciplines/{studentId}")]
+    [RequirePermission(RbacPermissions.StudentsRead)]
     public async Task<ActionResult<StudentSelectiveDisciplinesDto>> GetStudentSelectiveDisciplines(int studentId)
     {
         var result = await _service.GetStudentSelectiveDisciplinesAsync(studentId);

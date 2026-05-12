@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using OlimpBack.Application.Permissions;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -21,6 +22,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("export-to-file")]
+        [RequirePermission(RbacPermissions.StudentsRead)]
         public async Task<IActionResult> ExportToFile([FromQuery] string tableName, [FromQuery] string stringRequest)
         {
             if (string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(stringRequest))
@@ -71,6 +73,7 @@ namespace OlimpBack.Controllers
 
 
         [HttpGet("download")]
+        [RequirePermission(RbacPermissions.StudentsRead)]
         public async Task<IActionResult> DownloadFile([FromQuery] string fileName)
         {
             if (string.IsNullOrEmpty(fileName))

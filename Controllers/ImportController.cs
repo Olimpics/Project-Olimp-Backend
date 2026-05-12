@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 using OlimpBack.Data;
 
@@ -40,6 +41,7 @@ namespace OlimpBack.Controllers
 
         [HttpPost("selective-disciplines")]
         [Consumes("multipart/form-data")]
+        [RequirePermission(RbacPermissions.DisciplineCreate)]
         public async Task<IActionResult> UploadSelectiveDisciplines([FromForm] SelectiveDisciplineImportRequestDto dto)
         {
             if (dto.Archive == null || dto.Archive.Length == 0)
@@ -57,6 +59,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("selective-disciplines/file/{fileName}")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<IActionResult> GetSelectiveDisciplineFile(string fileName)
         {
             try

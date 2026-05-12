@@ -17,7 +17,7 @@ public class RatingController : ControllerBase
     }
 
     [HttpPost("generate")]
-    // [RequirePermission(RbacPermissions.StudentsRead)] // Need to check appropriate permission
+    [RequirePermission(RbacPermissions.StudentsRead)]
     public async Task<IActionResult> GenerateRating([FromBody] GenerateRatingQueryDto query)
     {
         try
@@ -33,6 +33,7 @@ public class RatingController : ControllerBase
     }
 
     [HttpGet("status")]
+    [RequirePermission(RbacPermissions.StudentsRead)]
     public async Task<ActionResult<RatingStatusResponseDto>> GetRatingStatus([FromQuery] RatingStatusQueryDto query)
     {
         try
@@ -47,6 +48,7 @@ public class RatingController : ControllerBase
     }
 
     [HttpGet("list")]
+    [RequirePermission(RbacPermissions.StudentsRead)]
     public async Task<ActionResult<PaginatedResponseDto<RatingStudentDto>>> GetRatingList([FromQuery] RatingListQueryDto query)
     {
         try

@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Data;
@@ -30,12 +31,14 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("educational-programs")]
+        [RequirePermission(RbacPermissions.EducationalProgramsRead)]
         public async Task<ActionResult<IEnumerable<EducationalProgramFilterDto>>> GetEducationalPrograms([FromQuery] string? search = null)
         {
             var items = await _educationalProgramService.GetEducationalProgramsForFilterAsync(search);
             return Ok(items);
         }
         [HttpGet("departments")]
+        [RequirePermission(RbacPermissions.DepartmentsRead)]
         public async Task<ActionResult<IEnumerable<FiltersDepartmentDTO>>> GetDepartmentsForFilter()
         {
             var departments = await _context.Departments
@@ -46,6 +49,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("specialities")]
+        [RequirePermission(RbacPermissions.EducationalProgramsRead)]
         public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetSpecialities([FromQuery] string? search = null)
         {
             var query = _context.EducationalPrograms
@@ -73,6 +77,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("groups")]
+        [RequirePermission(RbacPermissions.GroupsRead)]
         public async Task<ActionResult<IEnumerable<GroupFilterDto>>> GetGroups([FromQuery] string? search = null)
         {
             var query = _context.StudentGroups
@@ -97,6 +102,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("add-disciplines")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<IEnumerable<SpecialityFilterDto>>> GetSelectiveDisciplines([FromQuery] string? search = null)
         {
             var query = _context.SelectiveDisciplines
@@ -123,6 +129,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("add-disciplines-paged")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<PaginatedResponseDto<SpecialityFilterDto>>> GetSelectiveDisciplinesPaged(
             [FromQuery] SelectiveDisciplineFilterQueryDto queryDto)
         {
@@ -133,6 +140,7 @@ namespace OlimpBack.Controllers
 
 
         [HttpGet("notification-templates")]
+        [RequirePermission(RbacPermissions.NotificationsRead)]
         public async Task<ActionResult<IEnumerable<NotificationTemplateFilterDto>>> GetNotificationTemplates([FromQuery] string? search = null)
         {
             var query = _context.NotificationTemplates

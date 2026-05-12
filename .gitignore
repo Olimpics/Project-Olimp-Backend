@@ -332,6 +332,9 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+# ignore all appsettings Files for more security, but keep track of appsettings.json as it is used for configuration
+appsettings*.json
+
 # OpenCover UI analysis results
 OpenCover/
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.Permissions;
 using OlimpBack.Application.Services;
 
 namespace OlimpBack.Controllers
@@ -41,6 +42,7 @@ namespace OlimpBack.Controllers
 
         // -- NORMATIVE --
         [HttpGet("Normatives")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<NormativeDto>>> GetNormatives()
         {
             var result = await _normativeService.GetAllAsync();
@@ -48,6 +50,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("Normative/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<NormativeDto>> GetNormative(int id)
         {
             var result = await _normativeService.GetByIdAsync(id);
@@ -58,6 +61,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateNormative")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<NormativeDto>> CreateNormative(CreateNormativeDto dto)
         {
             var resultDto = await _normativeService.CreateAsync(dto);
@@ -65,6 +69,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateNormative/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateNormative(int id, UpdateNormativeDto dto)
         {
             var (success, statusCode, errorMessage) = await _normativeService.UpdateAsync(id, dto);
@@ -76,6 +81,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("DeleteNormative/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
         public async Task<IActionResult> DeleteNormative(int id)
         {
             var (success, statusCode, errorMessage) = await _normativeService.DeleteAsync(id);
@@ -89,6 +95,7 @@ namespace OlimpBack.Controllers
 
         // -- EDUCATION STATUS --
         [HttpGet("EducationStatuses")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<EducationStatusDto>>> GetEducationStatuses()
         {
             var result = await _educationStatusService.GetAllAsync();
@@ -96,6 +103,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("EducationStatus/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<EducationStatusDto>> GetEducationStatus(int id)
         {
             var result = await _educationStatusService.GetByIdAsync(id);
@@ -105,6 +113,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateEducationStatus")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<EducationStatusDto>> CreateEducationStatus(EducationStatusDto statusDto)
         {
             var resultDto = await _educationStatusService.CreateAsync(statusDto);
@@ -112,6 +121,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateEducationStatus/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateEducationStatus(int id, EducationStatusDto statusDto)
         {
             var (success, statusCode, errorMessage) = await _educationStatusService.UpdateAsync(id, statusDto);
@@ -121,6 +131,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("DeleteEducationStatus/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
         public async Task<IActionResult> DeleteEducationStatus(int id)
         {
             var (success, statusCode, errorMessage) = await _educationStatusService.DeleteAsync(id);
@@ -131,6 +142,7 @@ namespace OlimpBack.Controllers
 
         // -- EDUCATIONAL DEGREE --
         [HttpGet("EducationalDegrees")]
+        [RequirePermission(RbacPermissions.EducationalDegreesRead)]
         public async Task<ActionResult<IEnumerable<EducationalDegreeDto>>> GetEducationalDegrees()
         {
             var result = await _educationalDegreeService.GetAllAsync();
@@ -138,6 +150,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("EducationalDegree/{id}")]
+        [RequirePermission(RbacPermissions.EducationalDegreesRead)]
         public async Task<ActionResult<EducationalDegreeDto>> GetEducationalDegree(int id)
         {
             var result = await _educationalDegreeService.GetByIdAsync(id);
@@ -147,6 +160,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateEducationalDegree")]
+        [RequirePermission(RbacPermissions.EducationalDegreesCreate)]
         public async Task<ActionResult<EducationalDegreeDto>> CreateEducationalDegree(CreateEducationalDegreeDto dto)
         {
             var resultDto = await _educationalDegreeService.CreateAsync(dto);
@@ -154,6 +168,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateEducationalDegree/{id}")]
+        [RequirePermission(RbacPermissions.EducationalDegreesUpdate)]
         public async Task<IActionResult> UpdateEducationalDegree(int id, UpdateEducationalDegreeDto dto)
         {
             var (success, statusCode, errorMessage) = await _educationalDegreeService.UpdateAsync(id, dto);
@@ -163,6 +178,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("DeleteEducationalDegree/{id}")]
+        [RequirePermission(RbacPermissions.EducationalDegreesDelete)]
         public async Task<IActionResult> DeleteEducationalDegree(int id)
         {
             var (success, statusCode, errorMessage) = await _educationalDegreeService.DeleteAsync(id);
@@ -174,6 +190,7 @@ namespace OlimpBack.Controllers
 
         // -- NOTIFICATION TEMPLATE --
         [HttpGet("NotificationTemplates")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<NotificationTemplateDto>>> GetNotificationTemplates()
         {
             var result = await _notificationTemplateService.GetAllAsync();
@@ -181,6 +198,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("NotificationTemplate/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<NotificationTemplateDto>> GetNotificationTemplate(int id)
         {
             var result = await _notificationTemplateService.GetByIdAsync(id);
@@ -190,6 +208,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateNotificationTemplate")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<NotificationTemplateDto>> CreateNotificationTemplate(CreateNotificationTemplateDto dto)
         {
             var resultDto = await _notificationTemplateService.CreateAsync(dto);
@@ -197,6 +216,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateNotificationTemplate/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateNotificationTemplate(int id, UpdateNotificationTemplateDto dto)
         {
             var (success, statusCode, errorMessage) = await _notificationTemplateService.UpdateAsync(id, dto);
@@ -217,6 +237,7 @@ namespace OlimpBack.Controllers
 
         // -- StudyForm --
         [HttpGet("StudyForms")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<StudyFormDto>>> GetStudyForms()
         {
             var result = await _studyFormService.GetAllAsync();
@@ -224,6 +245,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("StudyForm/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<StudyFormDto>> GetStudyForm(int id)
         {
             var result = await _studyFormService.GetByIdAsync(id);
@@ -233,6 +255,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateStudyForm")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<StudyFormDto>> CreateStudyForm([FromBody] StudyFormDto dto)
         {
             var resultDto = await _studyFormService.CreateAsync(dto);
@@ -240,6 +263,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateStudyForm/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateStudyForm(int id, [FromBody] StudyFormDto dto)
         {
             var (success, statusCode, errorMessage) = await _studyFormService.UpdateAsync(id, dto);
@@ -249,6 +273,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("DeleteStudyForm/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
         public async Task<IActionResult> DeleteStudyForm(int id)
         {
             var (success, statusCode, errorMessage) = await _studyFormService.DeleteAsync(id);
@@ -261,6 +286,7 @@ namespace OlimpBack.Controllers
         // -- TypeOfDiscipline --
 
         [HttpGet("TypeOfDisciplines")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<TypeOfDisciplineDto>>> GetTypeOfDisciplines()
         {
             var result = await _typeOfDisciplineService.GetAllAsync();
@@ -268,6 +294,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("TypeOfDiscipline/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<TypeOfDisciplineDto>> GetTypeOfDiscipline(int id)
         {
             var result = await _typeOfDisciplineService.GetByIdAsync(id);
@@ -277,6 +304,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateTypeOfDiscipline")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<TypeOfDisciplineDto>> CreateTypeOfDiscipline(CreateTypeOfDisciplineDto dto)
         {
             var resultDto = await _typeOfDisciplineService.CreateAsync(dto);
@@ -284,6 +312,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateTypeOfDiscipline/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateTypeOfDiscipline(int id, TypeOfDisciplineDto dto)
         {
             var (success, statusCode, errorMessage) = await _typeOfDisciplineService.UpdateAsync(id, dto);
@@ -295,6 +324,7 @@ namespace OlimpBack.Controllers
         // -- CatalogYearMain --
 
         [HttpGet("CatalogYearsMain")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<CatalogYearMainDto>>> GetCatalogYearsMain()
         {
             var result = await _catalogYearMainService.GetAllAsync();
@@ -302,6 +332,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("CatalogYearMain/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<CatalogYearMainDto>> GetCatalogYearMain(int id)
         {
             var result = await _catalogYearMainService.GetByIdAsync(id);
@@ -311,6 +342,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateCatalogYearMain")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<CatalogYearMainDto>> CreateCatalogYearMain(CreateCatalogYearMainDto dto)
         {
             var resultDto = await _catalogYearMainService.CreateAsync(dto);
@@ -318,6 +350,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateCatalogYearMain/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateCatalogYearMain(int id, UpdateCatalogYearMainDto dto)
         {
             var (success, statusCode, errorMessage) = await _catalogYearMainService.UpdateAsync(id, dto);
@@ -327,6 +360,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("DeleteCatalogYearMain/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
         public async Task<IActionResult> DeleteCatalogYearMain(int id)
         {
             var (success, statusCode, errorMessage) = await _catalogYearMainService.DeleteAsync(id);
@@ -338,6 +372,7 @@ namespace OlimpBack.Controllers
         // -- CatalogYearSelective --
 
         [HttpGet("CatalogYearsSelective")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<CatalogYearSelectiveDto>>> GetCatalogYearsSelective()
         {
             var result = await _catalogYearSelectiveService.GetAllAsync();
@@ -345,6 +380,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("CatalogYearSelective/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<CatalogYearSelectiveDto>> GetCatalogYearSelective(int id)
         {
             var result = await _catalogYearSelectiveService.GetByIdAsync(id);
@@ -354,6 +390,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPost("CreateCatalogYearSelective")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
         public async Task<ActionResult<CatalogYearSelectiveDto>> CreateCatalogYearSelective(CreateCatalogYearSelectiveDto dto)
         {
             var resultDto = await _catalogYearSelectiveService.CreateAsync(dto);
@@ -361,6 +398,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpPut("UpdateCatalogYearSelective/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
         public async Task<IActionResult> UpdateCatalogYearSelective(int id, UpdateCatalogYearSelectiveDto dto)
         {
             var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.UpdateAsync(id, dto);
@@ -370,6 +408,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpDelete("DeleteCatalogYearSelective/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
         public async Task<IActionResult> DeleteCatalogYearSelective(int id)
         {
             var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.DeleteAsync(id);
