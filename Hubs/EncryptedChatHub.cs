@@ -82,7 +82,7 @@ public class EncryptedChatHub : Hub<IEncryptedChatClient>
             var response = await _messageService.SendMessageAsync(request, userId);
 
             // 2. Broadcast to conversation group
-            var realtimeMsg = new RealtimeEncryptedMessageDto
+            var realtimeMsg = new OlimpBack.Application.DTO.Realtime.RealtimeEncryptedMessageDto
             {
                 MessageId = response.IdMessage,
                 ConversationId = response.ConversationId,

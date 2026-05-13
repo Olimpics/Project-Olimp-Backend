@@ -23,7 +23,7 @@ public partial class StudentGroup
     /// <summary>
     /// Прискореники
     /// </summary>
-    public BitArray IsAccelerated { get; set; } = null!;
+    public bool IsAccelerated { get; set; }
 
     public DateOnly? AdmissionYear { get; set; }
 

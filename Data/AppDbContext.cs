@@ -62,6 +62,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Department> Departments { get; set; }
 
+    public virtual DbSet<DeviceTransferSession> DeviceTransferSessions { get; set; }
+
     public virtual DbSet<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; }
 
     public virtual DbSet<EducationStatus> EducationStatuses { get; set; }
@@ -582,13 +584,14 @@ public partial class AppDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("idConversation");
             entity.Property(e => e.ConversationToken).HasColumnName("conversationToken");
-            entity.Property(e => e.IsAnonymous)
-                .HasDefaultValue(false)
-                .HasColumnName("isAnonymous");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdAt");
+            entity.Property(e => e.IsAnonymous)
+                .HasDefaultValueSql("'0'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isAnonymous");
         });
 
         modelBuilder.Entity<ConversationParticipant>(entity =>
@@ -598,19 +601,18 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdConversationParticipants)
                 .ValueGeneratedNever()
                 .HasColumnName("idConversationParticipants");
-            entity.Property(e => e.ConversationId).HasColumnName("conversationId");
-            entity.Property(e => e.UserId).HasColumnName("userId");
-            entity.Property(e => e.Pseudonym)
-                .HasMaxLength(100)
-                .HasColumnName("pseudonym");
-            entity.Property(e => e.IsIdentityRevealed)
-                .HasDefaultValue(false)
-                .HasColumnName("isIdentityRevealed");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdAt");
             entity.Property(e => e.EncryptedParticipant).HasColumnName("encryptedParticipant");
+            entity.Property(e => e.IsIdentityRevealed)
+                .HasDefaultValueSql("'1'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isIdentityRevealed");
+            entity.Property(e => e.Pseudonym)
+                .HasColumnType("character varying")
+                .HasColumnName("pseudonym");
 
             entity.HasOne(d => d.Conversation).WithMany(p => p.ConversationParticipants)
                 .HasForeignKey(d => d.ConversationId)
@@ -619,8 +621,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.ConversationParticipants)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("conversation_participants_user_id_fkey");
+                .HasConstraintName("conversationparticipants_users_fk");
         });
 
         modelBuilder.Entity<DefaultUniNeed>(entity =>
@@ -667,6 +668,59 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("department_faculties_fk");
+        });
+
+        modelBuilder.Entity<DeviceTransferSession>(entity =>
+        {
+            entity.HasKey(e => e.IdDeviceTransferSessions).HasName("DeviceTransferSessions_pkey");
+
+            entity.HasIndex(e => e.ExpiresAt, "IxDeviceTransferSessionsExpiresAt");
+
+            entity.HasIndex(e => e.IsCompleted, "IxDeviceTransferSessionsIsCompleted");
+
+            entity.HasIndex(e => e.IsExpired, "IxDeviceTransferSessionsIsExpired");
+
+            entity.HasIndex(e => e.TransferSessionToken, "IxDeviceTransferSessionsTransferSessionToken").IsUnique();
+
+            entity.HasIndex(e => e.UserId, "IxDeviceTransferSessionsUserId");
+
+            entity.Property(e => e.IdDeviceTransferSessions)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("idDeviceTransferSessions");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.EncryptedTransferPayload).HasColumnName("encryptedTransferPayload");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expiresAt");
+            entity.Property(e => e.IsCompleted)
+                .HasDefaultValueSql("'0'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isCompleted");
+            entity.Property(e => e.IsExpired)
+                .HasDefaultValueSql("'0'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isExpired");
+            entity.Property(e => e.NewDevicePublicKey).HasColumnName("newDevicePublicKey");
+            entity.Property(e => e.OldDevicePublicKey).HasColumnName("oldDevicePublicKey");
+            entity.Property(e => e.TransferCode)
+                .HasMaxLength(32)
+                .HasColumnName("transferCode");
+            entity.Property(e => e.TransferSessionToken)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("transferSessionToken");
+
+            entity.HasOne(d => d.NewDevice).WithMany(p => p.DeviceTransferSessionNewDevices)
+                .HasForeignKey(d => d.NewDeviceId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FkDeviceTransferSessionsNewDevice");
+
+            entity.HasOne(d => d.OldDevice).WithMany(p => p.DeviceTransferSessionOldDevices)
+                .HasForeignKey(d => d.OldDeviceId)
+                .HasConstraintName("FkDeviceTransferSessionsOldDevice");
+
+            entity.HasOne(d => d.User).WithMany(p => p.DeviceTransferSessions)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FkDeviceTransferSessionsUser");
         });
 
         modelBuilder.Entity<DisciplineChoicePeriod>(entity =>
@@ -973,30 +1027,40 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdMessage)
                 .ValueGeneratedNever()
                 .HasColumnName("idMessage");
-            entity.Property(e => e.ConversationId).HasColumnName("conversationId");
-            entity.Property(e => e.SenderId).HasColumnName("senderId");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdAt");
+            entity.Property(e => e.DeliveredAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("deliveredAt");
             entity.Property(e => e.EncryptedPayload).HasColumnName("encryptedPayload");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValueSql("'0'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isDeleted");
+            entity.Property(e => e.IsDelivered)
+                .HasDefaultValueSql("'0'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isDelivered");
+            entity.Property(e => e.IsRead)
+                .HasDefaultValueSql("'0'::\"bit\"")
+                .HasColumnType("bit(1)")
+                .HasColumnName("isRead");
             entity.Property(e => e.Nonce).HasColumnName("nonce");
+            entity.Property(e => e.ReadAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("readAt");
             entity.Property(e => e.SenderDevicePublicKey).HasColumnName("senderDevicePublicKey");
-            entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("isDeleted");
-            entity.Property(e => e.IsDelivered).HasDefaultValue(false).HasColumnName("isDelivered");
-            entity.Property(e => e.DeliveredAt).HasColumnName("deliveredAt");
-            entity.Property(e => e.IsRead).HasDefaultValue(false).HasColumnName("isRead");
-            entity.Property(e => e.ReadAt).HasColumnName("readAt");
 
             entity.HasOne(d => d.Conversation).WithMany(p => p.Messages)
+                .HasPrincipalKey(p => p.ConversationToken)
                 .HasForeignKey(d => d.ConversationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("messages_conversation_id_fkey");
+                .HasConstraintName("messages_conversations_fk");
 
-            entity.HasOne(d => d.Sender).WithMany()
+            entity.HasOne(d => d.Sender).WithMany(p => p.Messages)
                 .HasForeignKey(d => d.SenderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("messages_sender_id_fkey");
+                .HasConstraintName("messages_users_fk");
         });
 
         modelBuilder.Entity<Normative>(entity =>
@@ -1634,12 +1698,16 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("deviceName");
             entity.Property(e => e.IdentityKey).HasColumnName("identityKey");
-            entity.Property(e => e.SignedPreKey).HasColumnName("signedPreKey");
-            entity.Property(e => e.SignedPreKeySignature).HasColumnName("signedPreKeySignature");
-            entity.Property(e => e.SignedPreKeyId).HasColumnName("signedPreKeyId");
             entity.Property(e => e.LastSeen)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("lastSeen");
+            entity.Property(e => e.SignedPreKey)
+                .HasColumnType("character varying")
+                .HasColumnName("signedPreKey");
+            entity.Property(e => e.SignedPreKeyId).HasColumnName("signedPreKeyId");
+            entity.Property(e => e.SignedPreKeySignature)
+                .HasColumnType("character varying")
+                .HasColumnName("signedPreKeySignature");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserDevices)
                 .HasForeignKey(d => d.UserId)

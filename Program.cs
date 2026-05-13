@@ -29,6 +29,8 @@ using OlimpBack.Application.Services.Encryption;
 using OlimpBack.Application.Validators.Encryption;
 using OlimpBack.Infrastructure.Security;
 using OlimpBack.Infrastructure.Middleware;
+using OlimpBack.Hubs;
+using OlimpBack.Infrastructure.Realtime;
 
 Environment.SetEnvironmentVariable(
     "ASPNETCORE_ENVIRONMENT",
@@ -162,8 +164,8 @@ builder.Services.AddAuthentication(options =>
             }
             return Task.CompletedTask;
         },
-        // 1️⃣ Ошибка аутентификации
- (битый / просроченный токен)
+        // 1️⃣ Ошибка аутентификации (битый / просроченный токен)
+
         OnAuthenticationFailed = context =>
         {
             var logger = context.HttpContext.RequestServices

@@ -35,7 +35,7 @@ public partial class Student
 
     public string? Notes { get; set; }
 
-    public BitArray? Avail { get; set; }
+    public bool? Avail { get; set; }
 
     public Guid UserId { get; set; }
 

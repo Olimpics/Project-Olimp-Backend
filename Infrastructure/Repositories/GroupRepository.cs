@@ -115,7 +115,7 @@ public class GroupRepository : IGroupRepository
                                ? g.EducationalProgram.Speciality.Name : null,
                 AdmissionYear = g.AdmissionYear.HasValue ? g.AdmissionYear.Value.Year : null,
                 IdStudyForm = g.StudyFormId,
-                IsAccelerated = g.IsAccelerated.Cast<bool>().FirstOrDefault()
+                IsAccelerated = g.IsAccelerated
             })
             .FirstOrDefaultAsync();
     }

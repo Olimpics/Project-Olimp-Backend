@@ -26,7 +26,13 @@ public partial class User
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
+    public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
+
+    public virtual ICollection<DeviceTransferSession> DeviceTransferSessions { get; set; } = new List<DeviceTransferSession>();
+
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
+
+    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
@@ -37,6 +43,4 @@ public partial class User
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-
-    public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
 }

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -9,13 +10,15 @@ public partial class Message
 
     public Guid ConversationId { get; set; }
 
-    public Guid SenderId { get; set; }
-
     public string SenderDevicePublicKey { get; set; } = null!;
 
     public byte[] EncryptedPayload { get; set; } = null!;
 
     public string Nonce { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
+
+    public Guid SenderId { get; set; }
 
     public bool IsDeleted { get; set; }
 
@@ -26,8 +29,6 @@ public partial class Message
     public bool IsRead { get; set; }
 
     public DateTime? ReadAt { get; set; }
-
-    public DateTime CreatedAt { get; set; }
 
     public virtual Conversation Conversation { get; set; } = null!;
 
