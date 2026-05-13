@@ -6,7 +6,7 @@ namespace OlimpBack.Application.DTO;
 public class NotificationDto
 {
     public int IdNotification { get; set; }
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
     public int TemplateId { get; set; }
     public string Title { get; set; } = null!;
     public string Message { get; set; } = null!;
@@ -18,7 +18,7 @@ public class NotificationDto
 
 public class CreateNotificationDto
 {
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
     public int TemplateId { get; set; }
     public string? Title { get; set; }
     public string? Message { get; set; }

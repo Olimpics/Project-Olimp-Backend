@@ -54,6 +54,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CatalogYearsSelective> CatalogYearsSelectives { get; set; }
 
+    public virtual DbSet<Conversation> Conversations { get; set; }
+
+    public virtual DbSet<ConversationParticipant> ConversationParticipants { get; set; }
+
     public virtual DbSet<DefaultUniNeed> DefaultUniNeeds { get; set; }
 
     public virtual DbSet<Department> Departments { get; set; }
@@ -82,6 +86,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<MembersOfSg> MembersOfSgs { get; set; }
 
+    public virtual DbSet<Message> Messages { get; set; }
+
     public virtual DbSet<Normative> Normatives { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
@@ -90,9 +96,13 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Permission> Permissions { get; set; }
 
+    public virtual DbSet<PreKey> PreKeys { get; set; }
+
     public virtual DbSet<Prerequisite> Prerequisites { get; set; }
 
     public virtual DbSet<RatingCalculationTime> RatingCalculationTimes { get; set; }
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<RegulationOnAddPoint> RegulationOnAddPoints { get; set; }
 
@@ -128,6 +138,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserDevice> UserDevices { get; set; }
+
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -136,6 +148,8 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("pgcrypto");
+
         modelBuilder.Entity<AccountingJournal>(entity =>
         {
             entity.HasKey(e => e.IdAccountingJournal).HasName("accountingjournal_pk");
@@ -190,6 +204,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdAdmins)
                 .ValueGeneratedNever()
                 .HasColumnName("idAdmins");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.NameAdmin)
                 .HasMaxLength(50)
                 .HasColumnName("nameAdmin");
@@ -204,6 +221,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("adminspersonal_users_fk");
         });
 
@@ -399,7 +417,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Student).WithMany(p => p.BindSelectiveDisciplines)
                 .HasForeignKey(d => d.StudentId)
-                .HasConstraintName("bindadddisciplines_student_fk");
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("bindselectivedisciplines_student_fk");
 
             entity.HasOne(d => d.YearNavigation).WithMany(p => p.BindSelectiveDisciplines)
                 .HasForeignKey(d => d.Year)
@@ -497,6 +516,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdBranch)
                 .ValueGeneratedNever()
                 .HasColumnName("idBranch");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -550,6 +572,41 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("nameCatalog");
         });
 
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(e => e.IdConversation).HasName("conversations_pkey");
+
+            entity.HasIndex(e => e.ConversationToken, "conversations_conversation_token_key").IsUnique();
+
+            entity.Property(e => e.IdConversation)
+                .ValueGeneratedNever()
+                .HasColumnName("idConversation");
+            entity.Property(e => e.ConversationToken).HasColumnName("conversationToken");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+        });
+
+        modelBuilder.Entity<ConversationParticipant>(entity =>
+        {
+            entity.HasKey(e => e.IdConversationParticipants).HasName("conversation_participants_pkey");
+
+            entity.Property(e => e.IdConversationParticipants)
+                .ValueGeneratedNever()
+                .HasColumnName("idConversationParticipants");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.EncryptedParticipant).HasColumnName("encryptedParticipant");
+
+            entity.HasOne(d => d.Conversation).WithMany(p => p.ConversationParticipants)
+                .HasForeignKey(d => d.ConversationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("conversation_participants_conversation_id_fkey");
+        });
+
         modelBuilder.Entity<DefaultUniNeed>(entity =>
         {
             entity.HasKey(e => e.IdUniNeeds).HasName("defaultunineeds_pk");
@@ -583,12 +640,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Abbreviation)
                 .HasMaxLength(50)
                 .HasColumnName("abbreviation");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.NameDepartment)
                 .HasMaxLength(64)
                 .HasColumnName("nameDepartment");
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.Departments)
                 .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("department_faculties_fk");
         });
 
@@ -703,6 +764,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdEvent)
                 .ValueGeneratedNever()
                 .HasColumnName("idEvent");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Date).HasColumnName("date");
             entity.Property(e => e.Format)
                 .HasColumnType("character varying")
@@ -738,6 +802,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Abbreviation)
                 .HasMaxLength(50)
                 .HasColumnName("abbreviation");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.NameFaculty)
                 .HasMaxLength(64)
                 .HasColumnName("nameFaculty");
@@ -770,6 +837,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdInventoroy)
                 .ValueGeneratedNever()
                 .HasColumnName("idInventoroy");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.CodeInventory)
                 .HasColumnType("character varying")
                 .HasColumnName("codeInventory");
@@ -858,6 +928,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdMembersOfSg)
                 .ValueGeneratedNever()
                 .HasColumnName("idMembersOfSG");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.BindsubdivisionRoleSgid).HasColumnName("BindsubdivisionRoleSGId");
 
             entity.HasOne(d => d.BindsubdivisionRoleSg).WithMany(p => p.MembersOfSgs)
@@ -871,6 +944,26 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Student).WithMany(p => p.MembersOfSgStudents)
                 .HasForeignKey(d => d.StudentId)
                 .HasConstraintName("membersofsg_student_fk");
+        });
+
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(e => e.IdMessage).HasName("messages_pkey");
+
+            entity.ToTable("messages");
+
+            entity.HasIndex(e => new { e.ConversationTokenId, e.CreatedAt }, "idx_messages_conversation_created").IsDescending(false, true);
+
+            entity.Property(e => e.IdMessage)
+                .ValueGeneratedNever()
+                .HasColumnName("idMessage");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.EncryptedPayload).HasColumnName("encryptedPayload");
+            entity.Property(e => e.Nonce).HasColumnName("nonce");
+            entity.Property(e => e.SenderDevicePublicKey).HasColumnName("senderDevicePublicKey");
         });
 
         modelBuilder.Entity<Normative>(entity =>
@@ -926,6 +1019,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdNotificationTemplates)
                 .ValueGeneratedNever()
                 .HasColumnName("idNotificationTemplates");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Message)
                 .HasMaxLength(128)
                 .HasColumnName("message");
@@ -952,6 +1048,28 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("idPermission");
             entity.Property(e => e.BitIndex).HasColumnName("bitIndex");
             entity.Property(e => e.Code).HasColumnName("code");
+        });
+
+        modelBuilder.Entity<PreKey>(entity =>
+        {
+            entity.HasKey(e => e.IdPreKeys).HasName("pre_keys_pkey");
+
+            entity.Property(e => e.IdPreKeys)
+                .ValueGeneratedNever()
+                .HasColumnName("idPreKeys");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.IsUsed)
+                .HasDefaultValue(false)
+                .HasColumnName("isUsed");
+            entity.Property(e => e.PublicPreKey).HasColumnName("publicPreKey");
+
+            entity.HasOne(d => d.Device).WithMany(p => p.PreKeys)
+                .HasForeignKey(d => d.DeviceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("pre_keys_device_id_fkey");
         });
 
         modelBuilder.Entity<Prerequisite>(entity =>
@@ -996,6 +1114,28 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("ratingcalculationtime_catalogyear_fk");
         });
 
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.IdRefreshTokens).HasName("refresh_tokens_pkey");
+
+            entity.Property(e => e.IdRefreshTokens)
+                .ValueGeneratedNever()
+                .HasColumnName("idRefreshTokens");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("expiresAt");
+            entity.Property(e => e.Token).HasColumnName("token");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("refresh_tokens_user_id_fkey");
+        });
+
         modelBuilder.Entity<RegulationOnAddPoint>(entity =>
         {
             entity.HasKey(e => e.IdRegulationOnAddPoints).HasName("regulationonaddpoints_pk");
@@ -1009,6 +1149,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AmountMin)
                 .HasMaxLength(50)
                 .HasColumnName("amountMin");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.CodeRegulationOnAddPoints)
                 .HasMaxLength(50)
                 .HasColumnName("codeRegulationOnAddPoints");
@@ -1222,6 +1365,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AccreditationType)
                 .HasMaxLength(50)
                 .HasColumnName("accreditationType");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Description)
                 .HasMaxLength(50)
@@ -1249,6 +1395,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdSpecialization)
                 .ValueGeneratedNever()
                 .HasColumnName("idSpecialization");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Description)
                 .HasMaxLength(50)
@@ -1267,6 +1416,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdStudent)
                 .ValueGeneratedNever()
                 .HasColumnName("idStudent");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Course).HasColumnName("course");
             entity.Property(e => e.EducationEnd).HasColumnName("educationEnd");
             entity.Property(e => e.EducationStart).HasColumnName("educationStart");
@@ -1300,7 +1452,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Students)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("student_users_fk");
         });
 
@@ -1314,6 +1466,9 @@ public partial class AppDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("idGroup");
             entity.Property(e => e.AdmissionYear).HasColumnName("admissionYear");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.Course).HasColumnName("course");
             entity.Property(e => e.GroupCode)
                 .HasMaxLength(45)
@@ -1325,14 +1480,17 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Admin).WithMany(p => p.StudentGroups)
                 .HasForeignKey(d => d.AdminId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("group_adminspersonal_fk");
 
             entity.HasOne(d => d.Degree).WithMany(p => p.StudentGroups)
                 .HasForeignKey(d => d.DegreeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("group_educationaldegree_fk");
 
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.StudentGroups)
                 .HasForeignKey(d => d.EducationalProgramId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("studentgroup_educationalprogram_fk");
 
             entity.HasOne(d => d.StudyForm).WithMany(p => p.StudentGroups)
@@ -1363,6 +1521,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdSubDivision)
                 .ValueGeneratedNever()
                 .HasColumnName("idSubDivision");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.NameDivision)
                 .HasMaxLength(50)
                 .HasColumnName("nameDivision");
@@ -1398,13 +1559,14 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.IdUser).HasName("users_pk");
-
-            entity.HasIndex(e => e.IdUser, "users_idusers_idx");
+            entity.HasKey(e => e.IdUser).HasName("Users_pkey");
 
             entity.Property(e => e.IdUser)
-                .ValueGeneratedNever()
+                .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idUser");
+            entity.Property(e => e.Avail)
+                .HasColumnType("bit(1)")
+                .HasColumnName("avail");
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdAt");
@@ -1424,6 +1586,31 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.PasswordSalt).HasColumnName("passwordSalt");
         });
 
+        modelBuilder.Entity<UserDevice>(entity =>
+        {
+            entity.HasKey(e => e.IdUserDevices).HasName("user_devices_pkey");
+
+            entity.Property(e => e.IdUserDevices)
+                .ValueGeneratedNever()
+                .HasColumnName("idUserDevices");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.DeviceName)
+                .HasMaxLength(200)
+                .HasColumnName("deviceName");
+            entity.Property(e => e.LastSeen)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("lastSeen");
+            entity.Property(e => e.PublicKey).HasColumnName("publicKey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserDevices)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("user_devices_user_id_fkey");
+        });
+
         modelBuilder.Entity<UserRole>(entity =>
         {
             entity.HasKey(e => e.IdUserRole).HasName("userroles_pk");
@@ -1439,8 +1626,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("user_roles_user_id_fkey");
+                .HasConstraintName("userroles_users_fk");
         });
 
         OnModelCreatingPartial(modelBuilder);

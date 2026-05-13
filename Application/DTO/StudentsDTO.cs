@@ -33,7 +33,7 @@
     public class CreateStudentDto
     {
         public int IdStudent { get; set; }
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public string NameStudent { get; set; }
         public int StatusId { get; set; }
         public DateOnly EducationStart { get; set; }

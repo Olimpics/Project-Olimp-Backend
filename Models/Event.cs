@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -15,11 +16,13 @@ public partial class Event
 
     public int? RegulationId { get; set; }
 
-    public int? CreatorId { get; set; }
-
     public int? SubdivisionSgid { get; set; }
 
     public string? Format { get; set; }
+
+    public BitArray? Avail { get; set; }
+
+    public Guid? CreatorId { get; set; }
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 

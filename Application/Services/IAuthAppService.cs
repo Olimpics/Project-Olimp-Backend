@@ -16,7 +16,7 @@ public interface IAuthAppService
     Task<(object? response,
           List<PermissionDto>? permissions,
           int? statusCode,
-          string? errorPayload)> GetCurrentUserAsync(int userId);
+          string? errorPayload)> GetCurrentUserAsync(Guid userId);
 
     Task<(bool success, int statusCode, string message)> ChangePasswordAsync(ChangePasswordDto dto);
 }

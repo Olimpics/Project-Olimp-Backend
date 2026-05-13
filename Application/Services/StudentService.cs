@@ -134,7 +134,7 @@ public class StudentService : IStudentService
                 continue;
 
             var userId = dto.UserId;
-            if (userId == 0)
+            if (userId == Guid.Empty)
             {
                 // Залишив твій сервіс, припускаємо що він зберігає юзера
                 userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);

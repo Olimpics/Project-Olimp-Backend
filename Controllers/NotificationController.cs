@@ -28,7 +28,7 @@ namespace OlimpBack.Controllers
         [HttpGet("user/{userId}")]
         [RequirePermission(RbacPermissions.NotificationsRead)]
         public async Task<ActionResult<object>> GetUserNotifications(
-            int userId,
+            Guid userId,
             [FromQuery] NotificationQueryDto query)
         {
             var result = await _notificationService.GetUserNotificationsAsync(userId, query);

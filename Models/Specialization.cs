@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -14,6 +15,8 @@ public partial class Specialization
     public int? SpecialityId { get; set; }
 
     public string? Description { get; set; }
+
+    public BitArray? Avail { get; set; }
 
     public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
 }

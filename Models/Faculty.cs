@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -10,6 +11,8 @@ public partial class Faculty
     public string? NameFaculty { get; set; }
 
     public string? Abbreviation { get; set; }
+
+    public BitArray? Avail { get; set; }
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 

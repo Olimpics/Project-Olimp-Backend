@@ -6,7 +6,7 @@ namespace OlimpBack.Utils
 {
     public static class UserService
     {
-        public static async Task<int> CreateUserForStudent(string studentName, AppDbContext _context)
+        public static async Task<Guid> CreateUserForStudent(string studentName, AppDbContext _context)
         {
             
             var email = $"{studentName.Replace(" ", ".").ToLower()}@student.local";

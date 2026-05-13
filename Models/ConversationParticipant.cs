@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace OlimpBack.Models;
+
+public partial class ConversationParticipant
+{
+    public Guid IdConversationParticipants { get; set; }
+
+    public Guid ConversationId { get; set; }
+
+    public byte[] EncryptedParticipant { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
+
+    public virtual Conversation Conversation { get; set; } = null!;
+}

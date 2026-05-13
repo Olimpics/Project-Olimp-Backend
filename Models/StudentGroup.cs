@@ -8,7 +8,7 @@ public partial class StudentGroup
 {
     public int IdGroup { get; set; }
 
-    public string GroupCode { get; set; }
+    public string GroupCode { get; set; } = null!;
 
     public int? AdminId { get; set; }
 
@@ -16,7 +16,7 @@ public partial class StudentGroup
 
     public int? Course { get; set; }
 
-    public int EducationalProgramId { get; set; }
+    public int? EducationalProgramId { get; set; }
 
     public int StudyFormId { get; set; }
 
@@ -27,9 +27,11 @@ public partial class StudentGroup
 
     public DateOnly? AdmissionYear { get; set; }
 
+    public BitArray? Avail { get; set; }
+
     public virtual AdminsPersonal? Admin { get; set; }
 
-    public virtual EducationalDegree? Degree { get; set; }
+    public virtual EducationalDegree Degree { get; set; } = null!;
 
     public virtual EducationalProgram? EducationalProgram { get; set; }
 

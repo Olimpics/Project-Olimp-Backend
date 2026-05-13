@@ -83,7 +83,7 @@ public class RoleMaskService : IRoleMaskService
         return roleMask;
     }
 
-    public async Task<long> GetUserPermissionsMaskAsync(int userId, CancellationToken cancellationToken = default)
+    public async Task<long> GetUserPermissionsMaskAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // TEMPORARY: Redis cache is disabled for local development until Redis is available.
         // var cacheKey = GetUserMaskKey(userId);

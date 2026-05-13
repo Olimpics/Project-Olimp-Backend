@@ -8,8 +8,6 @@ public partial class Student
 {
     public int IdStudent { get; set; }
 
-    public int UserId { get; set; }
-
     public string? NameStudent { get; set; }
 
     public int EducationStatusId { get; set; }
@@ -37,6 +35,10 @@ public partial class Student
 
     public string? Notes { get; set; }
 
+    public BitArray? Avail { get; set; }
+
+    public Guid UserId { get; set; }
+
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
@@ -61,5 +63,5 @@ public partial class Student
 
     public virtual ICollection<MembersOfSg> MembersOfSgStudents { get; set; } = new List<MembersOfSg>();
 
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

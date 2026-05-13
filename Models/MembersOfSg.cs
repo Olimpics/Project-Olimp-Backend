@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -12,6 +13,8 @@ public partial class MembersOfSg
     public int? BindsubdivisionRoleSgid { get; set; }
 
     public int? CreatedBy { get; set; }
+
+    public BitArray? Avail { get; set; }
 
     public virtual BindSubdivisionRoleSg? BindsubdivisionRoleSg { get; set; }
 

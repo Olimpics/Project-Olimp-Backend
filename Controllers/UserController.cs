@@ -39,7 +39,7 @@ namespace OlimpBack.Controllers
         // GET: api/User/5
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.UsersRead)]
-        public async Task<ActionResult<UserRoleDto>> GetUser(int id)
+        public async Task<ActionResult<UserRoleDto>> GetUser(Guid id)
         {
             var dto = await _context.Users
                 .Where(u => u.IdUser == id)

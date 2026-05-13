@@ -89,7 +89,7 @@ public class AuthAppService : IAuthAppService
         return (dbResponse, permissionsDb, primaryRole.Name, null, null);
     }
 
-    public async Task<(object? response, List<PermissionDto>? permissions, int? statusCode, string? errorPayload)> GetCurrentUserAsync(int userId)
+    public async Task<(object? response, List<PermissionDto>? permissions, int? statusCode, string? errorPayload)> GetCurrentUserAsync(Guid userId)
     {
         var user = await _repository.GetUserByIdTrackedAsync(userId);
 

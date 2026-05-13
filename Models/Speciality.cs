@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -22,6 +23,8 @@ public partial class Speciality
     public int? LicensedVolume { get; set; }
 
     public string? Description { get; set; }
+
+    public BitArray? Avail { get; set; }
 
     public virtual Branch? Branch { get; set; }
 

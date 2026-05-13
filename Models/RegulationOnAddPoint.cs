@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -18,6 +19,8 @@ public partial class RegulationOnAddPoint
     public string? Notes { get; set; }
 
     public string? SubTypeOfActivitys { get; set; }
+
+    public BitArray? Avail { get; set; }
 
     public virtual ICollection<BindExtraActivity> BindExtraActivities { get; set; } = new List<BindExtraActivity>();
 

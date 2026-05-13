@@ -153,7 +153,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             {
                 var userId = bind.Student?.UserId;
                 
-                if (userId == null || userId <= 0)
+                if (userId == null || userId.HasValue)
                 {
                     response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = "Student has no valid UserId for notification." });
                     continue;
@@ -366,7 +366,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             return (false, "Choice bind not found for this student and discipline.");
 
         var userId = bind.Student?.UserId;
-        if (userId == null || userId <= 0)
+        if (userId == null || userId.HasValue)
             return (false, "Student has no valid UserId for notification.");
 
         var disciplineName = bind.SelectiveDisciplines?.NameSelectiveDisciplines ?? "elective";

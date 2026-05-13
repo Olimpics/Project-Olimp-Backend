@@ -7,7 +7,7 @@ public interface INotificationService
     Task<PaginatedResponseDto<NotificationDto>> GetNotificationsAsync(NotificationQueryDto queryDto);
 
     Task<PaginatedResponseDto<NotificationDto>> GetUserNotificationsAsync(
-        int userId,
+        Guid userId,
         NotificationQueryDto queryDto);
 
     Task<NotificationDto?> GetNotificationAsync(int id);

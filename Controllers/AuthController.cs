@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
                 response = new LoginResponseAdminDto
                 {
                     Id = 4,
-                    UserId = 6,
+                    UserId = Guid.NewGuid(),
                     RoleId = 2,
                     Name = "Test Admin",
                     NameFaculty = "Faculty of Computer Science",
@@ -203,7 +203,7 @@ public class AuthController : ControllerBase
                 response = new LoginResponseStudentDto
                 {
                     Id = 44072,
-                    UserId = 3483,
+                    UserId = Guid.NewGuid(),
                     RoleId = 1,
                     Name = "Test Student",
                     NameFaculty = "Faculty of Computer Science",

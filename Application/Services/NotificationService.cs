@@ -35,7 +35,7 @@ public class NotificationService : INotificationService
             .Take(queryDto.PageSize)
             .Select(n => new NotificationProjection(
                 n.IdNotification,
-                n.UserId ?? 0,
+                n.UserId,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
@@ -58,7 +58,7 @@ public class NotificationService : INotificationService
         };
     }
 
-    public async Task<PaginatedResponseDto<NotificationDto>> GetUserNotificationsAsync(int userId, NotificationQueryDto queryDto)
+    public async Task<PaginatedResponseDto<NotificationDto>> GetUserNotificationsAsync(Guid userId, NotificationQueryDto queryDto)
     {
         var query = _context.Notifications
             .AsNoTracking()
@@ -77,7 +77,7 @@ public class NotificationService : INotificationService
             .Take(queryDto.PageSize)
             .Select(n => new NotificationProjection(
                 n.IdNotification,
-                n.UserId ?? 0,
+                n.UserId,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
@@ -106,7 +106,7 @@ public class NotificationService : INotificationService
             .Where(n => n.IdNotification == id)
             .Select(n => new NotificationProjection(
                 n.IdNotification,
-                n.UserId ?? 0,
+                n.UserId,
                 n.TemplateId,
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
@@ -144,7 +144,7 @@ public class NotificationService : INotificationService
         return new NotificationDto
         {
             IdNotification = notification.IdNotification,
-            UserId = notification.UserId ?? 0,
+            UserId = notification.UserId,
             TemplateId = notification.TemplateId ?? 0,
             Title = template?.Title ?? dto.Title ?? string.Empty,
             Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
@@ -229,7 +229,7 @@ public class NotificationService : INotificationService
     // ˜˜˜˜˜˜˜˜˜˜˜ record ˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜ ˜ ˜˜ ˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
     private record NotificationProjection(
         int IdNotification,
-        int UserId,
+        Guid UserId,
         int? TemplateId,
         string? TemplateTitle,
         string? TemplateMessage,

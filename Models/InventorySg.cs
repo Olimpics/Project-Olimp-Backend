@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -12,6 +13,8 @@ public partial class InventorySg
     public string? CodeInventory { get; set; }
 
     public int? StudentId { get; set; }
+
+    public BitArray? Avail { get; set; }
 
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 

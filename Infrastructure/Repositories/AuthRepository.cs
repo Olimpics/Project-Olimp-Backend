@@ -9,13 +9,13 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IAuthRepository
 {
     Task<User?> GetUserByEmailTrackedAsync(string email);
-    Task<User?> GetUserByIdTrackedAsync(int userId);
+    Task<User?> GetUserByIdTrackedAsync(Guid userId);
     Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId);
-    Task<List<Role>> GetUserRolesAsync(int userId);
+    Task<List<Role>> GetUserRolesAsync(Guid userId);
     Task<long> GetRolePermissionsMaskAsync(int roleId);
-    Task<long> GetUserPermissionsMaskAsync(int userId);
-    Task<Student?> GetStudentProfileAsync(int userId);
-    Task<AdminsPersonal?> GetAdminProfileAsync(int userId);
+    Task<long> GetUserPermissionsMaskAsync(Guid userId);
+    Task<Student?> GetStudentProfileAsync(Guid userId);
+    Task<AdminsPersonal?> GetAdminProfileAsync(Guid userId);
     Task SaveChangesAsync();
 }
 
@@ -36,7 +36,7 @@ public class AuthRepository : IAuthRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public async Task<User?> GetUserByIdTrackedAsync(int userId)
+    public async Task<User?> GetUserByIdTrackedAsync(Guid userId)
     {
         return await _context.Users
             .FirstOrDefaultAsync(u => u.IdUser == userId);
@@ -62,7 +62,7 @@ public class AuthRepository : IAuthRepository
             .ToList();
     }
 
-    public async Task<List<Role>> GetUserRolesAsync(int userId)
+    public async Task<List<Role>> GetUserRolesAsync(Guid userId)
     {
             return await _context.Roles
       .Where(r => _context.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == r.IdRole))
@@ -76,12 +76,12 @@ public class AuthRepository : IAuthRepository
         return await _roleMaskService.GetRoleMaskAsync(roleId);
     }
 
-    public async Task<long> GetUserPermissionsMaskAsync(int userId)
+    public async Task<long> GetUserPermissionsMaskAsync(Guid userId)
     {
         return await _roleMaskService.GetUserPermissionsMaskAsync(userId);
     }
 
-    public async Task<Student?> GetStudentProfileAsync(int userId)
+    public async Task<Student?> GetStudentProfileAsync(Guid userId)
     {
         return await _context.Students
             .AsNoTracking()
@@ -92,7 +92,7 @@ public class AuthRepository : IAuthRepository
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
-    public async Task<AdminsPersonal?> GetAdminProfileAsync(int userId)
+    public async Task<AdminsPersonal?> GetAdminProfileAsync(Guid userId)
     {
         return await _context.AdminsPersonals
             .AsNoTracking()
