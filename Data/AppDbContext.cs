@@ -582,6 +582,9 @@ public partial class AppDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("idConversation");
             entity.Property(e => e.ConversationToken).HasColumnName("conversationToken");
+            entity.Property(e => e.IsAnonymous)
+                .HasDefaultValue(false)
+                .HasColumnName("isAnonymous");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
@@ -595,6 +598,14 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdConversationParticipants)
                 .ValueGeneratedNever()
                 .HasColumnName("idConversationParticipants");
+            entity.Property(e => e.ConversationId).HasColumnName("conversationId");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+            entity.Property(e => e.Pseudonym)
+                .HasMaxLength(100)
+                .HasColumnName("pseudonym");
+            entity.Property(e => e.IsIdentityRevealed)
+                .HasDefaultValue(false)
+                .HasColumnName("isIdentityRevealed");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
@@ -605,6 +616,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.ConversationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("conversation_participants_conversation_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ConversationParticipants)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("conversation_participants_user_id_fkey");
         });
 
         modelBuilder.Entity<DefaultUniNeed>(entity =>
@@ -952,11 +968,13 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("messages");
 
-            entity.HasIndex(e => new { e.ConversationTokenId, e.CreatedAt }, "idx_messages_conversation_created").IsDescending(false, true);
+            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt }, "idx_messages_conversation_created").IsDescending(false, true);
 
             entity.Property(e => e.IdMessage)
                 .ValueGeneratedNever()
                 .HasColumnName("idMessage");
+            entity.Property(e => e.ConversationId).HasColumnName("conversationId");
+            entity.Property(e => e.SenderId).HasColumnName("senderId");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
@@ -964,6 +982,21 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EncryptedPayload).HasColumnName("encryptedPayload");
             entity.Property(e => e.Nonce).HasColumnName("nonce");
             entity.Property(e => e.SenderDevicePublicKey).HasColumnName("senderDevicePublicKey");
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("isDeleted");
+            entity.Property(e => e.IsDelivered).HasDefaultValue(false).HasColumnName("isDelivered");
+            entity.Property(e => e.DeliveredAt).HasColumnName("deliveredAt");
+            entity.Property(e => e.IsRead).HasDefaultValue(false).HasColumnName("isRead");
+            entity.Property(e => e.ReadAt).HasColumnName("readAt");
+
+            entity.HasOne(d => d.Conversation).WithMany(p => p.Messages)
+                .HasForeignKey(d => d.ConversationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("messages_conversation_id_fkey");
+
+            entity.HasOne(d => d.Sender).WithMany()
+                .HasForeignKey(d => d.SenderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("messages_sender_id_fkey");
         });
 
         modelBuilder.Entity<Normative>(entity =>
@@ -1600,10 +1633,13 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.DeviceName)
                 .HasMaxLength(200)
                 .HasColumnName("deviceName");
+            entity.Property(e => e.IdentityKey).HasColumnName("identityKey");
+            entity.Property(e => e.SignedPreKey).HasColumnName("signedPreKey");
+            entity.Property(e => e.SignedPreKeySignature).HasColumnName("signedPreKeySignature");
+            entity.Property(e => e.SignedPreKeyId).HasColumnName("signedPreKeyId");
             entity.Property(e => e.LastSeen)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("lastSeen");
-            entity.Property(e => e.PublicKey).HasColumnName("publicKey");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserDevices)
                 .HasForeignKey(d => d.UserId)

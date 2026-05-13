@@ -16,7 +16,19 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using OlimpBack.Data;
-
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using OlimpBack.Infrastructure.Repositories.Conversations;
+using OlimpBack.Application.Services.Conversations;
+using OlimpBack.Application.Validators.Conversations;
+using OlimpBack.Infrastructure.Repositories.Messages;
+using OlimpBack.Application.Services.Messages;
+using OlimpBack.Application.Validators.Messages;
+using OlimpBack.Infrastructure.Repositories.Encryption;
+using OlimpBack.Application.Services.Encryption;
+using OlimpBack.Application.Validators.Encryption;
+using OlimpBack.Infrastructure.Security;
+using OlimpBack.Infrastructure.Middleware;
 
 Environment.SetEnvironmentVariable(
     "ASPNETCORE_ENVIRONMENT",
@@ -28,9 +40,18 @@ builder.WebHost.UseUrls("http://0.0.0.0:5154");
 
 
 // Add services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreateConversationRequestValidator>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
+
+// Security Hardening Services
+builder.Services.AddScoped<IReplayProtectionService, ReplayProtectionService>();
+builder.Services.AddScoped<IRateLimitService, RateLimitService>();
+builder.Services.AddScoped<IDeviceTrustService, DeviceTrustService>();
+builder.Services.AddScoped<IConversationAccessService, ConversationAccessService>();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Olimp API", Version = "v1" });
@@ -78,17 +99,26 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 // AutoMapper
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+builder.Services.AddAutoMapper(cfg => {
+    cfg.AddProfile<MappingProfile>();
+    cfg.AddProfile<ConversationProfile>();
+    cfg.AddProfile<MessageProfile>();
+    cfg.AddProfile<EncryptionProfile>();
+});
 // CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173") // Example frontend URLs
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
+
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<ISignalRConnectionManager, SignalRConnectionManager>();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -122,7 +152,18 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
-        // 1️⃣ Ошибка аутентификации (битый / просроченный токен)
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        },
+        // 1️⃣ Ошибка аутентификации
+ (битый / просроченный токен)
         OnAuthenticationFailed = context =>
         {
             var logger = context.HttpContext.RequestServices
@@ -305,6 +346,20 @@ builder.Services.AddScoped<ITypeOfDisciplineService, TypeOfDisciplineService>();
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 
+// Conversations
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IAnonymousConversationService, AnonymousConversationService>();
+
+// Messages
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+// Encryption
+builder.Services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
+builder.Services.AddScoped<IPreKeyRepository, PreKeyRepository>();
+builder.Services.AddScoped<IEncryptionSessionService, EncryptionSessionService>();
+
 // ==========================================
 // СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)
 // ==========================================
@@ -358,11 +413,13 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
 app.UseRouting();
+app.UseMiddleware<SecurityHardeningMiddleware>();
 
 app.UseAuthentication();
 app.UseMiddleware<PermissionMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<EncryptedChatHub>("/hubs/chat");
 
 app.Run();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -11,7 +11,13 @@ public partial class UserDevice
 
     public string? DeviceName { get; set; }
 
-    public string PublicKey { get; set; } = null!;
+    public string IdentityKey { get; set; } = null!;
+
+    public string SignedPreKey { get; set; } = null!;
+
+    public string SignedPreKeySignature { get; set; } = null!;
+
+    public int SignedPreKeyId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

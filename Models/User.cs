@@ -37,4 +37,6 @@ public partial class User
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+    public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
 }

@@ -9,7 +9,11 @@ public partial class Conversation
 
     public Guid ConversationToken { get; set; }
 
+    public bool IsAnonymous { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
+
+    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 }
