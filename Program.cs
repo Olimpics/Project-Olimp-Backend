@@ -362,6 +362,11 @@ builder.Services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
 builder.Services.AddScoped<IPreKeyRepository, PreKeyRepository>();
 builder.Services.AddScoped<IEncryptionSessionService, EncryptionSessionService>();
 
+// Device Transfer
+builder.Services.AddScoped<IDeviceTransferRepository, DeviceTransferRepository>();
+builder.Services.AddScoped<IDeviceTransferService, DeviceTransferService>();
+builder.Services.AddHostedService<DeviceTransferCleanupService>();
+
 // ==========================================
 // СЕРВІСИ БЕЗ РЕПОЗИТОРІЇВ (Поки що)
 // ==========================================
