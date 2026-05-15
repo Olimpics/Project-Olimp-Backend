@@ -1,8 +1,10 @@
+using System;
+
 namespace OlimpBack.Application.DTO;
 
 public class CatalogYearSelectiveDto
 {
-    public int IdCatalogYear { get; set; }
+    public Guid IdCatalogYear { get; set; }
     public string NameCatalog { get; set; } = null!;
     public bool IsFormed { get; set; }
 }
@@ -15,7 +17,7 @@ public class CreateCatalogYearSelectiveDto
 
 public class UpdateCatalogYearSelectiveDto
 {
-    public int IdCatalogYear { get; set; }
+    public Guid IdCatalogYear { get; set; }
     public string NameCatalog { get; set; } = null!;
     public bool IsFormed { get; set; }
 }

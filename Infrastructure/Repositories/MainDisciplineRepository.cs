@@ -9,11 +9,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IMainDisciplineRepository
 {
-    Task<MainDisciplineDto?> GetDtoByIdAsync(int id);
-    Task<MainDiscipline?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<MainDisciplineDto?> GetDtoByIdAsync(Guid id);
+    Task<MainDiscipline?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(MainDiscipline entity);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -28,23 +28,23 @@ public class MainDisciplineRepository : IMainDisciplineRepository
         _mapper = mapper;
     }
 
-    public async Task<MainDisciplineDto?> GetDtoByIdAsync(int id)
+    public async Task<MainDisciplineDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.MainDisciplines
             .AsNoTracking()
-            .Where(bmd => bmd.IdBindMainDisciplines == id)
+            .Where(bmd => bmd.IdMainDisciplines == id)
             .ProjectTo<MainDisciplineDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<MainDiscipline?> GetEntityByIdAsync(int id)
+    public async Task<MainDiscipline?> GetEntityByIdAsync(Guid id)
     {
         return await _context.MainDisciplines.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
-        return await _context.MainDisciplines.AnyAsync(e => e.IdBindMainDisciplines == id);
+        return await _context.MainDisciplines.AnyAsync(e => e.IdMainDisciplines == id);
     }
 
     public async Task AddAsync(MainDiscipline entity)
@@ -52,10 +52,10 @@ public class MainDisciplineRepository : IMainDisciplineRepository
         await _context.MainDisciplines.AddAsync(entity);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         return await _context.MainDisciplines
-            .Where(bmd => bmd.IdBindMainDisciplines == id)
+            .Where(bmd => bmd.IdMainDisciplines == id)
             .ExecuteDeleteAsync();
     }
 

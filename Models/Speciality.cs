@@ -1,20 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class Speciality
 {
-    public int IdSpeciality { get; set; }
-
-    public int? Code { get; set; }
+    public string? Code { get; set; }
 
     public string? Name { get; set; }
-
-    public int? BranchId { get; set; }
-
-    public int? DepartmentId { get; set; }
 
     public int? Accreditation { get; set; }
 
@@ -24,7 +17,13 @@ public partial class Speciality
 
     public string? Description { get; set; }
 
-    public BitArray? Avail { get; set; }
+    public Guid? BranchId { get; set; }
+
+    public Guid? DepartmentId { get; set; }
+
+    public bool? Avail { get; set; }
+
+    public Guid IdSpeciality { get; set; }
 
     public virtual Branch? Branch { get; set; }
 

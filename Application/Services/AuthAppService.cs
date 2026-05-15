@@ -1,4 +1,8 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using OlimpBack.Application.DTO;
@@ -19,7 +23,7 @@ public class AuthAppService : IAuthAppService
         _mapper = mapper;
     }
 
-    public async Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(int roleId)
+    public async Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(Guid roleId)
     {
         var permissions = await _repository.GetRolePermissionsAsync(roleId);
 
@@ -165,7 +169,7 @@ public class AuthAppService : IAuthAppService
 
         user.PasswordHash = newHash;
         user.PasswordSalt = newSalt;
-        user.IsFirstLogin = new BitArray(1, false);
+        user.IsFirstLogin = false;
         user.PasswordChangedAt = ToPostgresTimestamp(DateTime.UtcNow);
 
         await _repository.SaveChangesAsync();
@@ -175,7 +179,7 @@ public class AuthAppService : IAuthAppService
 
     private async Task<List<PermissionDto>> GetUserPermissionsAsync(IReadOnlyCollection<Role> roles)
     {
-        var byId = new Dictionary<int, PermissionDto>();
+        var byId = new Dictionary<Guid, PermissionDto>();
 
         foreach (var role in roles)
         {
@@ -198,13 +202,13 @@ public class AuthAppService : IAuthAppService
     private static bool IsAdminRole(Role role)
     {
         return role.Name.Contains("admin", StringComparison.OrdinalIgnoreCase) ||
-               role.Name.Contains("administrator", StringComparison.OrdinalIgnoreCase) ||
-               role.IdRole > 1;
+               role.Name.Contains("administrator", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsFirstLogin(User user)
     {
-        return user.IsFirstLogin.Cast<bool>().FirstOrDefault();
+        if (user.IsFirstLogin == null) return false;
+        return user.IsFirstLogin;
     }
 
     private static DateTime ToPostgresTimestamp(DateTime value)

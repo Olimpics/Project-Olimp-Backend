@@ -26,7 +26,7 @@ namespace OlimpBack.Controllers
        
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.GroupsRead)]
-        public async Task<ActionResult<GroupDto>> GetGroup(int id)
+        public async Task<ActionResult<GroupDto>> GetGroup(Guid id)
         {
             var group = await _groupService.GetGroupAsync(id);
 
@@ -38,7 +38,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}/details")]
         [RequirePermission(RbacPermissions.GroupsRead)]
-        public async Task<ActionResult<GroupDetailsDto>> GetGroupDetails(int id)
+        public async Task<ActionResult<GroupDetailsDto>> GetGroupDetails(Guid id)
         {
             var group = await _groupService.GetGroupDetailsAsync(id);
             if (group == null)
@@ -49,7 +49,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{groupId}/students")]
         [RequirePermission(RbacPermissions.GroupsRead)]
-        public async Task<ActionResult<IReadOnlyList<GroupStudentDto>>> GetStudentsByGroupId(int groupId)
+        public async Task<ActionResult<IReadOnlyList<GroupStudentDto>>> GetStudentsByGroupId(Guid groupId)
         {
             var students = await _groupService.GetStudentsByGroupIdAsync(groupId);
             return Ok(students);
@@ -66,7 +66,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}/curriculum")]
         [RequirePermission(RbacPermissions.GroupsRead)]
-        public async Task<ActionResult<GroupMainDisciplineDto>> GetGroupCurriculum(int id)
+        public async Task<ActionResult<GroupMainDisciplineDto>> GetGroupCurriculum(Guid id)
         {
             var curriculum = await _groupService.GetGroupCurriculumAsync(id);
             if (curriculum == null)
@@ -78,7 +78,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.GroupsUpdate)]
-        public async Task<IActionResult> UpdateGroup(int id, UpdateGroupDto dto)
+        public async Task<IActionResult> UpdateGroup(Guid id, UpdateGroupDto dto)
         {
             if (id != dto.IdGroup)
                 return BadRequest();
@@ -93,7 +93,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("{id}")]
         [RequirePermission(RbacPermissions.GroupsDelete)]
-        public async Task<IActionResult> DeleteGroup(int id)
+        public async Task<IActionResult> DeleteGroup(Guid id)
         {
             var (success, statusCode, errorMessage) = await _groupService.DeleteGroupAsync(id);
 

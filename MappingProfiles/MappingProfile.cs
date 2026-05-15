@@ -1,8 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
-using System.Text.Json;
 
 namespace OlimpBack.MappingProfiles
 {
@@ -11,14 +14,6 @@ namespace OlimpBack.MappingProfiles
     {
         public MappingProfile()
         {
-            ////User
-            //CreateMap<User, UserRoleDto>()
-            //    .ForMember(dest => dest.IdUsers, opt => opt.MapFrom(src => src.IdUser))
-            //    .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src =>
-            //        src.UserRoles
-            //            .OrderBy(ur => ur.RoleId)
-            //            .Select(ur => ur.Role.Name)
-            //            .FirstOrDefault() ?? string.Empty));
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>()
                 .ForMember(dest => dest.IdUser, opt => opt.Ignore());
@@ -29,26 +24,16 @@ namespace OlimpBack.MappingProfiles
              CreateMap<Student, LoginResponseStudentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-                //.ForMember(dest => dest.RoleId, opt => opt.MapFrom(src =>
-                   // src.User.UserRoles
-                     //   .OrderBy(ur => ur.RoleId)
-                       // .Select(ur => ur.RoleId)
-                        //.FirstOrDefault()))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.FacultyId))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
-                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Name))
                 .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course))
                 .ForMember(dest => dest.DegreeLevel, opt => opt.MapFrom(src => src.Group.Degree.NameEducationalDegree));
 
 
             CreateMap<AdminsPersonal, LoginResponseAdminDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-               // .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src =>
-                 //   src.User!.UserRoles
-                   //     .OrderBy(ur => ur.RoleId)
-                     //   .Select(ur => ur.RoleId)
-                       // .FirstOrDefault()))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAdmin))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
 
@@ -64,8 +49,8 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<Student, StudentForCatalogDto>()
                 .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation)) 
-                .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.Group.EducationalProgram != null && src.Group.EducationalProgram.Speciality != null && src.Group.EducationalProgram.Speciality.Code.HasValue ? src.Group.EducationalProgram.Speciality.Code.Value.ToString() : ""))
-                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality))
+                .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.Group.EducationalProgram != null && src.Group.EducationalProgram.Speciality != null && src.Group.EducationalProgram.Speciality.Code.Length > 0 ? src.Group.EducationalProgram.Speciality.Code : ""))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Name))
                 .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.Group.Degree.NameEducationalDegree))
                 .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupCode));
 
@@ -75,19 +60,19 @@ namespace OlimpBack.MappingProfiles
             //SelectiveDisciplines
             CreateMap<SelectiveDiscipline, SelectiveDisciplineDto>()
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree))
-                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven != null && src.IsEven.Length > 0 ? (src.IsEven[0] ? 1 : 0) : (int?)null));
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven));
 
             CreateMap<SelectiveDiscipline, FullDisciplineDto>()
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Department.FacultyId))
                 .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Department.Faculty.Abbreviation))
-                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven != null && src.IsEven.Length > 0 ? (src.IsEven[0] ? 1 : 0) : (int?)null));
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven));
 
             CreateMap<SelectiveDiscipline, FullForAdminDisciplineDto>()
               .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel.NameEducationalDegree));
             CreateMap<CreateSelectiveDisciplineDto, SelectiveDiscipline>()
                 .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId))
-                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven != null ? new System.Collections.BitArray(new[] { src.IsEven == 1 }) : null));
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.IsEven));
             CreateMap<SelectiveDiscipline, SimpleDisciplineDto>();
 
             CreateMap<CreateSelectiveDisciplineWithDetailsDto, SelectiveDiscipline>()
@@ -102,21 +87,20 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.StudentFullName,
                            opt => opt.MapFrom(src => src.Student.NameStudent))
                 .ForMember(dest => dest.SelectiveDisciplineName,
-                           opt => opt.MapFrom(src => src.SelectiveDisciplines.NameSelectiveDisciplines))
+                           opt => opt.MapFrom(src => src.SelectiveDiscipline.NameSelectiveDisciplines))
                 .ForMember(dest => dest.InProcess,
-                           opt => opt.MapFrom(src => src.InProcess != null && src.InProcess.Length > 0 && src.InProcess[0]));
+                           opt => opt.MapFrom(src => src.InProcess));
 
             CreateMap<CreateBindSelectiveDisciplineDto, BindSelectiveDiscipline>()
                 .ForMember(dest => dest.InProcess,
-                           opt => opt.MapFrom(_ => 1));
+                           opt => opt.MapFrom(_ => true));
 
             CreateMap<UpdateBindSelectiveDisciplineDto, BindSelectiveDiscipline>()
                 .ForMember(dest => dest.InProcess,
-                           opt => opt.MapFrom(_ => 1));
+                           opt => opt.MapFrom(_ => true));
 
             // Normative mapping
             CreateMap<Normative, NormativeDto>()
-                // ���������� �� null, ���� ������ �� �������
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.DegreeLevel != null ? src.DegreeLevel.NameEducationalDegree : null));
 
             CreateMap<CreateNormativeDto, Normative>();
@@ -168,13 +152,13 @@ namespace OlimpBack.MappingProfiles
 
             //CatalogYearMain
             CreateMap<CatalogYearsMain, CatalogYearMainDto>()
-                .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed != null && src.IsFormed.Cast<bool>().FirstOrDefault()));
+                .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed));
             CreateMap<CreateCatalogYearMainDto, CatalogYearsMain>();
             CreateMap<UpdateCatalogYearMainDto, CatalogYearsMain>();
 
             //CatalogYearSelective
             CreateMap<CatalogYearsSelective, CatalogYearSelectiveDto>()
-                .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed != null && src.IsFormed.Cast<bool>().FirstOrDefault()));
+                .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed));
             CreateMap<CreateCatalogYearSelectiveDto, CatalogYearsSelective>();
             CreateMap<UpdateCatalogYearSelectiveDto, CatalogYearsSelective>();
 
@@ -191,11 +175,6 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameRole))
                 .ForMember(dest => dest.PermissionsMask, opt => opt.Ignore())
                 .ForMember(dest => dest.ParentRoleId, opt => opt.Ignore());
-                //.ForMember(dest => dest.ChildRoles, opt => opt.Ignore())
-                //.ForMember(dest => dest.RolePermissions, opt => opt.Ignore())
-                //.ForMember(dest => dest.Permissions, opt => opt.Ignore());
-                //.ForMember(dest => dest.UserRoles, opt => opt.Ignore())
-                //.ForMember(dest => dest.Users, opt => opt.Ignore());
 
             //StudyForm
             CreateMap<StudyForm, StudyFormDto>().ReverseMap();
@@ -234,7 +213,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.MinCountPeople, opt => opt.MapFrom(src => src.discipline.MinCountPeople))
                 .ForMember(dest => dest.MaxCountPeople, opt => opt.MapFrom(src => src.discipline.MaxCountPeople))
                 .ForMember(dest => dest.Courses, opt => opt.MapFrom(src => src.discipline.Courses))
-                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven != null && src.discipline.IsEven.Length > 0 ? (src.discipline.IsEven[0] ? 1 : 0) : (int?)null))
+                .ForMember(dest => dest.IsEven, opt => opt.MapFrom(src => src.discipline.IsEven))
                 .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.discipline.DegreeLevel.NameEducationalDegree))
                 .ForMember(dest => dest.NameSelectiveDisciplinesEng, opt => opt.MapFrom(src => src.details.NameSelectiveDisciplinesEng))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.discipline.Department.NameDepartment))
@@ -263,7 +242,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<BindLoansMain, BindLoansMainDto>()
                 .ForMember(dest => dest.SelectiveDisciplineName, opt => opt.MapFrom(src => src.SelectiveDisciplines.NameSelectiveDisciplines))
                 .ForMember(dest => dest.CodeSelectiveDisciplines, opt => opt.MapFrom(src => src.SelectiveDisciplines.CodeSelectiveDisciplines))
-                .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.EducationalProgram != null && src.EducationalProgram.Speciality != null && src.EducationalProgram.Speciality.Code.HasValue ? src.EducationalProgram.Speciality.Code.Value.ToString() : ""))
+                .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.EducationalProgram != null && src.EducationalProgram.Speciality != null && src.EducationalProgram.Speciality.Code.Length > 0 ? src.EducationalProgram.Speciality.Code : ""))
                 .ForMember(dest => dest.EducationalProgramName, opt => opt.MapFrom(src => src.EducationalProgram.NameEducationalProgram));
             CreateMap<CreateBindLoansMainDto, BindLoansMain>();
             CreateMap<UpdateBindLoansMainDto, BindLoansMain>();
@@ -272,19 +251,15 @@ namespace OlimpBack.MappingProfiles
             CreateMap<DetailContentDto, SelectiveDetail>()
                 .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.DisciplineTopics != null ? JsonSerializer.Serialize(src.DisciplineTopics, (JsonSerializerOptions)null) : null));
 
-            // 2. ����� ������ CreateSelectiveDetailDto �� SelectiveDetail
             CreateMap<CreateSelectiveDetailDto, SelectiveDetail>()
-                // ������: "�������� ���������� Content � ����� ���� �����"
                 .IncludeMembers(src => src.Content);
 
-            // 3. � ��� ���� � ��������� �� (���� ����� ������ � �� � DTO)
             CreateMap<SelectiveDetail, DetailContentDto>()
-                .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.DisciplineTopics) ? JsonSerializer.Deserialize<List<string>>(src.DisciplineTopics, (JsonSerializerOptions)null) : null))
+                .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.DisciplineTopics.Count > 0 ? src.DisciplineTopics : null))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.Teachers))
                 .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.Recommended));
 
             CreateMap<SelectiveDetail, SelectiveDetailDto>()
-                // ������: "������� �� ������� ���� � ���������� Content"
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src));
 
 

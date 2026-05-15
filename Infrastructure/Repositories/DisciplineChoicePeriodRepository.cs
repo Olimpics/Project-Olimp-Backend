@@ -10,9 +10,9 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IDisciplineChoicePeriodRepository
 {
     Task<List<DisciplineChoicePeriodDto>> GetAllDtoAsync(GetDisciplineChoicePeriodsQueryDto queryDto);
-    Task<DisciplineChoicePeriodDto?> GetDtoByIdAsync(int id);
-    Task<DisciplineChoicePeriod?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<DisciplineChoicePeriodDto?> GetDtoByIdAsync(Guid id);
+    Task<DisciplineChoicePeriod?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(DisciplineChoicePeriod period);
     Task SaveChangesAsync();
 }
@@ -34,7 +34,7 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
 
         // Գ��������
         if (queryDto.FacultyId.HasValue)
-            query = query.Where(p => p.FacultyId == queryDto.FacultyId.Value);
+            query = query.Where(p => p.Department.FacultyId == queryDto.FacultyId.Value);
 
         if (queryDto.DegreeLevelId.HasValue)
             query = query.Where(p => p.DegreeLevelId == queryDto.DegreeLevelId.Value);
@@ -43,7 +43,7 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
             query = query.Where(p => p.PeriodType != null && p.PeriodType.Length > 0 && p.PeriodType[0] == (queryDto.PeriodType.Value != 0));
 
         if (queryDto.IsClose.HasValue)
-            query = query.Where(p => p.IsClose != null && p.IsClose.Length > 0 && p.IsClose[0] == (queryDto.IsClose.Value != 0));
+            query = query.Where(p => p.IsClose != null && p.IsClose && p.IsClose== (queryDto.IsClose != false));
 
         if (queryDto.PeriodCourse.HasValue)
             query = query.Where(p => p.PeriodCourse == queryDto.PeriodCourse.Value);
@@ -55,7 +55,7 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
             .ToListAsync();
     }
 
-    public async Task<DisciplineChoicePeriodDto?> GetDtoByIdAsync(int id)
+    public async Task<DisciplineChoicePeriodDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.DisciplineChoicePeriods
             .AsNoTracking()
@@ -64,12 +64,12 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
             .FirstOrDefaultAsync();
     }
 
-    public async Task<DisciplineChoicePeriod?> GetEntityByIdAsync(int id)
+    public async Task<DisciplineChoicePeriod?> GetEntityByIdAsync(Guid id)
     {
         return await _context.DisciplineChoicePeriods.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.DisciplineChoicePeriods.AnyAsync(p => p.IdDisciplineChoicePeriod == id);
     }

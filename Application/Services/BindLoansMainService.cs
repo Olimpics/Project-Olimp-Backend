@@ -33,7 +33,7 @@ public class BindLoansMainService : IBindLoansMainService
         };
     }
 
-    public async Task<BindLoansMainDto?> GetBindLoansMainAsync(int id)
+    public async Task<BindLoansMainDto?> GetBindLoansMainAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -54,7 +54,7 @@ public class BindLoansMainService : IBindLoansMainService
         // Це зекономить 1 похід у базу при кожному створенні.
         return new BindLoansMainDto
         {
-            IdBindLoan = binding.IdBindLoan,
+            IdBindLoan = binding.IdBindLoanMain,
             SelectiveDisciplinesId = binding.SelectiveDisciplinesId.GetValueOrDefault(),
             EducationalProgramId = binding.EducationalProgramId.GetValueOrDefault(),
             CodeSelectiveDisciplines = "", // При створенні ми не знаємо назв, і це нормально для response
@@ -64,7 +64,7 @@ public class BindLoansMainService : IBindLoansMainService
         };
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateBindLoansMainAsync(int id, UpdateBindLoansMainDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateBindLoansMainAsync(Guid id, UpdateBindLoansMainDto dto)
     {
         // Бізнес-перевірка залишається в сервісі
         if (id != dto.IdBindLoan)
@@ -94,7 +94,7 @@ public class BindLoansMainService : IBindLoansMainService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteBindLoansMainAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteBindLoansMainAsync(Guid id)
     {
         // Сучасне видалення через репозиторій
         var deletedRows = await _repository.DeleteAsync(id);

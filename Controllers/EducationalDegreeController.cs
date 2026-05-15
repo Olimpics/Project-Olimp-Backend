@@ -28,7 +28,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.EducationalDegreesRead)]
-        public async Task<ActionResult<EducationalDegreeDto>> GetEducationalDegree(int id)
+        public async Task<ActionResult<EducationalDegreeDto>> GetEducationalDegree(Guid id)
         {
             var degree = await _service.GetByIdAsync(id);
             if (degree == null)
@@ -47,7 +47,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.EducationalDegreesUpdate)]
-        public async Task<IActionResult> UpdateEducationalDegree(int id, UpdateEducationalDegreeDto dto)
+        public async Task<IActionResult> UpdateEducationalDegree(Guid id, UpdateEducationalDegreeDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
 
@@ -59,7 +59,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("{id}")]
         [RequirePermission(RbacPermissions.EducationalDegreesDelete)]
-        public async Task<IActionResult> DeleteEducationalDegree(int id)
+        public async Task<IActionResult> DeleteEducationalDegree(Guid id)
         {
             var (success, statusCode, errorMessage) = await _service.DeleteAsync(id);
 

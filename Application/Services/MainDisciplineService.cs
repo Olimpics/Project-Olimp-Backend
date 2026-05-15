@@ -9,10 +9,10 @@ namespace OlimpBack.Application.Services;
 
 public interface IMainDisciplineService
 {
-    Task<MainDisciplineDto?> GetByIdAsync(int id);
+    Task<MainDisciplineDto?> GetByIdAsync(Guid id);
     Task<MainDisciplineDto> CreateAsync(CreateMainDisciplineDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateMainDisciplineDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateMainDisciplineDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class MainDisciplineService : IMainDisciplineService
@@ -26,7 +26,7 @@ public class MainDisciplineService : IMainDisciplineService
         _mapper = mapper;
     }
 
-    public async Task<MainDisciplineDto?> GetByIdAsync(int id)
+    public async Task<MainDisciplineDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -41,7 +41,7 @@ public class MainDisciplineService : IMainDisciplineService
         return _mapper.Map<MainDisciplineDto>(entity);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateMainDisciplineDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateMainDisciplineDto dto)
     {
         if (id != dto.IdMainDisciplines)
             return (false, StatusCodes.Status400BadRequest, "Route id does not match body id.");
@@ -67,7 +67,7 @@ public class MainDisciplineService : IMainDisciplineService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
         if (deletedRows == 0)

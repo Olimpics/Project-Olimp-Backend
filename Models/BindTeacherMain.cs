@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class BindTeacherMain
 {
-    public int IdBindTeacherMain { get; set; }
+    public Guid? MainDisciplinesId { get; set; }
 
-    public int? AdminId { get; set; }
+    public bool IsHead { get; set; }
 
-    public int? MainDisciplinesId { get; set; }
+    public Guid? AdminId { get; set; }
 
-    public BitArray? IsHead { get; set; }
+    public Guid IdBindTeacherMain { get; set; }
 
     public virtual AdminsPersonal? Admin { get; set; }
 

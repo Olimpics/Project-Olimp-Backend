@@ -11,11 +11,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface INormativeRepository
 {
     Task<IEnumerable<NormativeDto>> GetAllDtoAsync();
-    Task<NormativeDto?> GetDtoByIdAsync(int id);
-    Task<Normative?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<NormativeDto?> GetDtoByIdAsync(Guid id);
+    Task<Normative?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(Normative entity);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -38,7 +38,7 @@ public class NormativeRepository : INormativeRepository
             .ToListAsync();
     }
 
-    public async Task<NormativeDto?> GetDtoByIdAsync(int id)
+    public async Task<NormativeDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.Normatives
             .AsNoTracking()
@@ -47,12 +47,12 @@ public class NormativeRepository : INormativeRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Normative?> GetEntityByIdAsync(int id)
+    public async Task<Normative?> GetEntityByIdAsync(Guid id)
     {
         return await _context.Normatives.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.Normatives.AnyAsync(n => n.IdNormative == id);
     }
@@ -62,7 +62,7 @@ public class NormativeRepository : INormativeRepository
         await _context.Normatives.AddAsync(entity);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         return await _context.Normatives
             .Where(n => n.IdNormative == id)

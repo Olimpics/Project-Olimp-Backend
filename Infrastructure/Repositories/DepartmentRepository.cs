@@ -8,11 +8,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IDepartmentRepository
 {
     Task<(int TotalCount, List<DepartmentDto> Items)> GetPagedAsync(DepartmentQueryDto queryDto);
-    Task<DepartmentDto?> GetDtoByIdAsync(int id);
-    Task<Department?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<DepartmentDto?> GetDtoByIdAsync(Guid id);
+    Task<Department?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(Department department);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -30,12 +30,12 @@ public class DepartmentRepository : IDepartmentRepository
         var query = _context.Departments.AsNoTracking().AsQueryable();
 
         if (queryDto.FacultyIds != null && queryDto.FacultyIds.Any())
-            query = query.Where(d => d.FacultyId != null && queryDto.FacultyIds.Contains(d.FacultyId));
+            query = query.Where(d => d.FacultyId != Guid.Empty && queryDto.FacultyIds.Contains(d.FacultyId));
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
-            if (int.TryParse(lowerSearch, out int searchId))
+            if (Guid.TryParse(lowerSearch, out Guid searchId))
                 query = query.Where(d => d.IdDepartment == searchId);
             else
                 query = query.Where(d =>
@@ -70,7 +70,7 @@ public class DepartmentRepository : IDepartmentRepository
         return (totalCount, items);
     }
 
-    public async Task<DepartmentDto?> GetDtoByIdAsync(int id)
+    public async Task<DepartmentDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.Departments
             .AsNoTracking()
@@ -86,16 +86,16 @@ public class DepartmentRepository : IDepartmentRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Department?> GetEntityByIdAsync(int id) =>
+    public async Task<Department?> GetEntityByIdAsync(Guid id) =>
         await _context.Departments.FindAsync(id);
 
-    public async Task<bool> ExistsAsync(int id) =>
+    public async Task<bool> ExistsAsync(Guid id) =>
         await _context.Departments.AnyAsync(d => d.IdDepartment == id);
 
     public async Task AddAsync(Department department) =>
         await _context.Departments.AddAsync(department);
 
-    public async Task<int> DeleteAsync(int id) =>
+    public async Task<int> DeleteAsync(Guid id) =>
         await _context.Departments.Where(d => d.IdDepartment == id).ExecuteDeleteAsync();
 
     public async Task SaveChangesAsync() =>

@@ -1,35 +1,38 @@
+using System;
+using System.Collections.Generic;
+
 namespace OlimpBack.Application.DTO
 {
     public class EducationalProgramDto
     {
-        public int IdEducationalProgram { get; set; }
+        public Guid IdEducationalProgram { get; set; }
         public string NameEducationalProgram { get; set; } = null!;
         public string Degree { get; set; } = null!;
-        public int DegreeId { get; set; }
+        public Guid DegreeId { get; set; }
         public string SpecialityCode { get; set; } = null!;
         public string Speciality { get; set; } = null!;
         public int StudentsCount { get; set; }
         public int DisciplinesCount { get; set; }
     }
-    
+
     public class EducationalProgramListQueryDto
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
 
-        // ������ ������ ���!
-        public List<int>? DegreeLevelIds { get; set; }
+        //   !
+        public List<Guid>? DegreeLevelIds { get; set; }
 
         public int SortOrder { get; set; } = 0;
     }
     public class EducationalProgramFullDto
     {
-        public int IdEducationalProgram { get; set; }
+        public Guid IdEducationalProgram { get; set; }
         public string NameEducationalProgram { get; set; } = null!;
         public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
         public string Degree { get; set; } = null!;
-        public int DegreeId { get; set; }
+        public Guid DegreeId { get; set; }
         public string Speciality { get; set; } = null!;
         public sbyte Accreditation { get; set; }
         public string AccreditationType { get; set; } = null!;
@@ -43,9 +46,9 @@ namespace OlimpBack.Application.DTO
         public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
 
         //  string Degree   ID
-        public int DegreeId { get; set; }
+        public Guid DegreeId { get; set; }
 
-        public int SpecialityId { get; set; }
+        public Guid SpecialityId { get; set; }
         public sbyte Accreditation { get; set; }
         public string AccreditationType { get; set; } = null!;
         public uint StudentsAmount { get; set; }
@@ -53,7 +56,7 @@ namespace OlimpBack.Application.DTO
 
     public class UpdateEducationalProgramDto : CreateEducationalProgramDto
     {
-        public int IdEducationalProgram { get; set; }
+        public Guid IdEducationalProgram { get; set; }
     }
 
 }

@@ -95,7 +95,7 @@ public class DeviceTransferRepository : IDeviceTransferRepository
             
         if (session != null)
         {
-            session.IsCompleted = new BitArray(new[] { true });
+            session.IsCompleted = true;
             session.CompletedAt = DateTime.UtcNow;
             // Clean up payload immediately after completion for security
             session.EncryptedTransferPayload = null;
@@ -110,7 +110,7 @@ public class DeviceTransferRepository : IDeviceTransferRepository
             
         if (session != null)
         {
-            session.IsExpired = new BitArray(new[] { true });
+            session.IsExpired = true;
             session.EncryptedTransferPayload = null; // Clear payload on expiry
             await SaveChangesAsync();
         }
@@ -122,9 +122,9 @@ public class DeviceTransferRepository : IDeviceTransferRepository
         
         // Mark as expired and clear payloads for sessions that passed their expiration date
         await _context.DeviceTransferSessions
-            .Where(s => s.ExpiresAt < now && s.IsExpired.Get(0) == false)
+            .Where(s => s.ExpiresAt < now && s.IsExpired == false)
             .ExecuteUpdateAsync(s => s
-                .SetProperty(p => p.IsExpired, expiredBit)
+                .SetProperty(p => p.IsExpired, true)
                 .SetProperty(p => p.EncryptedTransferPayload, (string?)null));
 
         // Hard delete sessions that are very old (e.g., more than 24 hours old)

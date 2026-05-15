@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,8 +37,8 @@ public class RatingService : IRatingService
         var mainGrades = await _repository.GetMainGradesAsync(studentIds, targetSemester);
         var selectiveGrades = await _repository.GetSelectiveGradesAsync(studentIds, targetSemester);
 
-        var academicScores = new Dictionary<int, double>();
-        var studentRedoMap = new Dictionary<int, bool>();
+        var academicScores = new Dictionary<Guid, double>();
+        var studentRedoMap = new Dictionary<Guid, bool>();
 
         foreach (var student in students)
         {
@@ -60,15 +59,15 @@ public class RatingService : IRatingService
             foreach (var mg in studentMainGrades)
             {
                 sumGrades += ParseGrade(mg.MainGrade1);
-                if (mg.MainDisciplines?.BindMainDiscipline?.IsRedo != null && mg.MainDisciplines.BindMainDiscipline.IsRedo.Cast<bool>().FirstOrDefault())
+                if (mg.MainDisciplines?.BindMainDisciplines?.Any(bmd => bmd.IsRedo == true) == true)
                 {
                     hasRedo = true;
                 }
             }
             foreach (var sg in studentSelectiveGrades)
             {
-                sumGrades += ParseGrade(sg.Grade);
-                if (sg.IsRedo != null && sg.IsRedo.Cast<bool>().FirstOrDefault())
+                sumGrades += ParseGrade(sg.Grade.HasValue ? sg.Grade.Value.ToString() : null);
+                if (sg.IsRedo == true)
                 {
                     hasRedo = true;
                 }
@@ -92,11 +91,11 @@ public class RatingService : IRatingService
 
             ratings.Add(new BindRating
             {
+                IdBindRating = Guid.NewGuid(),
                 StudentId = student.IdStudent,
-                Year = query.CatalogYearId,
-                Semestr = new BitArray(new bool[] { query.SemesterType == 2 }),
+                IsEven = (query.SemesterType == 2),
                 FinalScore = (float)(academicScore + extraScore),
-                IsRedo = new BitArray(new bool[] { isRedo })
+                IsRedo = isRedo
             });
         }
 
@@ -105,10 +104,11 @@ public class RatingService : IRatingService
         // 5. Record calculation time
         var calcTime = new RatingCalculationTime
         {
+            IdRatingCalculationTime = Guid.NewGuid(),
             SpecialityId = students.First().Group?.EducationalProgram?.SpecialityId, 
             Course = query.Course,
-            Semestr = query.SemesterType,
-            IsShorted = new BitArray(new bool[] { query.IsAccelerated }),
+            IsEven = (query.SemesterType == 2),
+            IsShorted = query.IsAccelerated,
             Date = DateOnly.FromDateTime(DateTime.Now),
             YearId = query.CatalogYearId
         };
@@ -149,16 +149,16 @@ public class RatingService : IRatingService
         };
     }
 
-    private async Task<Dictionary<int, double>> CalculateExtraPointsAsync(List<Student> students)
+    private async Task<Dictionary<Guid, double>> CalculateExtraPointsAsync(List<Student> students)
     {
         var studentIds = students.Select(s => s.IdStudent).ToList();
         var eventPoints = await _repository.GetEventPointsAsync(studentIds);
         var extraActivityPoints = await _repository.GetExtraActivityPointsAsync(studentIds);
         
-        var sgStudents = students.Where(s => s.IsInSg != null && s.IsInSg.Length > 0 && s.IsInSg[0]).Select(s => s.IdStudent).ToList();
-        var sgPointsMap = sgStudents.Any() ? await _repository.GetSgPointsMapAsync(sgStudents) : new Dictionary<int, int>();
+        var sgStudents = students.Where(s => s.IsInSg).Select(s => s.IdStudent).ToList();
+        var sgPointsMap = sgStudents.Any() ? await _repository.GetSgPointsMapAsync(sgStudents) : new Dictionary<Guid, int>();
 
-        var rawExtraPoints = new Dictionary<int, int>();
+        var rawExtraPoints = new Dictionary<Guid, int>();
         foreach (var sid in studentIds)
         {
             int totalRaw = 0;
@@ -172,7 +172,7 @@ public class RatingService : IRatingService
         }
 
         int maxRaw = rawExtraPoints.Values.Any() ? rawExtraPoints.Values.Max() : 0;
-        var normalizedPoints = new Dictionary<int, double>();
+        var normalizedPoints = new Dictionary<Guid, double>();
 
         foreach (var kvp in rawExtraPoints)
         {

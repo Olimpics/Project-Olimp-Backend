@@ -29,7 +29,7 @@ namespace OlimpBack.Controllers
         // GET: api/Student/5
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.StudentsRead)]
-        public async Task<ActionResult<StudentDto>> GetStudent(int id)
+        public async Task<ActionResult<StudentDto>> GetStudent(Guid id)
         {
             var student = await _studentService.GetStudentAsync(id);
             if (student == null)
@@ -52,7 +52,7 @@ namespace OlimpBack.Controllers
         // PUT: api/Student/5
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.StudentsUpdate)]
-        public async Task<IActionResult> UpdateStudent(int id, UpdateStudentDto updateDto)
+        public async Task<IActionResult> UpdateStudent(Guid id, UpdateStudentDto updateDto)
         {
             var (success, statusCode, errorMessage) =
                 await _studentService.UpdateStudentAsync(id, updateDto);

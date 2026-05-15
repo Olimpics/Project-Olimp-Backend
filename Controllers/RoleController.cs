@@ -39,7 +39,7 @@ namespace OlimpBack.Controllers
         // GET: api/Role/5
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.RolesRead)]
-        public async Task<ActionResult<RoleDto>> GetRole(int id)
+        public async Task<ActionResult<RoleDto>> GetRole(Guid id)
         {
             var role = await GetRoleEntityAsync(id);
             if (role == null)
@@ -76,7 +76,7 @@ namespace OlimpBack.Controllers
         // PUT: api/Role/5
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.RolesUpdate)]
-        public async Task<IActionResult> UpdateRole(int id, RoleDto roleDto)
+        public async Task<IActionResult> UpdateRole(Guid id, RoleDto roleDto)
         {
             if (id != roleDto.IdRole)
                 return BadRequest();
@@ -96,7 +96,7 @@ namespace OlimpBack.Controllers
         // DELETE: api/Role/5
         [HttpDelete("{id}")]
         [RequirePermission(RbacPermissions.RolesDelete)]
-        public async Task<IActionResult> DeleteRole(int id)
+        public async Task<IActionResult> DeleteRole(Guid id)
         {
             var role = await GetRoleEntityAsync(id);
             if (role == null)
@@ -122,7 +122,7 @@ namespace OlimpBack.Controllers
                 .AsNoTracking();
         }
 
-        private async Task<Role?> GetRoleEntityAsync(int id)
+        private async Task<Role?> GetRoleEntityAsync(Guid id)
         {
             return await _context.Roles
                 .FromSqlInterpolated($@"

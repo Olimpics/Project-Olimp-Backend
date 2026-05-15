@@ -1,11 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
-using OlimpBack.Utils; // ��� DisciplineAvailabilityService
+using OlimpBack.Utils;
 using OlimpBack.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace OlimpBack.Application.Services;
 
@@ -13,7 +16,7 @@ public class DisciplineTabService : IDisciplineTabService
 {
     private readonly IDisciplineTabRepository _repository;
     private readonly IMapper _mapper;
-    private readonly AppDbContext _context; // ��������� ��� BuildAvailabilityContext, ���� ���� �� �� �������������
+    private readonly AppDbContext _context;
 
     public DisciplineTabService(IDisciplineTabRepository repository, IMapper mapper, AppDbContext context)
     {
@@ -79,6 +82,9 @@ public class DisciplineTabService : IDisciplineTabService
 
         var now = DateTime.UtcNow;
 
+        if (context.Student.Group?.EducationalProgram?.Speciality?.Department?.FacultyId == null)
+            return null;
+
         var isPeriodActive = await _repository.IsChoicePeriodActiveAsync(context.Student.Group.EducationalProgram.Speciality.Department.FacultyId, now);
         if (!isPeriodActive) return null;
 
@@ -97,14 +103,14 @@ public class DisciplineTabService : IDisciplineTabService
         return new DisciplineTabResponseDto
         {
             StudentId = context.Student.IdStudent,
-            StudentName = context.Student.NameStudent,
+            StudentName = context.Student.NameStudent ?? "",
             CurrentCourse = context.CurrentCourse,
             IsEvenSemester = queryDto.IsEvenSemester,
             Disciplines = availableDisciplines
         };
     }
 
-    public async Task<(int? bindId, string? error)> SelectiveDisciplineBindAsync(SelectiveDisciplineBindDto dto)
+    public async Task<(Guid? bindId, string? error)> SelectiveDisciplineBindAsync(SelectiveDisciplineBindDto dto)
     {
         var context = await DisciplineAvailabilityService.BuildAvailabilityContext(dto.StudentId, _context);
         if (context == null) return (null, $"Student not found {dto.StudentId}");
@@ -125,9 +131,9 @@ public class DisciplineTabService : IDisciplineTabService
         var bind = new BindSelectiveDiscipline
         {
             StudentId = dto.StudentId,
-            SelectiveDisciplinesId = dto.DisciplineId,
+            SelectiveDisciplineId = dto.DisciplineId,
             Semestr = targetSemester,
-            InProcess = new System.Collections.BitArray(1, true),
+            InProcess = true,
             Loans = dto.Loans
         };
 
@@ -137,7 +143,7 @@ public class DisciplineTabService : IDisciplineTabService
         return (bind.IdBindSelectiveDisciplines, null);
     }
 
-    public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(int id) =>
+    public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id) =>
         await _repository.GetDisciplineWithDetailsDtoAsync(id);
 
     public async Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto)
@@ -159,7 +165,7 @@ public class DisciplineTabService : IDisciplineTabService
         return await _repository.GetDisciplineWithDetailsDtoAsync(discipline.IdSelectiveDisciplines);
     }
 
-    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(int id, UpdateSelectiveDisciplineWithDetailsDto dto)
+    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
     {
         var discipline = await _repository.GetDisciplineWithDetailEntityAsync(id);
         if (discipline == null) return (false, "Discipline not found");
@@ -186,7 +192,7 @@ public class DisciplineTabService : IDisciplineTabService
         return (true, null);
     }
 
-    public async Task<(bool success, string? error)> UpdateDisciplineStatusAsync(int id, int statusId)
+    public async Task<(bool success, string? error)> UpdateDisciplineStatusAsync(Guid id, Guid statusId)
     {
         var discipline = await _repository.GetDisciplineWithDetailEntityAsync(id);
         if (discipline == null) return (false, "Discipline not found");
@@ -196,7 +202,7 @@ public class DisciplineTabService : IDisciplineTabService
         return (true, null);
     }
 
-    private async Task SyncTeachersJsonAsync(SelectiveDiscipline discipline, List<int>? adminIds)
+    private async Task SyncTeachersJsonAsync(SelectiveDiscipline discipline, List<Guid>? adminIds)
     {
         if (adminIds == null) return;
 
@@ -209,7 +215,7 @@ public class DisciplineTabService : IDisciplineTabService
         {
             AdminId = id,
             SelectiveDisciplinesId = discipline.IdSelectiveDisciplines,
-            IsHead = new System.Collections.BitArray(1, false)
+            IsHead = false
         });
         await _context.BindTeachersSelectives.AddRangeAsync(newBindings);
 
@@ -226,9 +232,9 @@ public class DisciplineTabService : IDisciplineTabService
         discipline.SelectiveDetail.Teachers = System.Text.Json.JsonSerializer.Serialize(admins);
     }
 
-    private async Task SyncRecommendedJsonAndEpAsync(SelectiveDiscipline discipline, List<int>? courseIds, List<int>? specialtyIds, List<int>? epIds)
+    private async Task SyncRecommendedJsonAndEpAsync(SelectiveDiscipline discipline, List<int>? courseIds, List<Guid>? specialtyIds, List<Guid>? epIds)
     {
-        var recommendedEpIds = new HashSet<int>();
+        var recommendedEpIds = new HashSet<Guid>();
         var recommendedJson = new Dictionary<string, List<string>>();
 
         if (epIds != null && epIds.Any())

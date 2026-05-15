@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -24,15 +23,15 @@ public partial class DeviceTransferSession
 
     public string? EncryptedTransferPayload { get; set; }
 
-    public BitArray IsCompleted { get; set; } = null!;
-
-    public BitArray IsExpired { get; set; } = null!;
-
     public DateTime ExpiresAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime? CompletedAt { get; set; }
+
+    public bool IsCompleted { get; set; }
+
+    public bool IsExpired { get; set; }
 
     public virtual UserDevice? NewDevice { get; set; }
 

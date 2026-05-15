@@ -1,22 +1,24 @@
-﻿namespace OlimpBack.Application.DTO
+﻿using System;
+
+namespace OlimpBack.Application.DTO
 {
     public class UserRoleDto
     {
-        public int IdUsers { get; set; }
-        public string Email { get; set; }
-        public string RoleName { get; set; }
+        public Guid IdUsers { get; set; }
+        public string Email { get; set; } = null!;
+        public string RoleName { get; set; } = null!;
     }
     public class CreateUserDto
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public int RoleId { get; set; }
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
+        public Guid RoleId { get; set; }
     }
 
     public class UpdateUserDto
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public int RoleId { get; set; }
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
+        public Guid RoleId { get; set; }
     }
 }

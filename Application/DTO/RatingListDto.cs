@@ -4,10 +4,10 @@ namespace OlimpBack.Application.DTO;
 
 public class RatingListQueryDto
 {
-    public int SpecialityId { get; set; }
+    public Guid SpecialityId { get; set; }
     public int Course { get; set; }
     public int Semester { get; set; }
-    public int CatalogYearId { get; set; }
+    public Guid CatalogYearId { get; set; }
     public bool IsAccelerated { get; set; }
     
     public bool? IsFundedOnly { get; set; }

@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class BindLoansMain
 {
-    public int IdBindLoan { get; set; }
+    public Guid? EducationalProgramId { get; set; }
 
-    public int? SelectiveDisciplinesId { get; set; }
+    public Guid? SelectiveDisciplinesId { get; set; }
 
-    public int? EducationalProgramId { get; set; }
+    public Guid IdBindLoanMain { get; set; }
 
     public virtual EducationalProgram? EducationalProgram { get; set; }
 

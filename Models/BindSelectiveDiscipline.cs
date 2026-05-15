@@ -1,38 +1,37 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class BindSelectiveDiscipline
 {
-    public int IdBindSelectiveDisciplines { get; set; }
-
-    public int? StudentId { get; set; }
-
-    public int? SelectiveDisciplinesId { get; set; }
-
     public int? Loans { get; set; }
-
-    public BitArray? InProcess { get; set; }
-
-    public string? Grade { get; set; }
-
-    public string? CreatedAt { get; set; }
-
-    public BitArray? IsRedo { get; set; }
 
     public int? Semestr { get; set; }
 
-    public int? Year { get; set; }
-
-    public BitArray? NeedReview { get; set; }
-
     public int? StudentAssessment { get; set; }
 
-    public virtual SelectiveDiscipline? SelectiveDisciplines { get; set; }
+    public Guid StudentId { get; set; }
 
-    public virtual Student? Student { get; set; }
+    public Guid? YearId { get; set; }
 
-    public virtual CatalogYear? YearNavigation { get; set; }
+    public int? Grade { get; set; }
+
+    public bool? IsRedo { get; set; }
+
+    public bool? NeedReview { get; set; }
+
+    public bool? InProcess { get; set; }
+
+    public Guid? SelectiveDisciplineId { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public Guid IdBindSelectiveDisciplines { get; set; }
+
+    public virtual SelectiveDiscipline? SelectiveDiscipline { get; set; }
+
+    public virtual Student Student { get; set; } = null!;
+
+    public virtual CatalogYear? Year { get; set; }
 }

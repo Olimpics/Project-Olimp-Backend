@@ -15,10 +15,10 @@ namespace OlimpBack.Application.Services
     public interface ITypeOfDisciplineService
     {
         Task<IEnumerable<TypeOfDisciplineDto>> GetAllAsync();
-        Task<TypeOfDisciplineDto?> GetByIdAsync(int id);
+        Task<TypeOfDisciplineDto?> GetByIdAsync(Guid id);
         Task<TypeOfDisciplineDto> CreateAsync(CreateTypeOfDisciplineDto dto);
-        Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, TypeOfDisciplineDto dto);
-        Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+        Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, TypeOfDisciplineDto dto);
+        Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
     }
 
     public class TypeOfDisciplineService : ITypeOfDisciplineService
@@ -34,7 +34,7 @@ namespace OlimpBack.Application.Services
         {
             return await _repository.GetAllDtoAsync();
         }
-        public async Task<TypeOfDisciplineDto?> GetByIdAsync(int id)
+        public async Task<TypeOfDisciplineDto?> GetByIdAsync(Guid id)
         {
             return await _repository.GetDtoByIdAsync(id);
         }
@@ -48,7 +48,7 @@ namespace OlimpBack.Application.Services
             var resultDto = await _repository.GetDtoByIdAsync(entity.IdTypeOfDiscipline);
             return resultDto ?? _mapper.Map<TypeOfDisciplineDto>(entity);
         }
-        public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, TypeOfDisciplineDto dto)
+        public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, TypeOfDisciplineDto dto)
         {
             if (id != dto.IdTypeOfDiscipline)
                 return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -74,7 +74,7 @@ namespace OlimpBack.Application.Services
             return (true, StatusCodes.Status204NoContent, null);
         }
 
-        public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+        public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
         {
             var deletedRows = await _repository.DeleteAsync(id);
 

@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OlimpBack.Application.DTO;
 using OlimpBack.Application.Permissions;
@@ -58,7 +60,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("GetDisciplineWithDetails/{id}")]
         [RequirePermission(RbacPermissions.DisciplineRead)]
-        public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetDisciplineWithDetails(int id)
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetDisciplineWithDetails(Guid id)
         {
             var result = await _service.GetDisciplineWithDetailsAsync(id);
             if (result == null)
@@ -91,7 +93,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateDisciplineWithDetails/{id}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<IActionResult> UpdateDisciplineWithDetails(int id, UpdateSelectiveDisciplineWithDetailsDto dto)
+        public async Task<IActionResult> UpdateDisciplineWithDetails(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
         {
             if (id != dto.IdSelectiveDisciplines)
                 return BadRequest();
@@ -108,7 +110,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateApprovalStatus/{id}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<IActionResult> UpdateApprovalStatus(int id, [FromQuery] int statusId)
+        public async Task<IActionResult> UpdateApprovalStatus(Guid id, [FromQuery] Guid statusId)
         {
             var (success, error) = await _service.UpdateDisciplineStatusAsync(id, statusId);
             if (!success)

@@ -34,7 +34,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
-        public async Task<ActionResult> Update(int id, [FromBody] UpdateDisciplineChoicePeriodDto dto)
+        public async Task<ActionResult> Update(Guid id, [FromBody] UpdateDisciplineChoicePeriodDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAsync(id, dto);
             if (!success) return StatusCode(statusCode, errorMessage);
@@ -44,7 +44,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateAfterStart/{id}")]
         [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
-        public async Task<ActionResult> UpdateAfterStart(int id, [FromBody] UpdateDisciplineChoicePeriodAfterStartDto dto)
+        public async Task<ActionResult> UpdateAfterStart(Guid id, [FromBody] UpdateDisciplineChoicePeriodAfterStartDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.UpdateAfterStartAsync(id, dto);
             if (!success) return StatusCode(statusCode, errorMessage);
@@ -54,7 +54,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("OpenOrClose/{id}")]
         [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
-        public async Task<ActionResult> OpenOrClose(int id, [FromBody] UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
+        public async Task<ActionResult> OpenOrClose(Guid id, [FromBody] UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
         {
             var (success, statusCode, errorMessage) = await _service.OpenOrCloseAsync(id, dto);
             if (!success) return StatusCode(statusCode, errorMessage);

@@ -11,9 +11,9 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface INotificationTemplateRepository
 {
     Task<IEnumerable<NotificationTemplateDto>> GetAllDtoAsync();
-    Task<NotificationTemplateDto?> GetDtoByIdAsync(int id);
-    Task<NotificationTemplate?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<NotificationTemplateDto?> GetDtoByIdAsync(Guid id);
+    Task<NotificationTemplate?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(NotificationTemplate template);
     Task SaveChangesAsync();
 }
@@ -37,7 +37,7 @@ public class NotificationTemplateRepository : INotificationTemplateRepository
             .ToListAsync();
     }
 
-    public async Task<NotificationTemplateDto?> GetDtoByIdAsync(int id)
+    public async Task<NotificationTemplateDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.NotificationTemplates
             .AsNoTracking()
@@ -46,12 +46,12 @@ public class NotificationTemplateRepository : INotificationTemplateRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<NotificationTemplate?> GetEntityByIdAsync(int id)
+    public async Task<NotificationTemplate?> GetEntityByIdAsync(Guid id)
     {
         return await _context.NotificationTemplates.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.NotificationTemplates.AnyAsync(nt => nt.IdNotificationTemplates == id);
     }

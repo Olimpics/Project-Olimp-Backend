@@ -12,11 +12,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface ITypeOfDisciplineRepository
 {
     Task<IEnumerable<TypeOfDisciplineDto>> GetAllDtoAsync();
-    Task<TypeOfDisciplineDto?> GetDtoByIdAsync(int id);
-    Task<TypeOfDiscipline?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<TypeOfDisciplineDto?> GetDtoByIdAsync(Guid id);
+    Task<TypeOfDiscipline?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(TypeOfDiscipline entity);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -36,7 +36,7 @@ public class TypeOfDisciplineRepository : ITypeOfDisciplineRepository
             .ProjectTo<TypeOfDisciplineDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
-    public async Task<TypeOfDisciplineDto?> GetDtoByIdAsync(int id)
+    public async Task<TypeOfDisciplineDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.TypeOfDisciplines
             .AsNoTracking()
@@ -44,11 +44,11 @@ public class TypeOfDisciplineRepository : ITypeOfDisciplineRepository
             .ProjectTo<TypeOfDisciplineDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
     }
-    public async Task<TypeOfDiscipline?> GetEntityByIdAsync(int id)
+    public async Task<TypeOfDiscipline?> GetEntityByIdAsync(Guid id)
     {
         return await _context.TypeOfDisciplines.FindAsync(id);
     }
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.TypeOfDisciplines.AnyAsync(t => t.IdTypeOfDiscipline == id);
     }
@@ -56,7 +56,7 @@ public class TypeOfDisciplineRepository : ITypeOfDisciplineRepository
     {
         await _context.TypeOfDisciplines.AddAsync(entity);
     }
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         var entity = await GetEntityByIdAsync(id);
         if (entity == null) return 0;

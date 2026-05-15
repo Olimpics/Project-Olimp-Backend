@@ -28,7 +28,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.DepartmentsRead)]
-        public async Task<ActionResult<DepartmentDto>> GetDepartment(int id)
+        public async Task<ActionResult<DepartmentDto>> GetDepartment(Guid id)
         {
             var department = await _departmentService.GetDepartmentAsync(id);
 
@@ -48,7 +48,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.DepartmentsUpdate)]
-        public async Task<IActionResult> UpdateDepartment(int id, UpdateDepartmentDto dto)
+        public async Task<IActionResult> UpdateDepartment(Guid id, UpdateDepartmentDto dto)
         {
             var (success, statusCode, errorMessage) =
                 await _departmentService.UpdateDepartmentAsync(id, dto);
@@ -61,7 +61,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("{id}")]
         [RequirePermission(RbacPermissions.DepartmentsDelete)]
-        public async Task<IActionResult> DeleteDepartment(int id)
+        public async Task<IActionResult> DeleteDepartment(Guid id)
         {
             var (success, statusCode, errorMessage) =
                 await _departmentService.DeleteDepartmentAsync(id);

@@ -10,9 +10,9 @@ namespace OlimpBack.Application.Services;
 public interface INotificationTemplateService
 {
     Task<IEnumerable<NotificationTemplateDto>> GetAllAsync();
-    Task<NotificationTemplateDto?> GetByIdAsync(int id);
+    Task<NotificationTemplateDto?> GetByIdAsync(Guid id);
     Task<NotificationTemplateDto> CreateAsync(CreateNotificationTemplateDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateNotificationTemplateDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateNotificationTemplateDto dto);
 }
 
 public class NotificationTemplateService : INotificationTemplateService
@@ -31,7 +31,7 @@ public class NotificationTemplateService : INotificationTemplateService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<NotificationTemplateDto?> GetByIdAsync(int id)
+    public async Task<NotificationTemplateDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -47,7 +47,7 @@ public class NotificationTemplateService : INotificationTemplateService
         return resultDto ?? _mapper.Map<NotificationTemplateDto>(template);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateNotificationTemplateDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateNotificationTemplateDto dto)
     {
         var template = await _repository.GetEntityByIdAsync(id);
         if (template == null)

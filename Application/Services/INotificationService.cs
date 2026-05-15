@@ -10,10 +10,10 @@ public interface INotificationService
         Guid userId,
         NotificationQueryDto queryDto);
 
-    Task<NotificationDto?> GetNotificationAsync(int id);
+    Task<NotificationDto?> GetNotificationAsync(Guid id);
 
     Task<NotificationDto> CreateNotificationAsync(CreateNotificationDto dto);
 
-    Task<(bool success, int statusCode, string? errorMessage)> MarkAsReadAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> MarkAsReadAsync(Guid id);
 }
 

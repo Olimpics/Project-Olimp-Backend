@@ -1,32 +1,35 @@
+using System;
+using System.Collections.Generic;
+
 namespace OlimpBack.Application.DTO
 {
     public class DepartmentDto
     {
-        public int IdDepartment { get; set; }
-        public int FacultyId { get; set; }
+        public Guid IdDepartment { get; set; }
+        public Guid FacultyId { get; set; }
         public string NameDepartment { get; set; } = null!;
-        public string Abbreviation { get; set; } = null!;
-        public string FacultyName { get; set; } = null!;
+        public string? Abbreviation { get; set; }
+        public string? FacultyName { get; set; }
     }
 
     public class CreateDepartmentDto
     {
-        public int FacultyId { get; set; }
+        public Guid FacultyId { get; set; }
         public string NameDepartment { get; set; } = null!;
-        public string Abbreviation { get; set; } = null!;
+        public string? Abbreviation { get; set; }
     }
 
     public class UpdateDepartmentDto : CreateDepartmentDto
     {
-        public int IdDepartment { get; set; }
+        public Guid IdDepartment { get; set; }
     }
 
     public class DepartmentQueryDto
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
-        public List<int>? FacultyIds { get; set; } // Замість string
+        public List<Guid>? FacultyIds { get; set; }
         public string? Search { get; set; }
         public int SortOrder { get; set; } = 0;
     }
-} 
+}

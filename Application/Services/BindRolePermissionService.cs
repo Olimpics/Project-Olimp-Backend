@@ -9,10 +9,10 @@ namespace OlimpBack.Application.Services;
 public interface IBindRolePermissionService
 {
     Task<IEnumerable<BindRolePermissionDto>> GetAllAsync();
-    Task<BindRolePermissionDto?> GetByKeyAsync(int roleId, int permissionId);
+    Task<BindRolePermissionDto?> GetByKeyAsync(Guid roleId, Guid permissionId);
     Task<(BindRolePermissionDto? dto, int? statusCode, string? errorMessage)> CreateAsync(CreateBindRolePermissionDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int roleId, int permissionId, UpdateBindRolePermissionDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int roleId, int permissionId);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid roleId, Guid permissionId, UpdateBindRolePermissionDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid roleId, Guid permissionId);
 }
 
 public class BindRolePermissionService : IBindRolePermissionService
@@ -31,7 +31,7 @@ public class BindRolePermissionService : IBindRolePermissionService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<BindRolePermissionDto?> GetByKeyAsync(int roleId, int permissionId)
+    public async Task<BindRolePermissionDto?> GetByKeyAsync(Guid roleId, Guid permissionId)
     {
         return await _repository.GetDtoAsync(roleId, permissionId);
     }
@@ -61,7 +61,7 @@ public class BindRolePermissionService : IBindRolePermissionService
         return (resultDto, null, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int roleId, int permissionId, UpdateBindRolePermissionDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid roleId, Guid permissionId, UpdateBindRolePermissionDto dto)
     {
         var binding = await _repository.GetEntityAsync(roleId, permissionId);
         if (binding == null)
@@ -94,7 +94,7 @@ public class BindRolePermissionService : IBindRolePermissionService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int roleId, int permissionId)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid roleId, Guid permissionId)
     {
         var deletedRows = await _repository.DeleteAsync(roleId, permissionId);
 

@@ -13,7 +13,7 @@ public class RoleMaskService : IRoleMaskService
         _context = context;
     }
 
-    public async Task<long> RecalculateRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
+    public async Task<long> RecalculateRoleMaskAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         var roleExists = await _context.Roles
             .FromSqlInterpolated($@"
@@ -57,7 +57,7 @@ public class RoleMaskService : IRoleMaskService
         return newMask;
     }
 
-    public async Task<long> GetRoleMaskAsync(int roleId, CancellationToken cancellationToken = default)
+    public async Task<long> GetRoleMaskAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         // TEMPORARY: Redis cache is disabled for local development until Redis is available.
         // var cacheKey = GetRoleMaskKey(roleId);
@@ -106,12 +106,11 @@ public class RoleMaskService : IRoleMaskService
         return combined;
     }
 
-    private async Task<long> GetRoleMaskWithAncestorsAsync(int roleId, CancellationToken cancellationToken)
+    private async Task<long> GetRoleMaskWithAncestorsAsync(Guid roleId, CancellationToken cancellationToken)
     {
         long mask = 0;
         var currentRoleId = roleId;
-        var visited = new HashSet<int>();
-
+        var visited = new HashSet<Guid>();
         while (visited.Add(currentRoleId))
         {
             var roleInfo = await _context.Roles

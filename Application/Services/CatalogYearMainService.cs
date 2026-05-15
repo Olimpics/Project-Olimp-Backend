@@ -10,10 +10,10 @@ namespace OlimpBack.Application.Services;
 public interface ICatalogYearMainService
 {
     Task<IEnumerable<CatalogYearMainDto>> GetAllAsync();
-    Task<CatalogYearMainDto?> GetByIdAsync(int id);
+    Task<CatalogYearMainDto?> GetByIdAsync(Guid id);
     Task<CatalogYearMainDto> CreateAsync(CreateCatalogYearMainDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearMainDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateCatalogYearMainDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class CatalogYearMainService : ICatalogYearMainService
@@ -32,7 +32,7 @@ public class CatalogYearMainService : ICatalogYearMainService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<CatalogYearMainDto?> GetByIdAsync(int id)
+    public async Task<CatalogYearMainDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -48,7 +48,7 @@ public class CatalogYearMainService : ICatalogYearMainService
         return resultDto ?? _mapper.Map<CatalogYearMainDto>(entity);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearMainDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateCatalogYearMainDto dto)
     {
         if (id != dto.IdCatalogYear)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -74,7 +74,7 @@ public class CatalogYearMainService : ICatalogYearMainService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
 

@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class BindSimilarSelectiveInGroup
 {
-    public int? IdBind { get; set; }
+    public Guid? GroupId { get; set; }
 
-    public int? GroupId { get; set; }
+    public Guid? SelectiveId { get; set; }
 
-    public int? SelectiveId { get; set; }
+    public Guid IdBind { get; set; }
 
     public virtual GroupSimilarSelective? Group { get; set; }
 

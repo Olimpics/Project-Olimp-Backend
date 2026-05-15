@@ -6,10 +6,10 @@ public interface IFacultyService
 {
     Task<IEnumerable<FacultyDto>> GetFacultiesAsync();
 
-    Task<FacultyDto?> GetFacultyAsync(int id);
+    Task<FacultyDto?> GetFacultyAsync(Guid id);
 
     Task<FacultyDto> CreateFacultyAsync(FacultyCreateDto dto);
 
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateFacultyAsync(int id, FacultyDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateFacultyAsync(Guid id, FacultyDto dto);
 }
 

@@ -6,15 +6,15 @@ public interface IGroupService
 {
     Task<IEnumerable<GroupFilterDto>> GetGroupsAsync(GroupListQueryDto queryDto);
 
-    Task<GroupDto?> GetGroupAsync(int id);
-    Task<GroupDetailsDto?> GetGroupDetailsAsync(int id);
-    Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId);
+    Task<GroupDto?> GetGroupAsync(Guid id);
+    Task<GroupDetailsDto?> GetGroupDetailsAsync(Guid id);
+    Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(Guid groupId);
 
     Task<GroupDto> CreateGroupAsync(CreateGroupDto dto);
 
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateGroupAsync(int id, UpdateGroupDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateGroupAsync(Guid id, UpdateGroupDto dto);
 
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(int id);
-    Task<GroupCurriculumDTO?> GetGroupCurriculumAsync(int groupId);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(Guid id);
+    Task<GroupCurriculumDTO?> GetGroupCurriculumAsync(Guid groupId);
 }
 

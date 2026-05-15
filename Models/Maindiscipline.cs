@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class MainDiscipline
 {
-    public int IdBindMainDisciplines { get; set; }
-
     public string? CodeMainDisciplines { get; set; }
 
     public string? NameBindMainDisciplines { get; set; }
@@ -18,19 +15,19 @@ public partial class MainDiscipline
 
     public int? Semestr { get; set; }
 
-    public int? EducationalProgramId { get; set; }
-
     public int? Hours { get; set; }
-
-    public BitArray? NeedFix { get; set; }
 
     public string? NameDock { get; set; }
 
-    public virtual BindMainDiscipline? BindMainDiscipline { get; set; }
+    public Guid? EducationalProgramId { get; set; }
+
+    public bool NeedFix { get; set; }
+
+    public Guid IdMainDisciplines { get; set; }
+
+    public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
 
     public virtual ICollection<BindTeacherMain> BindTeacherMains { get; set; } = new List<BindTeacherMain>();
 
     public virtual EducationalProgram? EducationalProgram { get; set; }
-
-    public virtual ICollection<MainGrade> MainGrades { get; set; } = new List<MainGrade>();
 }

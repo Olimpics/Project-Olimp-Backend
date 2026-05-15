@@ -10,11 +10,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface ICatalogYearSelectiveRepository
 {
     Task<IEnumerable<CatalogYearSelectiveDto>> GetAllDtoAsync();
-    Task<CatalogYearSelectiveDto?> GetDtoByIdAsync(int id);
-    Task<CatalogYearsSelective?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<CatalogYearSelectiveDto?> GetDtoByIdAsync(Guid id);
+    Task<CatalogYearsSelective?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(CatalogYearsSelective entity);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -37,23 +37,23 @@ public class CatalogYearSelectiveRepository : ICatalogYearSelectiveRepository
             .ToListAsync();
     }
 
-    public async Task<CatalogYearSelectiveDto?> GetDtoByIdAsync(int id)
+    public async Task<CatalogYearSelectiveDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.CatalogYearsSelectives
             .AsNoTracking()
-            .Where(c => c.IdCatalogYear == id)
+            .Where(c => c.IdCatalogYearSelective == id)
             .ProjectTo<CatalogYearSelectiveDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<CatalogYearsSelective?> GetEntityByIdAsync(int id)
+    public async Task<CatalogYearsSelective?> GetEntityByIdAsync(Guid id)
     {
         return await _context.CatalogYearsSelectives.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
-        return await _context.CatalogYearsSelectives.AnyAsync(c => c.IdCatalogYear == id);
+        return await _context.CatalogYearsSelectives.AnyAsync(c => c.IdCatalogYearSelective == id);
     }
 
     public async Task AddAsync(CatalogYearsSelective entity)
@@ -61,10 +61,10 @@ public class CatalogYearSelectiveRepository : ICatalogYearSelectiveRepository
         await _context.CatalogYearsSelectives.AddAsync(entity);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         return await _context.CatalogYearsSelectives
-            .Where(c => c.IdCatalogYear == id)
+            .Where(c => c.IdCatalogYearSelective == id)
             .ExecuteDeleteAsync();
     }
 

@@ -2,7 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
 using OlimpBack.Data;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
 
@@ -10,10 +13,10 @@ public interface IGradeRepository
 {
     Task<(int TotalCount, List<GradeStudentDto> Items)> GetMainDisciplineStudentsPagedAsync(GradeQueryDto queryDto);
     Task<(int TotalCount, List<GradeStudentDto> Items)> GetSelectiveDisciplineStudentsPagedAsync(GradeQueryDto queryDto);
-    Task<BindMainDiscipline?> GetMainBindAsync(int id);
-    Task<BindSelectiveDiscipline?> GetSelectiveBindAsync(int id);
-    Task<List<InstructorDisciplineDto>> GetMainDisciplinesByInstructorAsync(int adminId, int catalogYearId, bool isEvenSemester);
-    Task<List<InstructorDisciplineDto>> GetSelectiveDisciplinesByInstructorAsync(int adminId, int catalogYearId, bool isEvenSemester);
+    Task<BindMainDiscipline?> GetMainBindAsync(Guid id);
+    Task<BindSelectiveDiscipline?> GetSelectiveBindAsync(Guid id);
+    Task<List<InstructorDisciplineDto>> GetMainDisciplinesByInstructorAsync(Guid adminId, Guid catalogYearId, bool isEvenSemester);
+    Task<List<InstructorDisciplineDto>> GetSelectiveDisciplinesByInstructorAsync(Guid adminId, Guid catalogYearId, bool isEvenSemester);
     Task<AcademicPeriodDto> GetAcademicPeriodAsync(DateTime date);
     Task SaveChangesAsync();
 }
@@ -31,7 +34,7 @@ public class GradeRepository : IGradeRepository
     {
         var parity = queryDto.IsEvenSemester ? 0 : 1;
         var query = _context.BindMainDisciplines.AsNoTracking()
-            .Where(b => b.MainDisciplinesId == queryDto.DisciplineId && b.Year == queryDto.CatalogYearId && b.Semestr % 2 == parity);
+            .Where(b => b.MainDisciplinesId == queryDto.DisciplineId && b.YearId == queryDto.CatalogYearId && b.Semestr % 2 == parity);
 
         var projection = query.Select(b => new GradeStudentDto
         {
@@ -40,7 +43,7 @@ public class GradeRepository : IGradeRepository
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
             DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
             FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
-            Score = b.Grade
+            Score = b.Grade.HasValue ? b.Grade.Value.ToString() : null
         });
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
@@ -77,7 +80,7 @@ public class GradeRepository : IGradeRepository
     {
         var parity = queryDto.IsEvenSemester ? 0 : 1;
         var query = _context.BindSelectiveDisciplines.AsNoTracking()
-            .Where(b => b.SelectiveDisciplinesId == queryDto.DisciplineId && b.Year == queryDto.CatalogYearId && b.Semestr % 2 == parity);
+            .Where(b => b.SelectiveDisciplineId == queryDto.DisciplineId && b.YearId == queryDto.CatalogYearId && b.Semestr % 2 == parity);
 
         var projection = query.Select(b => new GradeStudentDto
         {
@@ -86,7 +89,7 @@ public class GradeRepository : IGradeRepository
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
             DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
             FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
-            Score = b.Grade
+            Score = b.Grade.HasValue ? b.Grade.Value.ToString() : null
         });
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
@@ -119,17 +122,17 @@ public class GradeRepository : IGradeRepository
         return (totalCount, items);
     }
 
-    public async Task<BindMainDiscipline?> GetMainBindAsync(int id)
+    public async Task<BindMainDiscipline?> GetMainBindAsync(Guid id)
     {
         return await _context.BindMainDisciplines.FindAsync(id);
     }
 
-    public async Task<BindSelectiveDiscipline?> GetSelectiveBindAsync(int id)
+    public async Task<BindSelectiveDiscipline?> GetSelectiveBindAsync(Guid id)
     {
         return await _context.BindSelectiveDisciplines.FindAsync(id);
     }
 
-    public async Task<List<InstructorDisciplineDto>> GetMainDisciplinesByInstructorAsync(int adminId, int catalogYearId, bool isEvenSemester)
+    public async Task<List<InstructorDisciplineDto>> GetMainDisciplinesByInstructorAsync(Guid adminId, Guid catalogYearId, bool isEvenSemester)
     {
         var parity = isEvenSemester ? 0 : 1;
 
@@ -137,30 +140,30 @@ public class GradeRepository : IGradeRepository
             .Where(btm => btm.AdminId == adminId)
             .Where(btm => _context.BindMainDisciplines.Any(bmd =>
                 bmd.MainDisciplinesId == btm.MainDisciplinesId &&
-                bmd.Year == catalogYearId &&
+                bmd.YearId == catalogYearId &&
                 bmd.Semestr % 2 == parity))
             .Select(btm => new InstructorDisciplineDto
             {
-                Id = btm.MainDisciplinesId ?? 0,
+                Id = btm.MainDisciplinesId ?? Guid.Empty,
                 Title = btm.MainDisciplines != null ? btm.MainDisciplines.NameBindMainDisciplines ?? "" : ""
             })
             .Distinct()
             .ToListAsync();
     }
 
-    public async Task<List<InstructorDisciplineDto>> GetSelectiveDisciplinesByInstructorAsync(int adminId, int catalogYearId, bool isEvenSemester)
+    public async Task<List<InstructorDisciplineDto>> GetSelectiveDisciplinesByInstructorAsync(Guid adminId, Guid catalogYearId, bool isEvenSemester)
     {
         var parity = isEvenSemester ? 0 : 1;
 
         return await _context.BindTeachersSelectives
             .Where(bts => bts.AdminId == adminId)
             .Where(bts => _context.BindSelectiveDisciplines.Any(bsd =>
-                bsd.SelectiveDisciplinesId == bts.SelectiveDisciplinesId &&
-                bsd.Year == catalogYearId &&
+                bsd.SelectiveDisciplineId == bts.SelectiveDisciplinesId &&
+                bsd.YearId == catalogYearId &&
                 bsd.Semestr % 2 == parity))
             .Select(bts => new InstructorDisciplineDto
             {
-                Id = bts.SelectiveDisciplinesId ?? 0,
+                Id = bts.SelectiveDisciplinesId ?? Guid.Empty,
                 Title = bts.SelectiveDisciplines != null ? bts.SelectiveDisciplines.NameSelectiveDisciplines ?? "" : ""
             })
             .Distinct()
@@ -169,9 +172,9 @@ public class GradeRepository : IGradeRepository
 
     public async Task<AcademicPeriodDto> GetAcademicPeriodAsync(DateTime date)
     {
-        var semStarts = await _context.SemestersStarts.OrderBy(s => s.IdSemestersStart).ToListAsync();
-        var sem1Start = semStarts.FirstOrDefault(s => s.IdSemestersStart == 1)?.StartDate ?? new DateOnly(1900, 9, 1);
-        var sem2Start = semStarts.FirstOrDefault(s => s.IdSemestersStart == 2)?.StartDate ?? new DateOnly(1900, 2, 1);
+        var semStarts = await _context.SemestersStarts.ToListAsync();
+        var sem1Start = semStarts.FirstOrDefault(s => s.StartDate.Month == 9)?.StartDate ?? new DateOnly(1900, 9, 1);
+        var sem2Start = semStarts.FirstOrDefault(s => s.StartDate.Month == 2)?.StartDate ?? new DateOnly(1900, 2, 1);
 
         int month = date.Month;
         int day = date.Day;
@@ -186,7 +189,6 @@ public class GradeRepository : IGradeRepository
         }
         else
         {
-            // If Sem 2 starts after Sem 1 (unlikely given typical academic year)
             isSem2 = dateVal >= s2Val || dateVal < s1Val;
         }
 
@@ -199,19 +201,14 @@ public class GradeRepository : IGradeRepository
         }
         else
         {
-            // If it's Semester 1:
-            // Follow the rule: "if it's the first semester, then we need to take the record whose YearStart is the year that we get from request"
             yearStart = date.Year;
-            
-            // Note: This might need adjustment if the date is in Jan/Feb before Sem 2 starts.
-            // But I will follow the user's explicit rule for now.
         }
 
         var catalogYear = await _context.CatalogYears.FirstOrDefaultAsync(cy => cy.YearStart == yearStart);
 
         return new AcademicPeriodDto
         {
-            CatalogYearId = catalogYear?.IdCatalog ?? 0,
+            CatalogYearId = catalogYear?.IdCatalog ?? Guid.Empty,
             Semester = semester
         };
     }

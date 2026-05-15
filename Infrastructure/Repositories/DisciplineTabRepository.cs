@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
@@ -10,11 +14,11 @@ public interface IDisciplineTabRepository
 {
     Task<List<SelectiveDiscipline>> GetDisciplinesForAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto queryDto);
     Task<List<SelectiveDiscipline>> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto);
-    Task<bool> IsChoicePeriodActiveAsync(int facultyId, DateTime now);
-    Task<SelectiveDiscipline?> GetDisciplineByIdAsNoTrackingAsync(int id);
-    Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsDtoAsync(int id);
-    Task<SelectiveDiscipline?> GetDisciplineWithDetailEntityAsync(int id);
-    Task<bool> DepartmentExistsAsync(int departmentId);
+    Task<bool> IsChoicePeriodActiveAsync(Guid facultyId, DateTime now);
+    Task<SelectiveDiscipline?> GetDisciplineByIdAsNoTrackingAsync(Guid id);
+    Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsDtoAsync(Guid id);
+    Task<SelectiveDiscipline?> GetDisciplineWithDetailEntityAsync(Guid id);
+    Task<bool> DepartmentExistsAsync(Guid departmentId);
     Task SelectiveDisciplineAsync(SelectiveDiscipline discipline);
     Task AddBindAsync(BindSelectiveDiscipline bind);
     Task SaveChangesAsync();
@@ -52,14 +56,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
 
         if (queryDto.IsEvenSemester.HasValue)
         {
-            if (queryDto.IsEvenSemester.Value) // Paired
-            {
-                query = query.Where(d => d.IsEven == null || d.IsEven[0] == true);
-            }
-            else // Unpaired
-            {
-                query = query.Where(d => d.IsEven == null || d.IsEven[0] == false);
-            }
+            query = query.Where(d => d.IsEven == null || d.IsEven == queryDto.IsEvenSemester.Value);
         }
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
@@ -79,45 +76,22 @@ public class DisciplineTabRepository : IDisciplineTabRepository
     }
     public async Task<List<SelectiveDiscipline>> GetDisciplinesBySemesterAsync(GetDisciplinesBySemesterQueryDto queryDto)
     {
-        if (queryDto.IsEvenSemester) // Paired
-        {
-            return await _context.SelectiveDisciplines
-                .Where(d => d.IsEven == null || d.IsEven[0] == true)
-                .ToListAsync();
-        }
-        else // Unpaired
-        {
-            return await _context.SelectiveDisciplines
-                .Where(d => d.IsEven == null || d.IsEven[0] == false)
-                .ToListAsync();
-        }
-    }
-    public async Task<bool> IsChoicePeriodActiveAsync(int facultyId, DateTime now)
-    {
-        var rows = await _context.DisciplineChoicePeriods
-            .AsNoTracking()
-            .Where(p => p.FacultyId == facultyId && p.StartDate != null && p.EndDate != null)
-            .Select(p => new { p.StartDate, p.EndDate })
+        return await _context.SelectiveDisciplines
+            .Where(d => d.IsEven == null || d.IsEven == queryDto.IsEvenSemester)
             .ToListAsync();
-
-        foreach (var p in rows)
-        {
-            if (!System.DateTime.TryParse(p.StartDate, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var start))
-                continue;
-            if (!System.DateTime.TryParse(p.EndDate, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var end))
-                continue;
-            if (start <= now && end >= now)
-                return true;
-        }
-
-        return false;
     }
-    public async Task<SelectiveDiscipline?> GetDisciplineByIdAsNoTrackingAsync(int id) =>
+    public async Task<bool> IsChoicePeriodActiveAsync(Guid facultyId, DateTime now)
+    {
+        var dateNow = DateOnly.FromDateTime(now);
+        return await _context.DisciplineChoicePeriods
+            .AsNoTracking()
+            .AnyAsync(p => p.Department != null && p.Department.FacultyId == facultyId && p.StartDate != null && p.EndDate != null && p.StartDate <= dateNow && p.EndDate >= dateNow);
+    }
+    public async Task<SelectiveDiscipline?> GetDisciplineByIdAsNoTrackingAsync(Guid id) =>
         await _context.SelectiveDisciplines.AsNoTracking().FirstOrDefaultAsync(d => d.IdSelectiveDisciplines == id);
 
-    public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsDtoAsync(int id)
+    public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsDtoAsync(Guid id)
     {
-        // Проекція без Include
         return await _context.SelectiveDisciplines
             .Where(d => d.IdSelectiveDisciplines == id)
             .Select(d => new FullDisciplineWithDetailsDto
@@ -129,7 +103,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 MinCountPeople = d.MinCountPeople,
                 MaxCountPeople = d.MaxCountPeople,
                 Courses = d.Courses != null ? d.Courses.ToList() : new List<int>(),
-                IsEven = d.IsEven != null && d.IsEven.Length > 0 ? (d.IsEven[0] ? 1 : 0) : (int?)null,
+                IsEven = d.IsEven,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
                 NameSelectiveDisciplinesEng = d.SelectiveDetail != null ? d.SelectiveDetail.NameSelectiveDisciplinesEng : null,
                 DepartmentName = d.Department != null ? d.Department.NameDepartment : "",
@@ -141,7 +115,7 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 WhyInterestingDetermination = d.SelectiveDetail != null ? d.SelectiveDetail.WhyInterestingDetermination : null,
                 ResultEducation = d.SelectiveDetail != null ? d.SelectiveDetail.ResultEducation : null,
                 UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
-                DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
+                DisciplineTopics = d.SelectiveDetail != null && d.SelectiveDetail.DisciplineTopics != null ? string.Join(", ", d.SelectiveDetail.DisciplineTopics) : null,
                 TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
                 TypeOfControl = d.TypeOfControl != null ? d.TypeOfControl.Type : "",
                 CatalogId = d.CatalogId,
@@ -151,10 +125,10 @@ public class DisciplineTabRepository : IDisciplineTabRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<SelectiveDiscipline?> GetDisciplineWithDetailEntityAsync(int id) =>
+    public async Task<SelectiveDiscipline?> GetDisciplineWithDetailEntityAsync(Guid id) =>
         await _context.SelectiveDisciplines.Include(d => d.SelectiveDetail).FirstOrDefaultAsync(d => d.IdSelectiveDisciplines == id);
 
-    public async Task<bool> DepartmentExistsAsync(int departmentId) =>
+    public async Task<bool> DepartmentExistsAsync(Guid departmentId) =>
         await _context.Departments.AnyAsync(d => d.IdDepartment == departmentId);
 
     public async Task SelectiveDisciplineAsync(SelectiveDiscipline discipline) =>

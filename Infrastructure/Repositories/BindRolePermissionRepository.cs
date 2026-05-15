@@ -8,13 +8,13 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IBindRolePermissionRepository
 {
     Task<IEnumerable<BindRolePermissionDto>> GetAllDtoAsync();
-    Task<BindRolePermissionDto?> GetDtoAsync(int roleId, int permissionId);
-    Task<RolePermission?> GetEntityAsync(int roleId, int permissionId);
-    Task<bool> ExistsRoleAsync(int roleId);
-    Task<bool> ExistsPermissionAsync(int permissionId);
-    Task<bool> BindingExistsAsync(int roleId, int permissionId);
+    Task<BindRolePermissionDto?> GetDtoAsync(Guid roleId, Guid permissionId);
+    Task<RolePermission?> GetEntityAsync(Guid roleId, Guid permissionId);
+    Task<bool> ExistsRoleAsync(Guid roleId);
+    Task<bool> ExistsPermissionAsync(Guid permissionId);
+    Task<bool> BindingExistsAsync(Guid roleId, Guid permissionId);
     Task AddAsync(RolePermission binding);
-    Task<int> DeleteAsync(int roleId, int permissionId);
+    Task<int> DeleteAsync(Guid roleId, Guid permissionId);
     Task SaveChangesAsync();
 }
 
@@ -54,7 +54,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
             .ToList();
     }
 
-    public async Task<BindRolePermissionDto?> GetDtoAsync(int roleId, int permissionId)
+    public async Task<BindRolePermissionDto?> GetDtoAsync(Guid roleId, Guid permissionId)
     {
         var role = await _context.Roles
             .FromSqlInterpolated($@"
@@ -74,14 +74,14 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
         return permission == null ? null : ToDto(role, permission);
     }
 
-    public async Task<RolePermission?> GetEntityAsync(int roleId, int permissionId)
+    public async Task<RolePermission?> GetEntityAsync(Guid roleId, Guid permissionId)
     {
         return await BindingExistsAsync(roleId, permissionId)
             ? new RolePermission { RoleId = roleId, PermissionId = permissionId }
             : null;
     }
 
-    public async Task<bool> ExistsRoleAsync(int roleId)
+    public async Task<bool> ExistsRoleAsync(Guid roleId)
     {
         return await _context.Roles
             .FromSqlInterpolated($@"
@@ -96,7 +96,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
             .AnyAsync();
     }
 
-    public async Task<bool> ExistsPermissionAsync(int permissionId)
+    public async Task<bool> ExistsPermissionAsync(Guid permissionId)
     {
         return await _context.Permissions
             .FromSqlInterpolated($@"
@@ -110,7 +110,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
             .AnyAsync();
     }
 
-    public async Task<bool> BindingExistsAsync(int roleId, int permissionId)
+    public async Task<bool> BindingExistsAsync(Guid roleId, Guid permissionId)
     {
         return await GetPermissionByRoleAsync(roleId, permissionId) != null;
     }
@@ -122,7 +122,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
             VALUES ({binding.RoleId}, {binding.PermissionId})");
     }
 
-    public async Task<int> DeleteAsync(int roleId, int permissionId)
+    public async Task<int> DeleteAsync(Guid roleId, Guid permissionId)
     {
         return await _context.Database.ExecuteSqlInterpolatedAsync($@"
             DELETE FROM ""RolePermissions""
@@ -134,7 +134,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
         await _context.SaveChangesAsync();
     }
 
-    private async Task<List<Permission>> GetPermissionsByRoleAsync(int roleId)
+    private async Task<List<Permission>> GetPermissionsByRoleAsync(Guid roleId)
     {
         return await _context.Permissions
             .FromSqlInterpolated($@"
@@ -150,7 +150,7 @@ public class BindRolePermissionRepository : IBindRolePermissionRepository
             .ToListAsync();
     }
 
-    private async Task<Permission?> GetPermissionByRoleAsync(int roleId, int permissionId)
+    private async Task<Permission?> GetPermissionByRoleAsync(Guid roleId, Guid permissionId)
     {
         return await _context.Permissions
             .FromSqlInterpolated($@"

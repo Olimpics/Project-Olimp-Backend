@@ -25,7 +25,7 @@ public class FilterRepository : IFilterRepository
             .AsNoTracking()
             .AsQueryable();
 
-        if (queryDto.CatalogYearId is > 0)
+        if (queryDto.CatalogYearId.HasValue)
         {
             query = query.Where(ad => ad.CatalogId == queryDto.CatalogYearId.Value);
         }

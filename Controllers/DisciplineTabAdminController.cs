@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -71,7 +74,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.DisciplineRead)]
-        public async Task<ActionResult<BindSelectiveDisciplineDto>> GetBind(int id)
+        public async Task<ActionResult<BindSelectiveDisciplineDto>> GetBind(Guid id)
         {
             var result = await _service.GetBindAsync(id);
             if (result == null)
@@ -81,7 +84,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("GetStudentWithChoices/{studentId}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<ActionResult<StudentWithDisciplineChoicesDto>> GetStudentWithChoices(int studentId)
+        public async Task<ActionResult<StudentWithDisciplineChoicesDto>> GetStudentWithChoices(Guid studentId)
         {
             var result = await _service.GetStudentWithChoicesAsync(studentId);
             if (result == null)
@@ -109,48 +112,20 @@ namespace OlimpBack.Controllers
 
         [HttpGet("GetStudentsIncompleteAfterChoicePeriod")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<ActionResult<List<StudentIdNameDto>>> GetStudentsIncompleteAfterChoicePeriod([FromQuery] int facultyId)
+        public async Task<ActionResult<List<StudentIdNameDto>>> GetStudentsIncompleteAfterChoicePeriod([FromQuery] Guid facultyId)
         {
-            if (facultyId <= 0)
-                return BadRequest(new { error = "facultyId must be a positive value" });
+            if (facultyId == Guid.Empty)
+                return BadRequest(new { error = "facultyId is required" });
 
             var result = await _service.GetStudentsIncompleteAfterChoicePeriodAsync(facultyId);
             return Ok(result);
         }
 
 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateBindSelectiveDiscipline(int id, UpdateBindSelectiveDisciplineDto updateDto)
-        //{
-        //    var bind = await _context.BindSelectiveDisciplines.FindAsync(id);
-        //    if (bind == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _mapper.Map(updateDto, bind);
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-
-
-        //            throw;
-
-        //    }
-
-        //    return NoContent();
-        //}
-
-
-
         //
         [HttpDelete("RepealChoice/{studentId}/{DisciplineId}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<IActionResult> RepealChoice(int DisciplineId, int studentId)
+        public async Task<IActionResult> RepealChoice(Guid DisciplineId, Guid studentId)
         {
             var (success, errorMessage) = await _service.RepealChoiceAsync(DisciplineId, studentId);
 

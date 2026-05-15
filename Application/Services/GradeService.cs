@@ -64,12 +64,12 @@ public class GradeService : IGradeService
         return true;
     }
 
-    public async Task<List<InstructorDisciplineDto>> GetMainDisciplinesByInstructorAsync(int adminId, int catalogYearId, bool isEvenSemester)
+    public async Task<List<InstructorDisciplineDto>> GetMainDisciplinesByInstructorAsync(Guid adminId, Guid catalogYearId, bool isEvenSemester)
     {
         return await _gradeRepository.GetMainDisciplinesByInstructorAsync(adminId, catalogYearId, isEvenSemester);
     }
 
-    public async Task<List<InstructorDisciplineDto>> GetSelectiveDisciplinesByInstructorAsync(int adminId, int catalogYearId, bool isEvenSemester)
+    public async Task<List<InstructorDisciplineDto>> GetSelectiveDisciplinesByInstructorAsync(Guid adminId, Guid catalogYearId, bool isEvenSemester)
     {
         return await _gradeRepository.GetSelectiveDisciplinesByInstructorAsync(adminId, catalogYearId, isEvenSemester);
     }

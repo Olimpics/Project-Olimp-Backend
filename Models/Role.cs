@@ -5,13 +5,15 @@ namespace OlimpBack.Models;
 
 public partial class Role
 {
-    public int IdRole { get; set; }
-
     public string Name { get; set; } = null!;
 
-    public int? ParentRoleId { get; set; }
-
     public long? PermissionsMask { get; set; }
+
+    public Guid? ParentRoleId { get; set; }
+
+    public Guid IdRole { get; set; }
+
+    public virtual ICollection<Approval> Approvals { get; set; } = new List<Approval>();
 
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 

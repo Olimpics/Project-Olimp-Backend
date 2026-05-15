@@ -26,7 +26,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.FacultiesRead)]
-        public async Task<ActionResult<FacultyDto>> GetFaculty(int id)
+        public async Task<ActionResult<FacultyDto>> GetFaculty(Guid id)
         {
             var faculty = await _facultyService.GetFacultyAsync(id);
             if (faculty == null)
@@ -46,7 +46,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.FacultiesUpdate)]
-        public async Task<IActionResult> UpdateFaculty(int id, FacultyDto facultyDto)
+        public async Task<IActionResult> UpdateFaculty(Guid id, FacultyDto facultyDto)
         {
             if (id != facultyDto.IdFaculty)
                 return BadRequest();

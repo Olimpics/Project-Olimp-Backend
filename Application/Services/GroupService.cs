@@ -20,13 +20,13 @@ public class GroupService : IGroupService
     public async Task<IEnumerable<GroupFilterDto>> GetGroupsAsync(GroupListQueryDto queryDto) =>
         await _repository.GetFilteredGroupsAsync(queryDto);
 
-    public async Task<GroupDto?> GetGroupAsync(int id) =>
+    public async Task<GroupDto?> GetGroupAsync(Guid id) =>
         await _repository.GetDtoByIdAsync(id);
 
-    public async Task<GroupDetailsDto?> GetGroupDetailsAsync(int id) =>
+    public async Task<GroupDetailsDto?> GetGroupDetailsAsync(Guid id) =>
         await _repository.GetDetailsByIdAsync(id);
 
-    public async Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId) =>
+    public async Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(Guid groupId) =>
         await _repository.GetStudentsByGroupIdAsync(groupId);
 
     public async Task<GroupDto> CreateGroupAsync(CreateGroupDto dto)
@@ -38,7 +38,7 @@ public class GroupService : IGroupService
         return _mapper.Map<GroupDto>(group);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateGroupAsync(int id, UpdateGroupDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateGroupAsync(Guid id, UpdateGroupDto dto)
     {
         var group = await _repository.GetEntityByIdAsync(id);
         if (group == null)
@@ -61,7 +61,7 @@ public class GroupService : IGroupService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteGroupAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
         if (deletedRows == 0)
@@ -70,6 +70,6 @@ public class GroupService : IGroupService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<GroupCurriculumDTO?> GetGroupCurriculumAsync(int groupId) =>
+    public async Task<GroupCurriculumDTO?> GetGroupCurriculumAsync(Guid groupId) =>
         await _repository.GetCurriculumByGroupIdAsync(groupId);
 }

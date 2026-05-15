@@ -19,7 +19,7 @@ public class StudentPageController : ControllerBase
 
     [HttpGet("educational-program/{studentId}")]
     [RequirePermission(RbacPermissions.StudentsRead)]
-    public async Task<ActionResult<StudentEducationalProgramDto>> GetStudentEducationalProgram(int studentId)
+    public async Task<ActionResult<StudentEducationalProgramDto>> GetStudentEducationalProgram(Guid studentId)
     {
         var result = await _service.GetStudentEducationalProgramAsync(studentId);
 
@@ -33,7 +33,7 @@ public class StudentPageController : ControllerBase
 
     [HttpGet("add-disciplines/{studentId}")]
     [RequirePermission(RbacPermissions.StudentsRead)]
-    public async Task<ActionResult<StudentSelectiveDisciplinesDto>> GetStudentSelectiveDisciplines(int studentId)
+    public async Task<ActionResult<StudentSelectiveDisciplinesDto>> GetStudentSelectiveDisciplines(Guid studentId)
     {
         var result = await _service.GetStudentSelectiveDisciplinesAsync(studentId);
 

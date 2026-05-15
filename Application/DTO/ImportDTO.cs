@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
@@ -55,9 +57,9 @@ namespace OlimpBack.Application.DTO
         public bool NeedFix { get; set; }
         public string? Department { get; set; }
         public List<string>? Teachers { get; set; }
-        public int? DegreeLevelId { get; set; }
+        public Guid? DegreeLevelId { get; set; }
         public List<int>? Courses { get; set; }
-        public int? IsEven { get; set; }
+        public bool? IsEven { get; set; }
         public string? Language { get; set; }
         public string? Prerequisites { get; set; }
         public string? WhyInterestingDetermination { get; set; }
@@ -82,7 +84,7 @@ namespace OlimpBack.Application.DTO
         [Required]
         public IFormFile Archive { get; set; } = null!;
         [Required]
-        public int CatalogId { get; set; }
+        public Guid CatalogId { get; set; }
         [Required]
         public bool IsFaculty { get; set; }
     }

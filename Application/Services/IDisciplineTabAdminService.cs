@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using OlimpBack.Application.DTO;
 
 namespace OlimpBack.Application.Services;
@@ -13,20 +16,20 @@ public interface IDisciplineTabAdminService
 
     Task<UpdateDisciplineStatusResponseDto?> UpdateDisciplineStatusAsync(UpdateDisciplineStatusDto dto);
 
-    Task<BindSelectiveDisciplineDto?> GetBindAsync(int id);
+    Task<BindSelectiveDisciplineDto?> GetBindAsync(Guid id);
 
-    Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(int studentId);
+    Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(Guid studentId);
 
-    Task<(int? bindId, string? error)> CreateBindAsync(SelectiveDisciplineBindDto dto);
+    Task<(Guid? bindId, string? error)> CreateBindAsync(SelectiveDisciplineBindDto dto);
 
-    Task<bool> DeleteBindAsync(int id);
+    Task<bool> DeleteBindAsync(Guid id);
 
     Task<PaginatedResponseDto<AdminStudentBySelectiveDisciplineDto>> GetStudentsBySelectiveDisciplineAsync(GetStudentsBySelectiveDisciplineQueryDto query);
 
-    Task<(bool success, string? errorMessage)> RepealChoiceAsync(int DisciplinId, int studentId);
+    Task<(bool success, string? errorMessage)> RepealChoiceAsync(Guid DisciplinId, Guid studentId);
 
     Task<PaginatedResponseDto<AdminStudentByMainDisciplineDto>> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query);
 
     /// <summary>Students (id and name) who still lack required add-discipline selections after the last completed choice period for the faculty.</summary>
-    Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(int facultyId);
+    Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(Guid facultyId);
 }

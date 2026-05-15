@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class RolePermission
 {
-    public int RoleId { get; set; }
+    public Guid IdRolePermission { get; set; }
 
-    public int PermissionId { get; set; }
+    public Guid PermissionId { get; set; }
 
-    public int IdRolePermission { get; set; }
+    public Guid RoleId { get; set; }
 
     public virtual Permission Permission { get; set; } = null!;
 

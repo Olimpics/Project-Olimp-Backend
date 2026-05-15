@@ -29,7 +29,7 @@ public class DepartmentService : IDepartmentService
         };
     }
 
-    public async Task<DepartmentDto?> GetDepartmentAsync(int id) =>
+    public async Task<DepartmentDto?> GetDepartmentAsync(Guid id) =>
         await _repository.GetDtoByIdAsync(id);
 
     public async Task<DepartmentDto> CreateDepartmentAsync(CreateDepartmentDto dto)
@@ -48,7 +48,7 @@ public class DepartmentService : IDepartmentService
         return (await _repository.GetDtoByIdAsync(department.IdDepartment))!;
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateDepartmentAsync(int id, UpdateDepartmentDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateDepartmentAsync(Guid id, UpdateDepartmentDto dto)
     {
         if (id != dto.IdDepartment)
             return (false, StatusCodes.Status400BadRequest, "Route id does not match body id.");
@@ -75,7 +75,7 @@ public class DepartmentService : IDepartmentService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteDepartmentAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteDepartmentAsync(Guid id)
     {
         var deleted = await _repository.DeleteAsync(id);
         if (deleted == 0)

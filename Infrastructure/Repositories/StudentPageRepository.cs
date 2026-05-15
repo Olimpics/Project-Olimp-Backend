@@ -7,8 +7,8 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IStudentPageRepository
 {
-    Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(int studentId);
-    Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(int studentId);
+    Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(Guid studentId);
+    Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(Guid studentId);
 }
 
 public class StudentPageRepository : IStudentPageRepository
@@ -22,7 +22,7 @@ public class StudentPageRepository : IStudentPageRepository
         _mapper = mapper;
     }
 
-    public async Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(int studentId)
+    public async Task<StudentEducationalProgramDto?> GetStudentEducationalProgramAsync(Guid studentId)
     {
         var data = await _context.Students
             .AsNoTracking()
@@ -51,7 +51,7 @@ public class StudentPageRepository : IStudentPageRepository
                 : new List<BindSelectiveDisciplineDto>()
         };
     }
-    public async Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(int studentId)
+    public async Task<StudentSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(Guid studentId)
     {
         var data = await _context.Students
             .AsNoTracking()

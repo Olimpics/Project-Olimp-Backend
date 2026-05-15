@@ -10,11 +10,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IEducationalDegreeRepository
 {
     Task<IEnumerable<EducationalDegreeDto>> GetAllDtoAsync();
-    Task<EducationalDegreeDto?> GetDtoByIdAsync(int id);
-    Task<EducationalDegree?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<EducationalDegreeDto?> GetDtoByIdAsync(Guid id);
+    Task<EducationalDegree?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(EducationalDegree degree);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -38,24 +38,24 @@ public class EducationalDegreeRepository : IEducationalDegreeRepository
             .ToListAsync();
     }
 
-    public async Task<EducationalDegreeDto?> GetDtoByIdAsync(int id)
+    public async Task<EducationalDegreeDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.EducationalDegrees
             .AsNoTracking()
-            .Where(ed => ed.IdEducationalDegree == id)
+            .Where(ed => ed.Ideducationaldegree == id)
             .ProjectTo<EducationalDegreeDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<EducationalDegree?> GetEntityByIdAsync(int id)
+    public async Task<EducationalDegree?> GetEntityByIdAsync(Guid id)
     {
         // Відстеження (Tracking) зберігається, оскільки ми будемо оновлювати цю сутність
         return await _context.EducationalDegrees.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
-        return await _context.EducationalDegrees.AnyAsync(ed => ed.IdEducationalDegree == id);
+        return await _context.EducationalDegrees.AnyAsync(ed => ed.Ideducationaldegree == id);
     }
 
     public async Task AddAsync(EducationalDegree degree)
@@ -63,11 +63,11 @@ public class EducationalDegreeRepository : IEducationalDegreeRepository
         await _context.EducationalDegrees.AddAsync(degree);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         // Сучасне видалення в один SQL-запит
         return await _context.EducationalDegrees
-            .Where(ed => ed.IdEducationalDegree == id)
+            .Where(ed => ed.Ideducationaldegree == id)
             .ExecuteDeleteAsync();
     }
 

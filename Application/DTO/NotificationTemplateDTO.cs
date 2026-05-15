@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 
 namespace OlimpBack.Application.DTO
 {
     public class NotificationTemplateDto
     {
-        public int IdNotificationTemplates { get; set; }
+        public Guid IdNotificationTemplates { get; set; }
         public string NotificationType { get; set; } = null!;
         public string Title { get; set; } = null!;
         public string? Message { get; set; }

@@ -37,7 +37,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.NotificationsRead)]
-        public async Task<ActionResult<NotificationDto>> GetNotification(int id)
+        public async Task<ActionResult<NotificationDto>> GetNotification(Guid id)
         {
             var notification = await _notificationService.GetNotificationAsync(id);
             if (notification == null)
@@ -56,7 +56,7 @@ namespace OlimpBack.Controllers
 
         [HttpPost("{id}/mark-as-read")]
         [RequirePermission(RbacPermissions.NotificationsUpdate)]
-        public async Task<IActionResult> MarkAsRead(int id)
+        public async Task<IActionResult> MarkAsRead(Guid id)
         {
             var (success, statusCode, errorMessage) = await _notificationService.MarkAsReadAsync(id);
 

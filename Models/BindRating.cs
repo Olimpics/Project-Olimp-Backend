@@ -1,24 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class BindRating
 {
-    public int IdBindRating { get; set; }
-
-    public int? StudentId { get; set; }
-
-    public int? Year { get; set; }
-
-    public BitArray? Semestr { get; set; }
-
     public float? FinalScore { get; set; }
 
-    public BitArray? IsRedo { get; set; }
+    public bool IsEven { get; set; }
+
+    public Guid IdBindRating { get; set; }
+
+    public bool? IsRedo { get; set; }
+
+    public Guid? StudentId { get; set; }
 
     public virtual Student? Student { get; set; }
-
-    public virtual CatalogYear? YearNavigation { get; set; }
 }

@@ -10,13 +10,13 @@ public interface IEducationalProgramRepository
 {
     Task<List<EducationalProgramFilterDto>> GetForFilterAsync(string? search);
     Task<(int TotalCount, List<EducationalProgramDto> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto);
-    Task<EducationalProgramDto?> GetDtoByIdAsync(int id);
-    Task<EducationalProgram?> GetEntityByIdAsync(int id);
-    Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto);
-    Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId);
-    Task<bool> ExistsAsync(int id);
+    Task<EducationalProgramDto?> GetDtoByIdAsync(Guid id);
+    Task<EducationalProgram?> GetEntityByIdAsync(Guid id);
+    Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(Guid programId, ProgramStudentQueryDto queryDto);
+    Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(Guid programId);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(EducationalProgram program);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -38,7 +38,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             var lowerSearch = search.Trim().ToLower();
             query = query.Where(ep =>
                 EF.Functions.Like((ep.NameEducationalProgram ?? "").ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "").ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Code.Length > 0 ? ep.Speciality.Code : "").ToLower(), $"%{lowerSearch}%") ||
                 EF.Functions.Like((ep.Speciality != null && ep.Speciality.Name != null ? ep.Speciality.Name : "").ToLower(), $"%{lowerSearch}%"));
         }
 
@@ -61,12 +61,12 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(ep =>
                 EF.Functions.Like((ep.NameEducationalProgram ?? "").ToLower(), $"%{lowerSearch}%") ||
-                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "").ToLower(), $"%{lowerSearch}%"));
+                EF.Functions.Like((ep.Speciality != null && ep.Speciality.Code.Length > 0 ? ep.Speciality.Code : "").ToLower(), $"%{lowerSearch}%"));
         }
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
-            query = query.Where(ep => ep.DegreeId.HasValue && queryDto.DegreeLevelIds.Contains(ep.DegreeId.Value));
+            query = query.Where(ep => ep.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(ep.DegreeId));
         }
 
         var totalCount = await query.CountAsync();
@@ -75,8 +75,8 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         {
             1 => query.OrderBy(ep => ep.NameEducationalProgram),
             2 => query.OrderByDescending(ep => ep.NameEducationalProgram),
-            3 => query.OrderByDescending(ep => ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : ""),
-            _ => query.OrderBy(ep => ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "")
+            3 => query.OrderByDescending(ep => ep.Speciality != null && ep.Speciality.Code.Length > 0 ? ep.Speciality.Code : ""),
+            _ => query.OrderBy(ep => ep.Speciality != null && ep.Speciality.Code.Length > 0 ? ep.Speciality.Code : "")
         };
 
         var items = await query
@@ -86,9 +86,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             {
                 IdEducationalProgram = ep.IdEducationalProgram,
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
-                DegreeId = ep.DegreeId ?? 0,
+                DegreeId = ep.DegreeId,
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
-                SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
+                SpecialityCode = ep.Speciality != null && ep.Speciality.Code.Length > 0 ? ep.Speciality.Code : "",
                 Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
                 StudentsCount = ep.StudentGroups != null
                     ? ep.StudentGroups.SelectMany(g => g.Students).Count()
@@ -100,7 +100,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         return (totalCount, items);
     }
 
-    public async Task<EducationalProgramDto?> GetDtoByIdAsync(int id)
+    public async Task<EducationalProgramDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.EducationalPrograms
             .AsNoTracking()
@@ -109,9 +109,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             {
                 IdEducationalProgram = ep.IdEducationalProgram,
                 NameEducationalProgram = ep.NameEducationalProgram ?? "",
-                DegreeId = ep.DegreeId ?? 0,
+                DegreeId = ep.DegreeId,
                 Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
-                SpecialityCode = ep.Speciality != null && ep.Speciality.Code.HasValue ? ep.Speciality.Code.Value.ToString() : "",
+                SpecialityCode = ep.Speciality != null && ep.Speciality.Code != null ? ep.Speciality.Code : "",
                 Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
                 StudentsCount = ep.StudentGroups != null
                     ? ep.StudentGroups.SelectMany(g => g.Students).Count()
@@ -121,10 +121,10 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<EducationalProgram?> GetEntityByIdAsync(int id) =>
+    public async Task<EducationalProgram?> GetEntityByIdAsync(Guid id) =>
         await _context.EducationalPrograms.FindAsync(id);
 
-    public async Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto)
+    public async Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(Guid programId, ProgramStudentQueryDto queryDto)
     {
         var query = _context.Students
             .AsNoTracking()
@@ -163,7 +163,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 IdStudent = s.IdStudent,
                 NameStudent = s.NameStudent ?? "",
                 GroupName = s.Group.GroupCode ?? "",
-                IsShort = s.IsShort != 0,
+                IsShort = s.IsShort,
                 Status = s.EducationStatus.NameEducationStatus ?? "",
                 EducationStart = s.EducationStart
             })
@@ -172,14 +172,14 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         return (totalCount, items);
     }
 
-    public async Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId)
+    public async Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(Guid programId)
     {
         var disciplines = await _context.MainDisciplines
             .AsNoTracking()
             .Where(d => d.EducationalProgramId == programId)
             .Select(d => new
             {
-                d.IdBindMainDisciplines,
+                d.IdMainDisciplines,
                 d.CodeMainDisciplines,
                 d.NameBindMainDisciplines,
                 d.FormControl,
@@ -196,7 +196,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 Semester = g.Key,
                 Disciplines = g.Select(d => new ProgramMainDisciplineDto
                 {
-                    Id = d.IdBindMainDisciplines,
+                    Id = d.IdMainDisciplines,
                     Code = d.CodeMainDisciplines ?? "",
                     Name = d.NameBindMainDisciplines ?? "",
                     FormControl = d.FormControl,
@@ -208,13 +208,13 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .ToList();
     }
 
-    public async Task<bool> ExistsAsync(int id) =>
+    public async Task<bool> ExistsAsync(Guid id) =>
         await _context.EducationalPrograms.AnyAsync(e => e.IdEducationalProgram == id);
 
     public async Task AddAsync(EducationalProgram program) =>
         await _context.EducationalPrograms.AddAsync(program);
 
-    public async Task<int> DeleteAsync(int id) =>
+    public async Task<int> DeleteAsync(Guid id) =>
         await _context.EducationalPrograms.Where(ep => ep.IdEducationalProgram == id).ExecuteDeleteAsync();
 
     public async Task SaveChangesAsync() =>

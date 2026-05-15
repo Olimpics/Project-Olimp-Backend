@@ -20,7 +20,7 @@ public class FacultyService : IFacultyService
     public async Task<IEnumerable<FacultyDto>> GetFacultiesAsync() =>
         await _repository.GetAllDtoAsync();
 
-    public async Task<FacultyDto?> GetFacultyAsync(int id) =>
+    public async Task<FacultyDto?> GetFacultyAsync(Guid id) =>
         await _repository.GetDtoByIdAsync(id);
 
     public async Task<FacultyDto> CreateFacultyAsync(FacultyCreateDto dto)
@@ -32,7 +32,7 @@ public class FacultyService : IFacultyService
         return _mapper.Map<FacultyDto>(faculty);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateFacultyAsync(int id, FacultyDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateFacultyAsync(Guid id, FacultyDto dto)
     {
         var faculty = await _repository.GetEntityByIdAsync(id);
         if (faculty == null)

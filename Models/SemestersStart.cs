@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class SemestersStart
 {
-    public int IdSemestersStart { get; set; }
-
     public DateOnly StartDate { get; set; }
+
+    public Guid IdSemestrStart { get; set; }
 }

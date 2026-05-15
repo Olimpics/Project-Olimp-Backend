@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Application.Permissions;
@@ -10,9 +14,9 @@ public interface IAuthRepository
 {
     Task<User?> GetUserByEmailTrackedAsync(string email);
     Task<User?> GetUserByIdTrackedAsync(Guid userId);
-    Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId);
+    Task<List<PermissionDto>> GetRolePermissionsAsync(Guid roleId);
     Task<List<Role>> GetUserRolesAsync(Guid userId);
-    Task<long> GetRolePermissionsMaskAsync(int roleId);
+    Task<long> GetRolePermissionsMaskAsync(Guid roleId);
     Task<long> GetUserPermissionsMaskAsync(Guid userId);
     Task<Student?> GetStudentProfileAsync(Guid userId);
     Task<AdminsPersonal?> GetAdminProfileAsync(Guid userId);
@@ -42,14 +46,14 @@ public class AuthRepository : IAuthRepository
             .FirstOrDefaultAsync(u => u.IdUser == userId);
     }
 
-    public async Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId)
+    public async Task<List<PermissionDto>> GetRolePermissionsAsync(Guid roleId)
     {
         var permissions = await _context.Permissions
-    .Where(p => _context.RolePermissions
-        .Any(rp => rp.RoleId == roleId && rp.PermissionId == p.IdPermission))
-    .OrderBy(p => p.BitIndex)
-    .AsNoTracking()
-    .ToListAsync();
+            .Where(p => _context.RolePermissions
+                .Any(rp => rp.RoleId == roleId && rp.PermissionId == p.IdPermission))
+            .OrderBy(p => p.BitIndex)
+            .AsNoTracking()
+            .ToListAsync();
 
         return permissions
             .Select(permission => new PermissionDto
@@ -64,14 +68,14 @@ public class AuthRepository : IAuthRepository
 
     public async Task<List<Role>> GetUserRolesAsync(Guid userId)
     {
-            return await _context.Roles
-      .Where(r => _context.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == r.IdRole))
-      .OrderBy(r => r.IdRole)
-      .AsNoTracking()
-      .ToListAsync();
+        return await _context.Roles
+            .Where(r => _context.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == r.IdRole))
+            .OrderBy(r => r.IdRole)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
-    public async Task<long> GetRolePermissionsMaskAsync(int roleId)
+    public async Task<long> GetRolePermissionsMaskAsync(Guid roleId)
     {
         return await _roleMaskService.GetRoleMaskAsync(roleId);
     }

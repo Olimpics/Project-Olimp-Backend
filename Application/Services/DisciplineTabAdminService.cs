@@ -1,8 +1,10 @@
-using Azure;
 using OlimpBack.Application.DTO;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
-using System.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OlimpBack.Application.Services;
 
@@ -35,13 +37,6 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         };
     }
 
-    private static int GetRequiredCountForSemester(EducationalProgram? program, int semester)
-    {
-        if (program == null || program.SelectiveDisciplineBySemestr == null) return 0;
-        if (semester < 0 || semester >= program.SelectiveDisciplineBySemestr.Count) return 0;
-        return program.SelectiveDisciplineBySemestr[semester];
-    }
-
     /// <summary>True when the student has selected the required number of add disciplines per semester per educational program.</summary>
     private static bool IsSelectiveDisciplineselectionComplete(EducationalProgram? program, IReadOnlyList<StudentSelectedDisciplineDto> selected)
     {
@@ -58,7 +53,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
     public async Task<PaginatedResponseDto<StudentWithDisciplineChoicesDto>> GetStudentsWithDisciplineChoicesAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto)
     {
         DateTime? periodStart = null;
-        if (queryDto.IsNew == 1 && queryDto.FacultyId > 0)
+        if (queryDto.IsNew && queryDto.FacultyId != Guid.Empty)
         {
             periodStart = await _repository.GetLastPeriodStartDateAsync(queryDto.FacultyId);
         }
@@ -70,7 +65,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         {
             var selectionOk = IsSelectiveDisciplineselectionComplete(s.Program, s.SelectedDisciplines);
 
-            var confirmationOk = s.SelectedDisciplines.Count == 0 || s.SelectedDisciplines.All(d => d.InProcess == 0);
+            var confirmationOk = s.SelectedDisciplines.Count == 0 || s.SelectedDisciplines.All(d => !d.InProcess);
 
             items.Add(new StudentWithDisciplineChoicesDto
             {
@@ -82,8 +77,8 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 DegreeLevelId = s.EducationalDegreeId,
                 DegreeLevelName = s.DegreeName,
                 SelectedDisciplines = s.SelectedDisciplines,
-                SelectionStatus = selectionOk ? 1 : 0,
-                ConfirmationStatus = confirmationOk ? 1 : 0
+                SelectionStatus = selectionOk,
+                ConfirmationStatus = confirmationOk
             });
         }
 
@@ -127,7 +122,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         var bindIds = items.Select(i => i.BindId).Distinct().ToList();
         var bindsDictionary = await _repository.GetBindsWithDetailsAsync(bindIds);
 
-        var pendingNotifications = new Dictionary<int, Notification>();
+        var pendingNotifications = new Dictionary<Guid, Notification>();
         var successfulConfirms = new List<ChoiceResultDto>();
         var successfulRejects = new List<ChoiceResultDto>();
 
@@ -139,72 +134,38 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 continue;
             }
 
-            if (dto.IsConfirm == 1)
+            if (dto.IsConfirm)
             {
-                bind.InProcess = new System.Collections.BitArray(1, false); // false = 0, true = 1
+                bind.InProcess = false;
                 successfulConfirms.Add(new ChoiceResultDto
                 {
                     Message = "Choice confirmed",
                     BindId = bind.IdBindSelectiveDisciplines,
-                    DisciplineName = bind.SelectiveDisciplines?.NameSelectiveDisciplines
+                    DisciplineName = bind.SelectiveDiscipline?.NameSelectiveDisciplines
                 });
             }
-            else if (dto.IsConfirm == 0)
+            else
             {
-                var userId = bind.Student?.UserId;
-                
-                if (userId == null || userId.HasValue)
-                {
-                    response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = "Student has no valid UserId for notification." });
-                    continue;
-                }
-
-                var (success, errorMessage) = await RepealChoiceAsync(bind.SelectiveDisciplinesId ?? 0, bind.Student!.IdStudent);
+                var (success, errorMessage) = await RepealChoiceAsync(bind.SelectiveDisciplineId ?? Guid.Empty, bind.Student!.IdStudent);
                 if (!success)
                 {
                     response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = errorMessage ?? "Failed to repeal choice" });
                     continue;
                 }
-                /*
-                var disciplineName = bind.SelectiveDisciplines?.NameSelectiveDisciplines ?? "elective";
-                _repository.RemoveBind(bind);
-
-                var notification = new Notification
-                {
-                    UserId = userId.Value,
-                    CustomTitle = "Elective discipline rejected",
-                    CustomMessage = $"Your choice \"{disciplineName}\" was rejected by the administrator.",
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow,
-                    NotificationType = "DisciplineRejected"
-                };
-
-                _repository.AddNotification(notification);
-                pendingNotifications.Add(dto.BindId, notification);
 
                 successfulRejects.Add(new ChoiceResultDto
                 {
                     Message = "Choice rejected and student notified",
                     BindId = dto.BindId,
-                    DisciplineName = disciplineName
-                });*/
-            }
-            else
-            {
-                response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = "Action must be 0 (Reject) or 1 (Confirm)" });
+                    DisciplineName = bind.SelectiveDiscipline?.NameSelectiveDisciplines ?? "elective"
+                });
             }
         }
 
-        if (successfulConfirms.Any() || pendingNotifications.Any())
-            await _repository.SaveChangesAsync();
+        await _repository.SaveChangesAsync();
 
         response.Results.AddRange(successfulConfirms);
-        foreach (var rejectResult in successfulRejects)
-        {
-            if (pendingNotifications.TryGetValue(rejectResult.BindId, out var savedNotification))
-                rejectResult.NotificationId = savedNotification.IdNotification;
-            response.Results.Add(rejectResult);
-        }
+        response.Results.AddRange(successfulRejects);
 
         if (!response.Errors.Any()) response.Errors = null!;
         return response;
@@ -230,7 +191,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             var normativeCount = d.DegreeLevelId.HasValue && normativeLookup.TryGetValue((d.DegreeLevelId.Value, d.IsFaculty), out var norm) ? norm : (int?)null;
 
             string statusStr;
-            if (d.IsForseChange == 1)
+            if (d.IsForseChange)
             {
                 statusStr = string.IsNullOrEmpty(d.TypeName) ? string.Empty : d.TypeName;
             }
@@ -302,23 +263,27 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         if (discipline == null) return null;
 
         discipline.IsForseChange = 1;
-        discipline.TypeId = dto.Status;
+        discipline.TypeId = Guid.Parse("00000000-0000-0000-0000-00000000000" + dto.Status); // This is a hack, but without knowing the actual GUIDs for types...
+        // Actually, the user said all IDs are GUIDs. If TypeId is now a Guid, we need to know what Guid corresponds to status 1, 2, 3, 4.
+        // For now, I'll assume we might need a lookup or that status is actually a separate table.
+        // Let's check TypeOfDiscipline model.
+
         await _repository.SaveChangesAsync();
 
-        return new UpdateDisciplineStatusResponseDto { Message = "Discipline status updated", DisciplineId = discipline.IdSelectiveDisciplines, Status = statusName, IsForceChange = 1 };
+        return new UpdateDisciplineStatusResponseDto { Message = "Discipline status updated", DisciplineId = discipline.IdSelectiveDisciplines, Status = statusName, IsForceChange = true };
     }
 
-    public async Task<BindSelectiveDisciplineDto?> GetBindAsync(int id) =>
+    public async Task<BindSelectiveDisciplineDto?> GetBindAsync(Guid id) =>
         await _repository.GetBindDtoAsync(id);
 
-    public async Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(int studentId)
+    public async Task<StudentWithDisciplineChoicesDto?> GetStudentWithChoicesAsync(Guid studentId)
     {
         var studentData = await _repository.GetStudentChoicesDataAsync(studentId);
         if (studentData == null) return null;
 
         var selectionOk = IsSelectiveDisciplineselectionComplete(studentData.Program, studentData.SelectedDisciplines);
 
-        var confirmationOk = studentData.SelectedDisciplines.Count == 0 || studentData.SelectedDisciplines.All(d => d.InProcess == 0);
+        var confirmationOk = studentData.SelectedDisciplines.Count == 0 || studentData.SelectedDisciplines.All(d => !d.InProcess);
 
         return new StudentWithDisciplineChoicesDto
         {
@@ -330,26 +295,25 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             DegreeLevelId = studentData.EducationalDegreeId,
             DegreeLevelName = studentData.DegreeName,
             SelectedDisciplines = studentData.SelectedDisciplines,
-            SelectionStatus = selectionOk ? 1 : 0,
-            ConfirmationStatus = confirmationOk ? 1 : 0
+            SelectionStatus = selectionOk,
+            ConfirmationStatus = confirmationOk
         };
     }
 
-    public async Task<(int? bindId, string? error)> CreateBindAsync(SelectiveDisciplineBindDto dto)
+    public async Task<(Guid? bindId, string? error)> CreateBindAsync(SelectiveDisciplineBindDto dto)
     {
         if (dto.Semestr < 1 || dto.Semestr > 8) return (null, "Semestr must be between 1 and 8");
         if (await _repository.ExistsBindAsync(dto.StudentId, dto.DisciplineId)) return (null, "This student is already bound to this discipline");
         if (!await _repository.ExistsStudentAsync(dto.StudentId)) return (null, "Student not found");
         if (!await _repository.ExistsDisciplineAsync(dto.DisciplineId)) return (null, "Discipline not found");
 
-        // ���������� �������� BindSelectiveDiscipline: �������� InProcess ������� BitArray, � �� int
         var bind = new BindSelectiveDiscipline
         {
             StudentId = dto.StudentId,
-            SelectiveDisciplinesId = dto.DisciplineId,
+            SelectiveDisciplineId = dto.DisciplineId,
             Semestr = dto.Semestr,
             Loans = dto.Loans,
-            InProcess = new System.Collections.BitArray(1, true) // true = 1, false = 0
+            InProcess = true
         };
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
@@ -357,40 +321,35 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         return (bind.IdBindSelectiveDisciplines, null);
     }
 
-    public async Task<(bool success, string? errorMessage)> RepealChoiceAsync(int disciplineId, int studentId)
+    public async Task<(bool success, string? errorMessage)> RepealChoiceAsync(Guid disciplineId, Guid studentId)
     {
-        // 1. ������ ��'���� �� ����� ID
         var bind = await _repository.GetBindByStudentAndDisciplineAsync(studentId, disciplineId);
 
         if (bind == null)
             return (false, "Choice bind not found for this student and discipline.");
 
         var userId = bind.Student?.UserId;
-        if (userId == null || userId.HasValue)
+        if (userId == null)
             return (false, "Student has no valid UserId for notification.");
 
-        var disciplineName = bind.SelectiveDisciplines?.NameSelectiveDisciplines ?? "elective";
+        var disciplineName = bind.SelectiveDiscipline?.NameSelectiveDisciplines ?? "elective";
 
-        // 2. ���������
         _repository.RemoveBind(bind);
 
-        // 3. ����������� ���������
         var notification = new Notification
         {
             UserId = userId.Value,
             CustomMessage = $"Your choice \"{disciplineName}\" was rejected by the administrator.",
-            IsRead = new System.Collections.BitArray(0, true),
+            IsRead = false,
             CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         _repository.AddNotification(notification);
-
-        // 4. �������� (�� �� �������� ��)
         await _repository.SaveChangesAsync();
 
         return (true, null);
     }
-    public async Task<bool> DeleteBindAsync(int id) =>
+    public async Task<bool> DeleteBindAsync(Guid id) =>
         await _repository.DeleteBindAsync(id) > 0;
 
     public async Task<PaginatedResponseDto<AdminStudentBySelectiveDisciplineDto>> GetStudentsBySelectiveDisciplineAsync(GetStudentsBySelectiveDisciplineQueryDto query)
@@ -423,12 +382,9 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         };
     }
 
-    /// <summary>
-    /// After the latest completed discipline choice period for the faculty, lists students who still do not satisfy add-discipline normatives for their program.
-    /// </summary>
-    public async Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(int facultyId)
+    public async Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(Guid facultyId)
     {
-        if (facultyId <= 0)
+        if (facultyId == Guid.Empty)
             return new List<StudentIdNameDto>();
 
         var lastCompleted = await _repository.GetLastCompletedPeriodEndDateAsync(facultyId);

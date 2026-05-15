@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
@@ -12,17 +11,17 @@ public partial class User
 
     public byte[]? PasswordSalt { get; set; }
 
-    public BitArray IsFirstLogin { get; set; } = null!;
-
     public DateTime? PasswordChangedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime LastLoginAt { get; set; }
 
-    public BitArray? Avail { get; set; }
-
     public Guid IdUser { get; set; }
+
+    public bool IsFirstLogin { get; set; }
+
+    public bool Avail { get; set; }
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 

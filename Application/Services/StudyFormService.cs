@@ -10,10 +10,10 @@ namespace OlimpBack.Application.Services;
 public interface IStudyFormService
 {
     Task<IEnumerable<StudyFormDto>> GetAllAsync();
-    Task<StudyFormDto?> GetByIdAsync(int id);
+    Task<StudyFormDto?> GetByIdAsync(Guid id);
     Task<StudyFormDto> CreateAsync(StudyFormDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, StudyFormDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, StudyFormDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class StudyFormService : IStudyFormService
@@ -32,7 +32,7 @@ public class StudyFormService : IStudyFormService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<StudyFormDto?> GetByIdAsync(int id)
+    public async Task<StudyFormDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -48,7 +48,7 @@ public class StudyFormService : IStudyFormService
         return _mapper.Map<StudyFormDto>(form);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, StudyFormDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, StudyFormDto dto)
     {
         if (id != dto.IdStudyForm)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -74,7 +74,7 @@ public class StudyFormService : IStudyFormService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
 

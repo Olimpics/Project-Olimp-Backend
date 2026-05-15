@@ -3,8 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Data;
 using OlimpBack.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace OlimpBack.Application.Services;
 
@@ -117,7 +124,7 @@ public class ImportService : IImportService
         }
     }
 
-    private async Task SaveToDatabaseAsync(GeminiSelectiveDisciplineDto dto, int catalogId, bool isFaculty, string originalFilePath)
+    private async Task SaveToDatabaseAsync(GeminiSelectiveDisciplineDto dto, Guid catalogId, bool isFaculty, string originalFilePath)
     {
         // Generate unique name
         var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFilePath)}";
@@ -127,7 +134,7 @@ public class ImportService : IImportService
         File.Copy(originalFilePath, finalPath, true);
 
         // Lookup Department
-        int? departmentId = null;
+        Guid? departmentId = null;
         if (!string.IsNullOrEmpty(dto.Department))
         {
             var dept = await _context.Departments
@@ -136,7 +143,7 @@ public class ImportService : IImportService
         }
 
         // Recommended and RecommendedEp preparation
-        var recommendedEpIds = new HashSet<int>();
+        var recommendedEpIds = new List<Guid>();
         var recommendedJson = new Dictionary<string, List<string>>();
 
         if (dto.Recommended != null)
@@ -174,22 +181,22 @@ public class ImportService : IImportService
         // Create SelectiveDiscipline
         var discipline = new SelectiveDiscipline
         {
-            IdSelectiveDisciplines = await GenerateNextDisciplineId(),
+            IdSelectiveDisciplines = Guid.NewGuid(),
             NameSelectiveDisciplines = dto.NameSelectiveDisciplines,
             CodeSelectiveDisciplines = dto.CodeSelectiveDisciplines,
-            IsFaculty = isFaculty ? 1 : 0,
+            IsFaculty = isFaculty,
             MinCountPeople = dto.MinCountPeople,
             MaxCountPeople = dto.MaxCountPeople,
-            IsEven = dto.IsEven != null ? new System.Collections.BitArray(new[] { dto.IsEven == 1 }) : null,
+            IsEven = dto.IsEven.HasValue ? (dto.IsEven) : (bool?)null,
             DegreeLevelId = dto.DegreeLevelId,
             CatalogId = catalogId,
-            ApprovalStatusId = 4, // Approved/Published as per user request
-            TypeOfControlId = 2,
+            ApprovalStatusId = Guid.Parse("00000000-0000-0000-0000-000000000004"), // Placeholder for 'Approved'
+            TypeOfControlId = Guid.Parse("00000000-0000-0000-0000-000000000002"), // Placeholder for default control type
             DepartmentId = departmentId,
             NameDock = uniqueFileName,
             Courses = dto.Courses,
-            NeedFix = new System.Collections.BitArray(new[] { dto.NeedFix }),
-            RecommendedEp = recommendedEpIds.ToList()
+            NeedFix = dto.NeedFix,
+            RecommendedEp = recommendedEpIds
         };
 
         // Teachers Binding and JSON preparation
@@ -206,16 +213,16 @@ public class ImportService : IImportService
                     teachersJson.Add(new { Id = admin.IdAdmins, Name = admin.NameAdmin });
                     _context.BindTeachersSelectives.Add(new BindTeachersSelective
                     {
-                        IdBindTeacherSelective = await GenerateNextBindTeacherId(),
+                        IdBindTeacherSelective = Guid.NewGuid(),
                         AdminId = admin.IdAdmins,
                         SelectiveDisciplinesId = discipline.IdSelectiveDisciplines,
-                        IsHead = new System.Collections.BitArray(new[] { true }) // Defaulting to head for simplicity
+                        IsHead = true
                     });
                 }
                 else
                 {
                     // If teacher not found in DB, just add the name
-                    teachersJson.Add(new { Id = 0, Name = teacherName });
+                    teachersJson.Add(new { Id = Guid.Empty, Name = teacherName });
                 }
             }
         }
@@ -231,7 +238,7 @@ public class ImportService : IImportService
             Provision = dto.Provision,
             UsingIrl = dto.UsingIrl,
             ResultEducation = dto.ResultEducation,
-            DisciplineTopics = dto.DisciplineTopics != null ? JsonSerializer.Serialize(dto.DisciplineTopics) : null,
+            DisciplineTopics = dto.DisciplineTopics,
             TypesOfTraining = dto.TypesOfTraining,
             Recommended = recommendedJson.Any() ? JsonSerializer.Serialize(recommendedJson) : null,
             Teachers = teachersJson.Any() ? JsonSerializer.Serialize(teachersJson) : null
@@ -241,18 +248,6 @@ public class ImportService : IImportService
         _context.SelectiveDetails.Add(detail);
 
         await _context.SaveChangesAsync();
-    }
-
-    private async Task<int> GenerateNextDisciplineId()
-    {
-        var maxId = await _context.SelectiveDisciplines.MaxAsync(x => (int?)x.IdSelectiveDisciplines) ?? 0;
-        return maxId + 1;
-    }
-
-    private async Task<int> GenerateNextBindTeacherId()
-    {
-        var maxId = await _context.BindTeachersSelectives.MaxAsync(x => (int?)x.IdBindTeacherSelective) ?? 0;
-        return maxId + 1;
     }
 
     private void MoveToError(string filePath, string errorMessage)

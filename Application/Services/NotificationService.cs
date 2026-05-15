@@ -40,8 +40,8 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
-                n.IsRead != null && n.IsRead.Length > 0 ? (int?)(n.IsRead[0] ? 1 : 0) : null,
-                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToString("O") : null,
+                n.IsRead, // bool íå ìîæåò áûòü null, ïðîñòî ïåðåäàåì çíà÷åíèå
+                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -82,8 +82,8 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
-                n.IsRead != null && n.IsRead.Length > 0 ? (int?)(n.IsRead[0] ? 1 : 0) : null,
-                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToString("O") : null,
+                n.IsRead, // bool íå ìîæåò áûòü null, ïðîñòî ïåðåäàåì çíà÷åíèå
+                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -99,7 +99,7 @@ public class NotificationService : INotificationService
         };
     }
 
-    public async Task<NotificationDto?> GetNotificationAsync(int id)
+    public async Task<NotificationDto?> GetNotificationAsync(Guid id)
     {
         var projected = await _context.Notifications
             .AsNoTracking()
@@ -111,8 +111,8 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Title : null,
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
-                n.IsRead != null && n.IsRead.Length > 0 ? (int?)(n.IsRead[0] ? 1 : 0) : null,
-                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToString("O") : null,
+                n.IsRead != null && n.IsRead ? false : null,
+                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -128,7 +128,7 @@ public class NotificationService : INotificationService
             UserId = dto.UserId,
             TemplateId = dto.TemplateId,
             CustomMessage = string.IsNullOrWhiteSpace(dto.Message) ? dto.Title : dto.Message,
-            IsRead = new System.Collections.BitArray(1, false), // false = íåïðî÷èòàíî
+            IsRead = false, // false = íåïðî÷èòàíî
             CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
             Metadata = dto.Metadata?.RootElement.GetRawText()
         };
@@ -145,10 +145,10 @@ public class NotificationService : INotificationService
         {
             IdNotification = notification.IdNotification,
             UserId = notification.UserId,
-            TemplateId = notification.TemplateId ?? 0,
+            TemplateId = notification.TemplateId ?? Guid.Empty,
             Title = template?.Title ?? dto.Title ?? string.Empty,
             Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
-            IsRead = notification.IsRead != null && notification.IsRead.Length > 0 && notification.IsRead[0] == true,
+            IsRead = notification.IsRead != null && notification.IsRead != null && notification.IsRead == true,
             CreatedAt = notification.CreatedAt.HasValue
                 ? notification.CreatedAt.Value.ToDateTime(TimeOnly.MinValue)
                 : default,
@@ -157,12 +157,12 @@ public class NotificationService : INotificationService
         };
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> MarkAsReadAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> MarkAsReadAsync(Guid id)
     {
         // ˜˜˜˜˜-˜˜˜˜?˜˜?˜: ˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜'˜˜˜! (˜˜˜˜˜˜ ˜˜ EF Core 7.0+)
         var updatedRows = await _context.Notifications
-            .Where(n => n.IdNotification == id && n.IsRead != null && n.IsRead.Length > 0 && !n.IsRead[0])
-            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, new System.Collections.BitArray(1, true)));
+            .Where(n => n.IdNotification == id && !n.IsRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
 
         if (updatedRows > 0)
             return (true, StatusCodes.Status204NoContent, null);
@@ -198,7 +198,7 @@ public class NotificationService : INotificationService
         if (queryDto.IsRead.HasValue)
         {
             var wantRead = queryDto.IsRead.Value ? 1 : 0;
-            query = query.Where(n => (n.IsRead != null && n.IsRead.Length > 0 && n.IsRead[0] == (wantRead == 1)));
+            query = query.Where(n => (n.IsRead != null && n.IsRead && n.IsRead == (wantRead == 1)));
         }
 
         return query;
@@ -228,14 +228,14 @@ public class NotificationService : INotificationService
 
     // ˜˜˜˜˜˜˜˜˜˜˜ record ˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜ ˜ ˜˜ ˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
     private record NotificationProjection(
-        int IdNotification,
+        Guid IdNotification,
         Guid UserId,
-        int? TemplateId,
+        Guid? TemplateId,
         string? TemplateTitle,
         string? TemplateMessage,
         string? CustomMessage,
-        int? IsRead,
-        string? CreatedAt,
+        bool? IsRead,
+        DateTime? CreatedAt,
         string NotificationType,
         string? Metadata
     );
@@ -244,7 +244,7 @@ public class NotificationService : INotificationService
     private static NotificationDto MapProjectedToDto(NotificationProjection p)
     {
         var createdAt = DateTime.TryParse(
-            p.CreatedAt,
+            p.CreatedAt?.ToString("O"),
             CultureInfo.InvariantCulture,
             DateTimeStyles.RoundtripKind,
             out var dt)
@@ -255,7 +255,7 @@ public class NotificationService : INotificationService
         {
             IdNotification = p.IdNotification,
             UserId = p.UserId,
-            TemplateId = p.TemplateId ?? 0,
+            TemplateId = p.TemplateId ?? Guid.Empty,
             Title = p.TemplateTitle ?? string.Empty,
             Message = p.TemplateMessage ?? p.CustomMessage ?? string.Empty,
             IsRead = (p.IsRead != null && p.IsRead.HasValue),

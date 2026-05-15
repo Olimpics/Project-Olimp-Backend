@@ -11,15 +11,15 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IGroupRepository
 {
     Task<IEnumerable<GroupFilterDto>> GetFilteredGroupsAsync(GroupListQueryDto queryDto);
-    Task<GroupDto?> GetDtoByIdAsync(int id);
-    Task<GroupDetailsDto?> GetDetailsByIdAsync(int id);
-    Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId);
-    Task<StudentGroup?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<GroupDto?> GetDtoByIdAsync(Guid id);
+    Task<GroupDetailsDto?> GetDetailsByIdAsync(Guid id);
+    Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(Guid groupId);
+    Task<StudentGroup?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(StudentGroup group);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
 
-    Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(int groupId);
+    Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(Guid groupId);
     Task SaveChangesAsync();
 }
 
@@ -48,20 +48,20 @@ public class GroupRepository : IGroupRepository
             query = query.Where(g => g.EducationalProgram != null && 
                                      g.EducationalProgram.Speciality != null && 
                                      g.EducationalProgram.Speciality.Department != null &&
-                                     g.EducationalProgram.Speciality.Department.FacultyId != null &&
+                                     g.EducationalProgram.Speciality.Department.FacultyId != Guid.Empty &&
                                      queryDto.FacultyIds.Contains(g.EducationalProgram.Speciality.Department.FacultyId));
         if (queryDto.DepartmentIds != null && queryDto.DepartmentIds.Any())
             query = query.Where(g => g.EducationalProgram != null && 
                                      g.EducationalProgram.Speciality != null && 
                                      g.EducationalProgram.Speciality.Department != null &&
-                                     g.EducationalProgram.Speciality.Department.IdDepartment !=0 &&
+                                     g.EducationalProgram.Speciality.Department.IdDepartment != Guid.Empty &&
                                      queryDto.DepartmentIds.Contains(g.EducationalProgram.Speciality.Department.IdDepartment));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(g => g.DegreeId != null && queryDto.DegreeLevelIds.Contains(g.DegreeId));
+            query = query.Where(g => g.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(g.DegreeId));
 
         query = queryDto.SortOrder switch
         {
@@ -79,7 +79,7 @@ public class GroupRepository : IGroupRepository
             .ToListAsync();
     }
 
-    public async Task<GroupDto?> GetDtoByIdAsync(int id)
+    public async Task<GroupDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.StudentGroups
             .AsNoTracking()
@@ -88,7 +88,7 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<GroupDetailsDto?> GetDetailsByIdAsync(int id)
+    public async Task<GroupDetailsDto?> GetDetailsByIdAsync(Guid id)
     {
         return await _context.StudentGroups
             .AsNoTracking()
@@ -120,7 +120,7 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(int groupId)
+    public async Task<IReadOnlyList<GroupStudentDto>> GetStudentsByGroupIdAsync(Guid groupId)
     {
         return await _context.Students
             .AsNoTracking()
@@ -137,7 +137,7 @@ public class GroupRepository : IGroupRepository
             .ToListAsync();
     }
 
-    public async Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(int groupId)
+    public async Task<GroupCurriculumDTO?> GetCurriculumByGroupIdAsync(Guid groupId)
     {
         return await _context.StudentGroups
             .AsNoTracking()
@@ -150,7 +150,7 @@ public class GroupRepository : IGroupRepository
                     .Where(bmd => bmd.EducationalProgramId == g.EducationalProgramId)
                     .Select(bmd => new GroupMainDisciplineDto
                     {
-                        idMainDisciplines = bmd.IdBindMainDisciplines,
+                        idMainDisciplines = bmd.IdMainDisciplines,
                         nameMainDisciplines = bmd.NameBindMainDisciplines,
                         Semestr = bmd.Semestr,
                         Loans = bmd.Loans,
@@ -161,16 +161,16 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<StudentGroup?> GetEntityByIdAsync(int id) =>
+    public async Task<StudentGroup?> GetEntityByIdAsync(Guid id) =>
         await _context.StudentGroups.FindAsync(id);
 
-    public async Task<bool> ExistsAsync(int id) =>
+    public async Task<bool> ExistsAsync(Guid id) =>
         await _context.StudentGroups.AnyAsync(g => g.IdGroup == id);
 
     public async Task AddAsync(StudentGroup group) =>
         await _context.StudentGroups.AddAsync(group);
 
-    public async Task<int> DeleteAsync(int id) =>
+    public async Task<int> DeleteAsync(Guid id) =>
         await _context.StudentGroups.Where(g => g.IdGroup == id).ExecuteDeleteAsync();
 
     public async Task SaveChangesAsync() =>

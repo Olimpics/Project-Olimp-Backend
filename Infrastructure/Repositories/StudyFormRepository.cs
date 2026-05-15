@@ -10,11 +10,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IStudyFormRepository
 {
     Task<IEnumerable<StudyFormDto>> GetAllDtoAsync();
-    Task<StudyFormDto?> GetDtoByIdAsync(int id);
-    Task<StudyForm?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<StudyFormDto?> GetDtoByIdAsync(Guid id);
+    Task<StudyForm?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(StudyForm form);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -38,7 +38,7 @@ public class StudyFormRepository : IStudyFormRepository
             .ToListAsync();
     }
 
-    public async Task<StudyFormDto?> GetDtoByIdAsync(int id)
+    public async Task<StudyFormDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.StudyForms
             .AsNoTracking()
@@ -47,13 +47,13 @@ public class StudyFormRepository : IStudyFormRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<StudyForm?> GetEntityByIdAsync(int id)
+    public async Task<StudyForm?> GetEntityByIdAsync(Guid id)
     {
         // FindAsync потрібен для методу Update, де ми змінюємо існуючу сутність
         return await _context.StudyForms.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.StudyForms.AnyAsync(sf => sf.IdStudyForm == id);
     }
@@ -63,7 +63,7 @@ public class StudyFormRepository : IStudyFormRepository
         await _context.StudyForms.AddAsync(form);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         // Сучасне швидке видалення
         return await _context.StudyForms

@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class Specialization
 {
-    public int IdSpecialization { get; set; }
-
-    public float? Code { get; set; }
+    public string? Code { get; set; }
 
     public string? Name { get; set; }
 
-    public int? SpecialityId { get; set; }
-
     public string? Description { get; set; }
 
-    public BitArray? Avail { get; set; }
+    public bool Avail { get; set; }
 
-    public virtual ICollection<BindEpspecialization> BindEpspecializations { get; set; } = new List<BindEpspecialization>();
+    public Guid IdSpecialization { get; set; }
+
+    public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 }

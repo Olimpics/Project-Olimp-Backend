@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Data;
@@ -23,33 +27,33 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
     {
         var baseQuery = _context.BindSelectiveDisciplines
             .AsNoTracking()
-            .Where(b => b.SelectiveDisciplinesId == query.DisciplineId);
+            .Where(b => b.SelectiveDisciplineId == query.DisciplineId);
 
-        if (query.FacultyId is > 0)
+        if (query.FacultyId.HasValue && query.FacultyId.Value != Guid.Empty)
         {
-            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.Speciality.Department.FacultyId == query.FacultyId);
+            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.Speciality.Department.FacultyId == query.FacultyId.Value);
         }
 
-        if (query.GroupId is > 0)
+        if (query.GroupId.HasValue && query.GroupId.Value != Guid.Empty)
         {
-            baseQuery = baseQuery.Where(b => b.Student.GroupId == query.GroupId);
+            baseQuery = baseQuery.Where(b => b.Student.GroupId == query.GroupId.Value);
         }
 
-        if (query.DepartmentId is > 0)
+        if (query.DepartmentId.HasValue && query.DepartmentId.Value != Guid.Empty)
         {
-            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.Speciality.Department.IdDepartment == query.DepartmentId);
+            baseQuery = baseQuery.Where(b => b.Student.Group.EducationalProgram.Speciality.Department.IdDepartment == query.DepartmentId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim();
+            var search = query.Search.Trim().ToLower();
 
             baseQuery = baseQuery.Where(b =>
-                EF.Functions.Like(b.Student.NameStudent, $"%{search}%") ||
-                EF.Functions.Like(b.Student.Group.GroupCode, $"%{search}%") ||
+                EF.Functions.Like(b.Student.NameStudent.ToLower(), $"%{search}%") ||
+                EF.Functions.Like(b.Student.Group.GroupCode.ToLower(), $"%{search}%") ||
                 (b.Student.Group.EducationalProgram.Speciality.Department != null &&
-                 EF.Functions.Like(b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment, $"%{search}%")) ||
-                EF.Functions.Like(b.Student.Group.Degree.NameEducationalDegree, $"%{search}%"));
+                 EF.Functions.Like(b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment.ToLower(), $"%{search}%")) ||
+                EF.Functions.Like(b.Student.Group.Degree.NameEducationalDegree.ToLower(), $"%{search}%"));
         }
 
         var totalCount = await baseQuery.CountAsync();
@@ -63,7 +67,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             4 => baseQuery.OrderBy(b => b.Student.Group != null
                 ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
-            5 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment != null
+            5 => baseQuery.OrderByDescending(b => b.Student.Group != null
                 ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
             6 => baseQuery.OrderBy(b => b.Student.Course),
@@ -80,17 +84,17 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             .Take(query.PageSize)
             .Select(b => new AdminStudentBySelectiveDisciplineDto
             {
-                StudentId = b.StudentId ?? 0,
-                StudentName = b.Student.NameStudent,
+                StudentId = b.StudentId,
+                StudentName = b.Student.NameStudent ?? "",
                 GroupId = b.Student.GroupId,
-                GroupCode = b.Student.Group.GroupCode,
+                GroupCode = b.Student.Group.GroupCode ?? "",
                 DepartmentName = b.Student.Group.EducationalProgram.Speciality.Department != null
-                    ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
+                    ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? ""
                     : string.Empty,
                 Year = b.Student.Course,
-                EducationLevel = b.Student.Group.Degree.NameEducationalDegree,
-                IsShort = (sbyte)b.Student.IsShort,
-                Faculty = b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty
+                EducationLevel = b.Student.Group.Degree != null ? b.Student.Group.Degree.NameEducationalDegree ?? "" : "",
+                IsShort = b.Student.IsShort ? true : false,
+                Faculty = b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : ""
             })
             .ToListAsync();
 
@@ -101,30 +105,24 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
     {
         var baseQuery = _context.MainGrades
             .AsNoTracking()
-            .Include(g => g.Student)
-                .ThenInclude(s => s.Group)
-                    .ThenInclude(g => g.EducationalProgram)
-                        .ThenInclude(ep => ep.Speciality)
-                            .ThenInclude(sp => sp.Department)
-                                .ThenInclude(d => d.Faculty)
             .Where(g => g.MainDisciplinesId == query.DisciplineId);
 
-        if (query.FacultyId.HasValue && query.FacultyId.Value > 0)
+        if (query.FacultyId.HasValue && query.FacultyId.Value != Guid.Empty)
         {
             baseQuery = baseQuery.Where(g => g.Student.Group.EducationalProgram.Speciality.Department.FacultyId == query.FacultyId.Value);
         }
 
-        if (query.GroupId.HasValue && query.GroupId.Value > 0)
+        if (query.GroupId.HasValue && query.GroupId.Value != Guid.Empty)
         {
             baseQuery = baseQuery.Where(g => g.Student.GroupId == query.GroupId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim();
+            var search = query.Search.Trim().ToLower();
             baseQuery = baseQuery.Where(g =>
-                g.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.Contains(search) ||
-                g.Student.Group.GroupCode.Contains(search));
+                EF.Functions.Like(g.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.ToLower(), $"%{search}%") ||
+                EF.Functions.Like(g.Student.Group.GroupCode.ToLower(), $"%{search}%"));
         }
 
         // We want distinct students per discipline
@@ -145,20 +143,18 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
         var page = await grouped
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
+            .Select(g => new AdminStudentByMainDisciplineDto
+            {
+                StudentId = g.StudentId,
+                StudentName = g.Student.NameStudent ?? "",
+                FacultyId = g.Student.Group.EducationalProgram.Speciality.Department.FacultyId,
+                FacultyName = g.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? g.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : "",
+                GroupId = g.Student.GroupId,
+                GroupCode = g.Student.Group.GroupCode ?? "",
+                Course = g.Student.Course
+            })
             .ToListAsync();
 
-        var items = page.Select(g => new AdminStudentByMainDisciplineDto
-        {
-            StudentId = g.StudentId ?? 0,
-            StudentName = g.Student?.NameStudent ?? "",
-            FacultyId = g.Student?.Group?.EducationalProgram?.Speciality?.Department?.FacultyId ?? 0,
-            FacultyName = g.Student?.Group?.EducationalProgram?.Speciality?.Department?.Faculty?.NameFaculty ?? "",
-            GroupId = g.Student?.GroupId ?? 0,
-            GroupCode = g.Student?.Group?.GroupCode ?? "",
-            Course = g.Student?.Course ?? 0
-        }).ToList();
-
-        return (totalCount, items);
+        return (totalCount, page);
     }
 }
-

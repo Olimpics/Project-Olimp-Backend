@@ -10,11 +10,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IEducationStatusRepository
 {
     Task<IEnumerable<EducationStatusDto>> GetAllDtoAsync();
-    Task<EducationStatusDto?> GetDtoByIdAsync(int id);
-    Task<EducationStatus?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<EducationStatusDto?> GetDtoByIdAsync(Guid id);
+    Task<EducationStatus?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(EducationStatus status);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -38,7 +38,7 @@ public class EducationStatusRepository : IEducationStatusRepository
             .ToListAsync();
     }
 
-    public async Task<EducationStatusDto?> GetDtoByIdAsync(int id)
+    public async Task<EducationStatusDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.EducationStatuses
             .AsNoTracking()
@@ -47,12 +47,12 @@ public class EducationStatusRepository : IEducationStatusRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<EducationStatus?> GetEntityByIdAsync(int id)
+    public async Task<EducationStatus?> GetEntityByIdAsync(Guid id)
     {
         return await _context.EducationStatuses.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.EducationStatuses.AnyAsync(es => es.IdEducationStatus == id);
     }
@@ -62,7 +62,7 @@ public class EducationStatusRepository : IEducationStatusRepository
         await _context.EducationStatuses.AddAsync(status);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         // Видалення одним SQL-запитом без FindAsync
         return await _context.EducationStatuses

@@ -1,10 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using OlimpBack.Application.DTO;
 
 namespace OlimpBack.Application.Services;
 
 public interface IAuthAppService
 {
-    Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(int roleId);
+    Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(Guid roleId);
 
     
     Task<(UserLoginResponseDto? response,
@@ -20,4 +23,3 @@ public interface IAuthAppService
 
     Task<(bool success, int statusCode, string message)> ChangePasswordAsync(ChangePasswordDto dto);
 }
-

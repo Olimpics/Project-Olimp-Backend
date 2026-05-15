@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
+
 namespace OlimpBack.Application.DTO
 {
 
-    // �� ���� ���������� ������� (���� ��������� �������)
+    // 
     public class DetailContentDto
     {
         public string? NameSelectiveDisciplinesEng { get; set; }
@@ -18,23 +21,23 @@ namespace OlimpBack.Application.DTO
         public string TypeOfControl { get; set; } = null!;
     }
 
-    // DTO ��� ������� (GET)
+    // DTO  (GET)
     public class SelectiveDetailDto : SelectiveDisciplineDto
     {
-        public int DepartmentId { get; set; }
+        public Guid DepartmentId { get; set; }
         public string DepartmentName { get; set; } = null!;
 
-        // ����������: ��� DTO "��" �������
+        // :  DTO "" 
         public DetailContentDto Content { get; set; } = new();
     }
 
-    // DTO ��� ��������� (POST/PUT)
+    // DTO  (POST/PUT)
     public class CreateSelectiveDetailDto
     {
-        public int? DepartmentId { get; set; }
+        public Guid? DepartmentId { get; set; }
 
-        // ����������: ��� DTO ��� "��" �������
+        // :  DTO  "" 
         public DetailContentDto Content { get; set; } = new();
     }
 
-} 
+}

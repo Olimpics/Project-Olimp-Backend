@@ -1,15 +1,17 @@
+using System;
+
 namespace OlimpBack.Application.DTO
 {
     public class DisciplineChoicePeriodDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public sbyte PeriodType { get; set; }
         public sbyte PeriodCourse { get; set; }
-        public int DegreeLevelId { get; set; }
-        public sbyte isShort { get; set; }
-        public sbyte IsClose { get; set; }
-        public int? FacultyId { get; set; }
-        public int? DepartmentId { get; set; }
+        public Guid DegreeLevelId { get; set; }
+        public bool isShort { get; set; }
+        public bool IsClose { get; set; }
+        public Guid? FacultyId { get; set; }
+        public Guid? DepartmentId { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }
@@ -18,37 +20,37 @@ namespace OlimpBack.Application.DTO
     {
         public sbyte PeriodType { get; set; }
         public sbyte PeriodCourse { get; set; }
-        public int DegreeLevelId { get; set; }
-        public sbyte isShort { get; set; }
-        public sbyte IsClose { get; set; }
-        public int? FacultyId { get; set; }
-        public int? DepartmentId { get; set; }
+        public Guid DegreeLevelId { get; set; }
+        public bool isShort { get; set; }
+        public bool IsClose { get; set; }
+        public Guid? FacultyId { get; set; }
+        public Guid? DepartmentId { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }
 
     public class UpdateDisciplineChoicePeriodDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public sbyte PeriodType { get; set; }
         public sbyte PeriodCourse { get; set; }
-        public int DegreeLevelId { get; set; }
-        public sbyte isShort { get; set; }
-        public sbyte IsClose { get; set; }
+        public Guid DegreeLevelId { get; set; }
+        public bool isShort { get; set; }
+        public bool IsClose { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }
 
     public class UpdateDisciplineChoicePeriodAfterStartDto
     {
-        public int Id { get; set; }
-        public int IsClose { get; set; }
+        public Guid Id { get; set; }
+        public bool IsClose { get; set; }
         public DateTime? EndDate { get; set; }
     }
     public class UpdateDisciplineChoicePeriodOpenOrCloseDto
     {
-        public int Id { get; set; }
-        public int IsClose { get; set; }
+        public Guid Id { get; set; }
+        public bool IsClose { get; set; }
     }
 
     /// <summary>
@@ -56,11 +58,11 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class GetDisciplineChoicePeriodsQueryDto
     {
-        public int? FacultyId { get; set; }
-        public int? DegreeLevelId { get; set; }
-        public sbyte isShort { get; set; }
+        public Guid? FacultyId { get; set; }
+        public Guid? DegreeLevelId { get; set; }
+        public bool isShort { get; set; }
         public sbyte? PeriodType { get; set; }
-        public sbyte? IsClose { get; set; }
+        public bool? IsClose { get; set; }
         public sbyte? PeriodCourse { get; set; }
     }
 }

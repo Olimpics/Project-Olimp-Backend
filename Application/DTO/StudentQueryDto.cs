@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace OlimpBack.Application.DTO;
 
 public class StudentQueryDto
@@ -6,13 +9,12 @@ public class StudentQueryDto
     public int PageSize { get; set; } = 50;
     public string? Search { get; set; }
 
-    // Типізовані списки замість string!
-    public List<string>? Faculties { get; set; }
-    public List<int>? Specialities { get; set; }
-    public List<int>? GroupIds { get; set; }
+    public List<Guid>? Faculties { get; set; }
+    public List<Guid>? Specialities { get; set; }
+    public List<Guid>? GroupIds { get; set; }
     public List<int>? Courses { get; set; }
-    public List<int>? StudyFormIds { get; set; }
-    public List<int>? DegreeLevelIds { get; set; }
-    public sbyte? IsShort { get; set; }
+    public List<Guid>? StudyFormIds { get; set; }
+    public List<Guid>? DegreeLevelIds { get; set; }
+    public bool? IsShort { get; set; }
     public int SortOrder { get; set; } = 0;
 }

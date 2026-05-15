@@ -28,7 +28,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}")]
         [RequirePermission(RbacPermissions.EducationalProgramsRead)]
-        public async Task<ActionResult<EducationalProgramDto>> GetEducationalProgram(int id)
+        public async Task<ActionResult<EducationalProgramDto>> GetEducationalProgram(Guid id)
         {
             var program = await _educationalProgramService.GetEducationalProgramAsync(id);
 
@@ -41,7 +41,7 @@ namespace OlimpBack.Controllers
         [HttpGet("{id}/students")]
         [RequirePermission(RbacPermissions.EducationalProgramsRead)]
         public async Task<ActionResult<PaginatedResponseDto<ProgramStudentDto>>> GetProgramStudents(
-            int id,
+            Guid id,
             [FromQuery] ProgramStudentQueryDto query)
         {
             var result = await _educationalProgramService.GetStudentsPagedAsync(id, query);
@@ -50,7 +50,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("{id}/disciplines")]
         [RequirePermission(RbacPermissions.EducationalProgramsRead)]
-        public async Task<ActionResult<List<ProgramDisciplinesBySemesterDto>>> GetProgramDisciplines(int id)
+        public async Task<ActionResult<List<ProgramDisciplinesBySemesterDto>>> GetProgramDisciplines(Guid id)
         {
             var result = await _educationalProgramService.GetMainDisciplinesGroupedBySemesterAsync(id);
             return Ok(result);
@@ -69,7 +69,7 @@ namespace OlimpBack.Controllers
         [Authorize]
         [HttpPut("{id}")]
         [RequirePermission(RbacPermissions.EducationalProgramsUpdate)]
-        public async Task<IActionResult> UpdateEducationalProgram(int id, UpdateEducationalProgramDto dto)
+        public async Task<IActionResult> UpdateEducationalProgram(Guid id, UpdateEducationalProgramDto dto)
         {
             if (id != dto.IdEducationalProgram)
                 return BadRequest("Route id does not match body id.");

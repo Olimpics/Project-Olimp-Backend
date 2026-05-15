@@ -11,9 +11,9 @@ public interface IDisciplineChoicePeriodService
 {
     Task<List<DisciplineChoicePeriodDto>> GetAllAsync(GetDisciplineChoicePeriodsQueryDto queryDto);
     Task<DisciplineChoicePeriodDto> CreateAsync(CreateDisciplineChoicePeriodDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateDisciplineChoicePeriodDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAfterStartAsync(int id, UpdateDisciplineChoicePeriodAfterStartDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(int id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateDisciplineChoicePeriodDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAfterStartAsync(Guid id, UpdateDisciplineChoicePeriodAfterStartDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(Guid id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto);
 }
 
 public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
@@ -43,7 +43,7 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         return _mapper.Map<DisciplineChoicePeriodDto>(period);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateDisciplineChoicePeriodDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateDisciplineChoicePeriodDto dto)
     {
         if (id != dto.Id) return (false, StatusCodes.Status400BadRequest, "ID mismatch");
 
@@ -54,7 +54,7 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         return await SaveWithConcurrencyCheckAsync(id);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAfterStartAsync(int id, UpdateDisciplineChoicePeriodAfterStartDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAfterStartAsync(Guid id, UpdateDisciplineChoicePeriodAfterStartDto dto)
     {
         if (id != dto.Id) return (false, StatusCodes.Status400BadRequest, "ID mismatch");
 
@@ -65,7 +65,7 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         return await SaveWithConcurrencyCheckAsync(id);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(int id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(Guid id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
     {
         if (id != dto.Id) return (false, StatusCodes.Status400BadRequest, "ID mismatch");
 
@@ -77,7 +77,7 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
     }
 
     // Допоміжний метод для обробки помилок конкурентності (щоб не дублювати try-catch 3 рази)
-    private async Task<(bool success, int statusCode, string? errorMessage)> SaveWithConcurrencyCheckAsync(int id)
+    private async Task<(bool success, int statusCode, string? errorMessage)> SaveWithConcurrencyCheckAsync(Guid id)
     {
         try
         {

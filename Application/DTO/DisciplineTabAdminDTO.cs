@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OlimpBack.Models;
 
@@ -8,13 +9,13 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class StudentSelectedDisciplineDto
     {
-        public int IdBindSelectiveDisciplines { get; set; }
-        public int IdSelectiveDisciplines { get; set; }
+        public Guid IdBindSelectiveDisciplines { get; set; }
+        public Guid IdSelectiveDisciplines { get; set; }
         public string NameSelectiveDisciplines { get; set; } = null!;
         public string CodeSelectiveDisciplines { get; set; } = null!;
         public int Semestr { get; set; }
-        /// <summary>1 = in process (awaiting confirmation), 0 = confirmed.</summary>
-        public sbyte InProcess { get; set; }
+        /// <summary>true = in process (awaiting confirmation), false = confirmed.</summary>
+        public bool InProcess { get; set; }
     }
 
     /// <summary>
@@ -22,18 +23,18 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class StudentWithDisciplineChoicesDto
     {
-        public int StudentId { get; set; }
+        public Guid StudentId { get; set; }
         public string FullName { get; set; } = null!;
         public string Faculty { get; set; } = null!;
         public string Group { get; set; } = null!;
         public int Year { get; set; }
-        public int DegreeLevelId { get; set; }
+        public Guid DegreeLevelId { get; set; }
         public string DegreeLevelName { get; set; } = null!;
         public List<StudentSelectedDisciplineDto> SelectedDisciplines { get; set; } = new();
-        /// <summary>0 = not all required for the semester selected, 1 = all selected.</summary>
-        public int SelectionStatus { get; set; }
-        /// <summary>0 = not all confirmed, 1 = all confirmed.</summary>
-        public int ConfirmationStatus { get; set; }
+        /// <summary>false = not all required for the semester selected, true = all selected.</summary>
+        public bool SelectionStatus { get; set; }
+        /// <summary>false = not all confirmed, true = all confirmed.</summary>
+        public bool ConfirmationStatus { get; set; }
     }
 
     /// <summary>
@@ -41,9 +42,9 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class ConfirmOrRejectChoiceDto
     {
-        public int BindId { get; set; }
-        /// <summary>"Confirm" or "Reject".</summary>
-        public int IsConfirm { get; set; }
+        public Guid BindId { get; set; }
+        /// <summary>true = Confirm, false = Reject.</summary>
+        public bool IsConfirm { get; set; }
     }
 
 
@@ -52,7 +53,7 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class AdminDisciplineListItemDto
     {
-        public int IdSelectiveDisciplines { get; set; }
+        public Guid IdSelectiveDisciplines { get; set; }
         public string NameSelectiveDisciplines { get; set; } = null!;
         public string? Teachers { get; set; }
         public string? DepartmentName { get; set; }
@@ -63,10 +64,10 @@ namespace OlimpBack.Application.DTO
         public int CurrentCount { get; set; }
         /// <summary>Accepted | Smartly Acquired | Not Acquired (or overridden by admin).</summary>
         public string Status { get; set; } = null!;
-        public sbyte IsForceChange { get; set; }
-        public int? DegreeLevelId { get; set; }
-        public sbyte IsFaculty { get; set; }
-        public int FacultyId { get; set; }
+        public bool IsForceChange { get; set; }
+        public Guid? DegreeLevelId { get; set; }
+        public bool IsFaculty { get; set; }
+        public Guid FacultyId { get; set; }
         public string? FacultyAbbreviation { get; set; }
     }
 
@@ -76,7 +77,7 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class UpdateDisciplineStatusDto
     {
-        public int DisciplineId { get; set; }
+        public Guid DisciplineId { get; set; }
         /// <summary>1 = Not Selected, 2 = Intellectually Selected, 3 = Selected, 4 = Collected.</summary>
         public int Status { get; set; }
     }
@@ -92,17 +93,16 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
 
-        // ������ string? ������������� List<int> (������ ������)
-        public List<int>? Faculties { get; set; }
+        public List<Guid>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
-        public List<int>? StudentGroups { get; set; }
-        public List<int>? DegreeLevelIds { get; set; }
+        public List<Guid>? StudentGroups { get; set; }
+        public List<Guid>? DegreeLevelIds { get; set; }
 
-        public int? SelectionStatus { get; set; }
-        public int? ConfirmationStatus { get; set; }
+        public bool? SelectionStatus { get; set; }
+        public bool? ConfirmationStatus { get; set; }
         public int SortOrder { get; set; } = 0;
-        public int IsNew { get; set; } = 1;
-        public int FacultyId { get; set; } = 0;
+        public bool IsNew { get; set; } = true;
+        public Guid FacultyId { get; set; } = Guid.Empty;
     }
 
     /// <summary>
@@ -110,19 +110,19 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class FullForAdminDisciplineDto
     {
-        public int IdSelectiveDisciplines { get; set; }
+        public Guid IdSelectiveDisciplines { get; set; }
         public string NameSelectiveDisciplines { get; set; } = null!;
         public string CodeSelectiveDisciplines { get; set; } = null!;
         public string Faculty { get; set; } = null!;
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
         public List<int>? Courses { get; set; }
-        public int? IsEven { get; set; }
+        public bool? IsEven { get; set; }
         public string DegreeLevelName { get; set; } = null!;
         public int CountOfPeople { get; set; }
-        public int? CatalogId { get; set; }
-        public int? ApprovalStatusId { get; set; }
-        public int? TypeOfControlId { get; set; }
+        public Guid? CatalogId { get; set; }
+        public Guid? ApprovalStatusId { get; set; }
+        public Guid? TypeOfControlId { get; set; }
     }
 
     public class GetAllDisciplinesAdminQueryDto
@@ -130,12 +130,12 @@ namespace OlimpBack.Application.DTO
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
-        public List<int>? Faculties { get; set; }
+        public List<Guid>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
         public bool? IsEvenSemester { get; set; }
-        public List<int>? DegreeLevelIds { get; set; }
-        public List<int>? TypeOfControlIds { get; set; }
-        public List<int>? ApprovalStatusIds { get; set; }
+        public List<Guid>? DegreeLevelIds { get; set; }
+        public List<Guid>? TypeOfControlIds { get; set; }
+        public List<Guid>? ApprovalStatusIds { get; set; }
         public int SortOrder { get; set; } = 0;
     }
 
@@ -148,18 +148,18 @@ namespace OlimpBack.Application.DTO
         public int PageSize { get; set; } = 15;
         public string? Search { get; set; }
 
-        public List<int>? Faculties { get; set; }
-        public sbyte? IsFaculty { get; set; }
-        public List<int>? DegreeLevelIds { get; set; }
-        public List<int>? TypeOfControlIds { get; set; }
-        public List<int>? ApprovalStatusIds { get; set; }
+        public List<Guid>? Faculties { get; set; }
+        public bool? IsFaculty { get; set; }
+        public List<Guid>? DegreeLevelIds { get; set; }
+        public List<Guid>? TypeOfControlIds { get; set; }
+        public List<Guid>? ApprovalStatusIds { get; set; }
 
         public int? StatusFilter { get; set; }
         public int SortOrder { get; set; } = 0;
     }
 
 
-    // �� �������� DTO ��� ������ �� ������������/��������� ������
+    // DTO   / 
     public class UpdateChoiceResponseDto
     {
         public List<ChoiceResultDto> Results { get; set; } = new();
@@ -169,47 +169,47 @@ namespace OlimpBack.Application.DTO
     public class ChoiceResultDto
     {
         public string Message { get; set; } = null!;
-        public int BindId { get; set; }
+        public Guid BindId { get; set; }
         public string? DisciplineName { get; set; }
-        public int? NotificationId { get; set; } // Nullable, �� ��� ������������ ���� ����
+        public Guid? NotificationId { get; set; } // Nullable, 
     }
 
     public class ChoiceErrorDto
     {
-        public int BindId { get; set; }
+        public Guid BindId { get; set; }
         public string Error { get; set; } = null!;
     }
 
     public class UpdateDisciplineStatusResponseDto
     {
         public string Message { get; set; } = null!;
-        public int DisciplineId { get; set; }
+        public Guid DisciplineId { get; set; }
         public string Status { get; set; } = null!;
-        public int IsForceChange { get; set; }
+        public bool IsForceChange { get; set; }
     }
 
-    // �������� ��� ����������
-    public record StudentChoicesProjection(int IdStudent, 
+    // 
+    public record StudentChoicesProjection(Guid IdStudent, 
         string NameStudent, 
         string FacultyName, 
         string GroupCode, 
         int Course, 
-        int EducationalDegreeId, 
+        Guid EducationalDegreeId, 
         string DegreeName, 
         EducationalProgram? Program, 
         List<StudentSelectedDisciplineDto> SelectedDisciplines);
 
-    public record DisciplineStatusProjection(int IdSelectiveDisciplines, 
+    public record DisciplineStatusProjection(Guid IdSelectiveDisciplines, 
         string NameSelectiveDisciplines, 
         string? Teachers, 
         string? DepartmentName, 
         int? MinCountPeople,
         int? MaxCountPeople,
-        sbyte IsForseChange,
+        bool IsForseChange,
         string TypeName, 
-        int? DegreeLevelId, 
-        sbyte IsFaculty, 
-        int FacultyId, 
+        Guid? DegreeLevelId, 
+        bool IsFaculty, 
+        Guid FacultyId, 
         string? FacultyAbbreviation, 
         List<string?> BindCreatedAtRaw);
 }

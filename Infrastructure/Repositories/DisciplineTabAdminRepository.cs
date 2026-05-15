@@ -9,27 +9,27 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IDisciplineTabAdminRepository
 {
     Task<(int TotalCount, List<FullDisciplineDto> Items)> GetAllDisciplinesPagedAsync(GetAllDisciplinesAdminQueryDto queryDto);
-    Task<DateTime?> GetLastPeriodStartDateAsync(int facultyId);
+    Task<DateTime?> GetLastPeriodStartDateAsync(Guid facultyId);
     /// <summary>End date of the most recent discipline choice period for the faculty that has already ended (null if none).</summary>
-    Task<DateTime?> GetLastCompletedPeriodEndDateAsync(int facultyId);
-    Task<List<StudentChoicesProjection>> GetStudentsChoicesForFacultyAsync(int facultyId);
+    Task<DateTime?> GetLastCompletedPeriodEndDateAsync(Guid facultyId);
+    Task<List<StudentChoicesProjection>> GetStudentsChoicesForFacultyAsync(Guid facultyId);
     Task<List<StudentChoicesProjection>> GetStudentsChoicesDataAsync(GetStudentsWithDisciplineChoicesQueryDto queryDto, DateTime? periodStart);
-    Task<Dictionary<int, DateTime>> GetLastPeriodsByFacultyAsync();
-    Task<Dictionary<(int Level, sbyte IsFaculty), int>> GetNormativesLookupAsync();
+    Task<Dictionary<Guid, DateTime>> GetLastPeriodsByFacultyAsync();
+    Task<Dictionary<(Guid Level, bool IsFaculty), int>> GetNormativesLookupAsync();
     Task<List<DisciplineStatusProjection>> GetDisciplinesStatusDataAsync(GetDisciplinesWithStatusQueryDto queryDto);
-    Task<Dictionary<int, BindSelectiveDiscipline>> GetBindsWithDetailsAsync(List<int> bindIds);
-    Task<BindSelectiveDisciplineDto?> GetBindDtoAsync(int id);
-    Task<StudentChoicesProjection?> GetStudentChoicesDataAsync(int studentId);
-    Task<bool> ExistsBindAsync(int studentId, int disciplineId);
-    Task<bool> ExistsStudentAsync(int studentId);
-    Task<bool> ExistsDisciplineAsync(int disciplineId);
+    Task<Dictionary<Guid, BindSelectiveDiscipline>> GetBindsWithDetailsAsync(List<Guid> bindIds);
+    Task<BindSelectiveDisciplineDto?> GetBindDtoAsync(Guid id);
+    Task<StudentChoicesProjection?> GetStudentChoicesDataAsync(Guid studentId);
+    Task<bool> ExistsBindAsync(Guid studentId, Guid disciplineId);
+    Task<bool> ExistsStudentAsync(Guid studentId);
+    Task<bool> ExistsDisciplineAsync(Guid disciplineId);
     Task AddBindAsync(BindSelectiveDiscipline bind);
-    Task<int> DeleteBindAsync(int id);
-    Task<SelectiveDiscipline?> GetDisciplineEntityAsync(int id);
+    Task<int> DeleteBindAsync(Guid id);
+    Task<SelectiveDiscipline?> GetDisciplineEntityAsync(Guid id);
     void RemoveBind(BindSelectiveDiscipline bind);
     void AddNotification(Notification notification);
 
-    Task<BindSelectiveDiscipline?> GetBindByStudentAndDisciplineAsync(int studentId, int disciplineId);
+    Task<BindSelectiveDiscipline?> GetBindByStudentAndDisciplineAsync(Guid studentId, Guid disciplineId);
     Task SaveChangesAsync();
 }
 
@@ -75,11 +75,11 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         {
             if (queryDto.IsEvenSemester.Value) // Paired
             {
-                query = query.Where(d => d.IsEven == null || d.IsEven[0] == true);
+                query = query.Where(d => d.IsEven == null || d.IsEven == true);
             }
             else // Unpaired
             {
-                query = query.Where(d => d.IsEven == null || d.IsEven[0] == false);
+                query = query.Where(d => d.IsEven == null || d.IsEven == false);
             }
         }
 
@@ -126,7 +126,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation ?? "" : "",
                 MaxCountPeople = d.MaxCountPeople,
                 Courses = d.Courses ?? new List<int>(),
-                IsEven = d.IsEven != null && d.IsEven.Length > 0 ? (d.IsEven[0] ? 1 : 0) : (int?)null,
+                IsEven = d.IsEven,
                 DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree ?? "" : "",
                 CountOfPeople = d.BindSelectiveDisciplines.Count,
                 IsAvailable = false,
@@ -138,43 +138,41 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
 
         return (totalCount, items);
     }
-    public async Task<DateTime?> GetLastPeriodStartDateAsync(int facultyId)
+    public async Task<DateTime?> GetLastPeriodStartDateAsync(Guid facultyId)
     {
         var raw = await _context.DisciplineChoicePeriods
             .AsNoTracking()
-            .Where(p => p.FacultyId == facultyId)
+            .Where(p => p.Department != null && p.Department.FacultyId == facultyId)
             .OrderByDescending(p => p.StartDate)
             .Select(p => p.StartDate)
             .FirstOrDefaultAsync();
-        if (string.IsNullOrWhiteSpace(raw))
+        if (raw == null)
             return null;
-        return DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dt)
-            ? dt
-            : null;
+
+        // Исправление: используем Value для nullable DateOnly и преобразуем в DateTime
+        return raw.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
     }
 
-    public async Task<DateTime?> GetLastCompletedPeriodEndDateAsync(int facultyId)
+    public async Task<DateTime?> GetLastCompletedPeriodEndDateAsync(Guid facultyId)
     {
-        var now = DateTime.UtcNow;
+        var now = DateOnly.FromDateTime(DateTime.UtcNow);
         var rows = await _context.DisciplineChoicePeriods
             .AsNoTracking()
-            .Where(p => p.FacultyId == facultyId && p.EndDate != null)
-            .Select(p => p.EndDate!)
+            .Where(p => p.Department != null && p.Department.FacultyId == facultyId && p.EndDate != null)
+            .Select(p => p.EndDate!.Value)
             .ToListAsync();
-        DateTime? best = null;
-        foreach (var s in rows)
+        DateOnly? best = null;
+        foreach (var end in rows)
         {
-            if (!DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var end))
-                continue;
             if (end >= now)
                 continue;
             if (best == null || end > best)
                 best = end;
         }
-        return best;
+        return best?.ToDateTime(TimeOnly.MinValue);
     }
 
-    public async Task<List<StudentChoicesProjection>> GetStudentsChoicesForFacultyAsync(int facultyId)
+    public async Task<List<StudentChoicesProjection>> GetStudentsChoicesForFacultyAsync(Guid facultyId)
     {
         return await _context.Students
             .AsNoTracking()
@@ -191,11 +189,11 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                    IdSelectiveDisciplines = b.SelectiveDisciplinesId ?? 0,
-                    NameSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines ?? "" : "",
-                    CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines ?? "" : "",
+                    IdSelectiveDisciplines = b.SelectiveDisciplineId ?? Guid.Empty,
+                    NameSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
+                    CodeSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.CodeSelectiveDisciplines ?? "" : "",
                     Semestr = b.Semestr ?? 0,
-                    InProcess = (sbyte)(b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] ? (sbyte)1 : (sbyte)0)
+                    InProcess = b.InProcess ?? false
                 }).ToList()
             ))
             .ToListAsync();
@@ -215,18 +213,18 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(s => queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
+            query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId != null && queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
 
         if (queryDto.StudentGroups != null && queryDto.StudentGroups.Any())
-            query = query.Where(s => queryDto.StudentGroups.Contains(s.GroupId));
+            query = query.Where(s => s.GroupId != null && queryDto.StudentGroups.Contains(s.GroupId.Value));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
+            query = query.Where(s => s.Group.DegreeId != null && queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
 
-        if (queryDto.IsNew == 1 && queryDto.FacultyId > 0)
+        if (queryDto.IsNew && queryDto.FacultyId != Guid.Empty)
             query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId == queryDto.FacultyId);
 
         return await query.Select(s => new StudentChoicesProjection(
@@ -239,49 +237,47 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             s.Group.Degree != null ? s.Group.Degree.NameEducationalDegree : "",
             s.Group.EducationalProgram,
             s.BindSelectiveDisciplines
-                .Where(b => queryDto.IsNew == 0 || periodStart == null)
+                .Where(b => !queryDto.IsNew || periodStart == null)
                 .Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                    IdSelectiveDisciplines = b.SelectiveDisciplinesId ?? 0,
-                    NameSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines ?? "" : "",
-                    CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines ?? "" : "",
+                    IdSelectiveDisciplines = b.SelectiveDisciplineId ?? Guid.Empty,
+                    NameSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
+                    CodeSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.CodeSelectiveDisciplines ?? "" : "",
                     Semestr = b.Semestr ?? 0,
-                    InProcess = (sbyte)(b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] ? (sbyte)1 : (sbyte)0)
+                    InProcess = b.InProcess ?? false
                 }).ToList()
         )).ToListAsync();
     }
 
-    public async Task<Dictionary<int, DateTime>> GetLastPeriodsByFacultyAsync()
+    public async Task<Dictionary<Guid, DateTime>> GetLastPeriodsByFacultyAsync()
     {
         var rows = await _context.DisciplineChoicePeriods
             .AsNoTracking()
-            .Where(p => p.FacultyId != null && p.StartDate != null)
-            .Select(p => new { FacultyId = p.FacultyId!.Value, p.StartDate })
+            .Where(p => p.Department != null && p.Department.FacultyId != null && p.StartDate != null)
+            .Select(p => new { FacultyId = p.Department.FacultyId!, StartDate = p.StartDate.Value })
             .ToListAsync();
 
-        var dict = new Dictionary<int, DateTime>();
+        var dict = new Dictionary<Guid, DateTime>();
         foreach (var g in rows.GroupBy(r => r.FacultyId))
         {
-            DateTime? best = null;
+            DateOnly? best = null;
             foreach (var r in g)
             {
-                if (!DateTime.TryParse(r.StartDate, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dt))
-                    continue;
-                if (best == null || dt > best)
-                    best = dt;
+                if (best == null || r.StartDate > best)
+                    best = r.StartDate;
             }
             if (best.HasValue)
-                dict[g.Key] = best.Value;
+                dict[g.Key] = best.Value.ToDateTime(TimeOnly.MinValue);
         }
         return dict;
     }
 
-    public async Task<Dictionary<(int Level, sbyte IsFaculty), int>> GetNormativesLookupAsync()
+    public async Task<Dictionary<(Guid Level, bool IsFaculty), int>> GetNormativesLookupAsync()
     {
         return await _context.Normatives
-            .Where(n => n.DegreeLevelId != null && n.IsFaculty != null)
-            .GroupBy(n => new { Level = n.DegreeLevelId!.Value, IsFaculty = (sbyte)((n.IsFaculty != null && n.IsFaculty.Length > 0 && n.IsFaculty[0]) ? 1 : 0) })
+            .Where(n => n.DegreeLevelId != null)
+            .GroupBy(n => new { Level = n.DegreeLevelId!.Value, IsFaculty = n.IsFaculty})
             .ToDictionaryAsync(
                 g => (g.Key.Level, g.Key.IsFaculty),
                 g => g.First().Count.GetValueOrDefault()
@@ -323,26 +319,26 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             d.Department != null ? d.Department.NameDepartment : null,
             d.MinCountPeople,
             d.MaxCountPeople,
-            (sbyte)(d.IsForseChange ?? 0),
+            d.IsForseChange == 1,
             d.Type != null ? d.Type.TypeName ?? "" : "",
             d.DegreeLevelId,
-            (sbyte)(d.IsFaculty ?? 0),
+            d.IsFaculty ?? false,
             d.Department.FacultyId,
             d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
-            d.BindSelectiveDisciplines.Select(b => b.CreatedAt).ToList()
+            d.BindSelectiveDisciplines.Select(b => b.CreatedAt.ToString()).ToList()
         )).ToListAsync();
     }
 
-    public async Task<Dictionary<int, BindSelectiveDiscipline>> GetBindsWithDetailsAsync(List<int> bindIds)
+    public async Task<Dictionary<Guid, BindSelectiveDiscipline>> GetBindsWithDetailsAsync(List<Guid> bindIds)
     {
         return await _context.BindSelectiveDisciplines
             .Include(b => b.Student)
-            .Include(b => b.SelectiveDisciplines)
-            .Where(b => b.IdBindSelectiveDisciplines != null && bindIds.Contains(b.IdBindSelectiveDisciplines))
-            .ToDictionaryAsync(b => b.IdBindSelectiveDisciplines!);
+            .Include(b => b.SelectiveDiscipline)
+            .Where(b => bindIds.Contains(b.IdBindSelectiveDisciplines))
+            .ToDictionaryAsync(b => b.IdBindSelectiveDisciplines);
     }
 
-    public async Task<BindSelectiveDisciplineDto?> GetBindDtoAsync(int id)
+    public async Task<BindSelectiveDisciplineDto?> GetBindDtoAsync(Guid id)
     {
         return await _context.BindSelectiveDisciplines
             .AsNoTracking()
@@ -350,18 +346,18 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .Select(b => new BindSelectiveDisciplineDto
             {
                 IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                StudentId = b.StudentId ?? 0,
+                StudentId = b.StudentId,
                 StudentFullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
-                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? 0,
-                SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines ?? "" : "",
+                SelectiveDisciplinesId = b.SelectiveDisciplineId ?? Guid.Empty,
+                SelectiveDisciplineName = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
                 Semestr = b.Semestr ?? 0,
                 Loans = b.Loans ?? 0,
-                InProcess = b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0]
+                InProcess = b.InProcess ?? false
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<StudentChoicesProjection?> GetStudentChoicesDataAsync(int studentId)
+    public async Task<StudentChoicesProjection?> GetStudentChoicesDataAsync(Guid studentId)
     {
         return await _context.Students
             .AsNoTracking()
@@ -374,45 +370,45 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                     : "",
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
-                s.Group != null ? s.Group.DegreeId : 0,
+                s.Group != null ? s.Group.DegreeId : Guid.Empty,
                 s.Group != null && s.Group.Degree != null ? s.Group.Degree.NameEducationalDegree : "",
                 s.Group != null ? s.Group.EducationalProgram : null,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                    IdSelectiveDisciplines = b.SelectiveDisciplinesId ?? 0,
-                    NameSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines ?? "" : "",
-                    CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines ?? "" : "",
+                    IdSelectiveDisciplines = b.SelectiveDisciplineId ?? Guid.Empty,
+                    NameSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
+                    CodeSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.CodeSelectiveDisciplines ?? "" : "",
                     Semestr = b.Semestr ?? 0,
-                    InProcess = (sbyte)(b.InProcess != null && b.InProcess.Length > 0 && b.InProcess[0] ? (sbyte)1 : (sbyte)0)
+                    InProcess = b.InProcess ?? false
                 }).ToList()
             )).FirstOrDefaultAsync();
     }
 
-    public async Task<BindSelectiveDiscipline?> GetBindByStudentAndDisciplineAsync(int studentId, int disciplineId)
+    public async Task<BindSelectiveDiscipline?> GetBindByStudentAndDisciplineAsync(Guid studentId, Guid disciplineId)
     {
         return await _context.BindSelectiveDisciplines
             .Include(b => b.Student)
-            .Include(b => b.SelectiveDisciplines)
-            .FirstOrDefaultAsync(b => b.StudentId == studentId && b.SelectiveDisciplinesId == disciplineId);
+            .Include(b => b.SelectiveDiscipline)
+            .FirstOrDefaultAsync(b => b.StudentId == studentId && b.SelectiveDisciplineId == disciplineId);
     }
 
-    public async Task<bool> ExistsBindAsync(int studentId, int disciplineId) =>
-        await _context.BindSelectiveDisciplines.AnyAsync(b => b.StudentId == studentId && b.SelectiveDisciplinesId == disciplineId);
+    public async Task<bool> ExistsBindAsync(Guid studentId, Guid disciplineId) =>
+        await _context.BindSelectiveDisciplines.AnyAsync(b => b.StudentId == studentId && b.SelectiveDisciplineId == disciplineId);
 
-    public async Task<bool> ExistsStudentAsync(int studentId) =>
+    public async Task<bool> ExistsStudentAsync(Guid studentId) =>
         await _context.Students.AnyAsync(s => s.IdStudent == studentId);
 
-    public async Task<bool> ExistsDisciplineAsync(int disciplineId) =>
+    public async Task<bool> ExistsDisciplineAsync(Guid disciplineId) =>
         await _context.SelectiveDisciplines.AnyAsync(d => d.IdSelectiveDisciplines == disciplineId);
 
     public async Task AddBindAsync(BindSelectiveDiscipline bind) =>
         await _context.BindSelectiveDisciplines.AddAsync(bind);
 
-    public async Task<int> DeleteBindAsync(int id) =>
+    public async Task<int> DeleteBindAsync(Guid id) =>
         await _context.BindSelectiveDisciplines.Where(b => b.IdBindSelectiveDisciplines == id).ExecuteDeleteAsync();
 
-    public async Task<SelectiveDiscipline?> GetDisciplineEntityAsync(int id) =>
+    public async Task<SelectiveDiscipline?> GetDisciplineEntityAsync(Guid id) =>
         await _context.SelectiveDisciplines.FindAsync(id);
 
     public void RemoveBind(BindSelectiveDiscipline bind) => _context.BindSelectiveDisciplines.Remove(bind);

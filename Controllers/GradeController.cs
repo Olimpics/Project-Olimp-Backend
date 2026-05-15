@@ -55,7 +55,7 @@ public class GradeController : ControllerBase
     [HttpGet("instructor/main-disciplines")]
     [RequirePermission(RbacPermissions.MainDisciplinesRead)]
     public async Task<ActionResult<List<InstructorDisciplineDto>>> GetMainDisciplinesByInstructor(
-        [FromQuery] int adminId, [FromQuery] int catalogYearId, [FromQuery] bool isEvenSemester)
+        [FromQuery] Guid adminId, [FromQuery] Guid catalogYearId, [FromQuery] bool isEvenSemester)
     {
         var result = await _gradeService.GetMainDisciplinesByInstructorAsync(adminId, catalogYearId, isEvenSemester);
         return Ok(result);
@@ -64,7 +64,7 @@ public class GradeController : ControllerBase
     [HttpGet("instructor/selective-disciplines")]
     [RequirePermission(RbacPermissions.DisciplineRead)]
     public async Task<ActionResult<List<InstructorDisciplineDto>>> GetSelectiveDisciplinesByInstructor(
-        [FromQuery] int adminId, [FromQuery] int catalogYearId, [FromQuery] bool isEvenSemester)
+        [FromQuery] Guid adminId, [FromQuery] Guid catalogYearId, [FromQuery] bool isEvenSemester)
     {
         var result = await _gradeService.GetSelectiveDisciplinesByInstructorAsync(adminId, catalogYearId, isEvenSemester);
         return Ok(result);

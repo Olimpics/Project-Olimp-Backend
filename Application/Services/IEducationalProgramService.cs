@@ -8,18 +8,18 @@ public interface IEducationalProgramService
 
     Task<PaginatedResponseDto<EducationalProgramDto>> GetEducationalProgramsAsync(EducationalProgramListQueryDto queryDto);
 
-    Task<EducationalProgramDto?> GetEducationalProgramAsync(int id);
+    Task<EducationalProgramDto?> GetEducationalProgramAsync(Guid id);
 
-    Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto);
+    Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(Guid programId, ProgramStudentQueryDto queryDto);
 
-    Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId);
+    Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(Guid programId);
 
     Task<EducationalProgramDto> CreateEducationalProgramAsync(CreateEducationalProgramDto dto);
 
     Task<(bool success, int statusCode, string? errorMessage)> UpdateEducationalProgramAsync(
-        int id,
+        Guid id,
         UpdateEducationalProgramDto dto);
 
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteEducationalProgramAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteEducationalProgramAsync(Guid id);
 }
 

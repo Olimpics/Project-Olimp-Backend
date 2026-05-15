@@ -1,22 +1,27 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class AdminsPersonal
 {
-    public int IdAdmins { get; set; }
-
     public string? NameAdmin { get; set; }
 
-    public int? FacultyId { get; set; }
-
-    public int? DepartmentId { get; set; }
-
-    public BitArray? Avail { get; set; }
-
     public Guid? UserId { get; set; }
+
+    public Guid? AcademicDegreeId { get; set; }
+
+    public bool Avail { get; set; }
+
+    public Guid IdAdmins { get; set; }
+
+    public List<Guid>? SubDegreesId { get; set; }
+
+    public Guid? DepartmentId { get; set; }
+
+    public Guid? FacultyId { get; set; }
+
+    public virtual AcademicDegree? AcademicDegree { get; set; }
 
     public virtual ICollection<AdminLog> AdminLogs { get; set; } = new List<AdminLog>();
 

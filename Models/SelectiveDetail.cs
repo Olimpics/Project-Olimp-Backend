@@ -5,10 +5,6 @@ namespace OlimpBack.Models;
 
 public partial class SelectiveDetail
 {
-    public int IdSelectiveDetails { get; set; }
-
-    public string? Teachers { get; set; }
-
     public string? Language { get; set; }
 
     public string? Prerequisites { get; set; }
@@ -21,13 +17,17 @@ public partial class SelectiveDetail
 
     public string? ResultEducation { get; set; }
 
-    public string? DisciplineTopics { get; set; }
-
     public string? TypesOfTraining { get; set; }
 
     public string? Recommended { get; set; }
 
     public string? NameSelectiveDisciplinesEng { get; set; }
+
+    public List<string>? DisciplineTopics { get; set; }
+
+    public string? Teachers { get; set; }
+
+    public Guid IdSelectiveDetails { get; set; }
 
     public virtual SelectiveDiscipline IdSelectiveDetailsNavigation { get; set; } = null!;
 }

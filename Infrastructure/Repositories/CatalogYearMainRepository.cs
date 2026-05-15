@@ -10,11 +10,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface ICatalogYearMainRepository
 {
     Task<IEnumerable<CatalogYearMainDto>> GetAllDtoAsync();
-    Task<CatalogYearMainDto?> GetDtoByIdAsync(int id);
-    Task<CatalogYearsMain?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<CatalogYearMainDto?> GetDtoByIdAsync(Guid id);
+    Task<CatalogYearsMain?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(CatalogYearsMain entity);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -37,7 +37,7 @@ public class CatalogYearMainRepository : ICatalogYearMainRepository
             .ToListAsync();
     }
 
-    public async Task<CatalogYearMainDto?> GetDtoByIdAsync(int id)
+    public async Task<CatalogYearMainDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.CatalogYearsMains
             .AsNoTracking()
@@ -46,12 +46,12 @@ public class CatalogYearMainRepository : ICatalogYearMainRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<CatalogYearsMain?> GetEntityByIdAsync(int id)
+    public async Task<CatalogYearsMain?> GetEntityByIdAsync(Guid id)
     {
         return await _context.CatalogYearsMains.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.CatalogYearsMains.AnyAsync(c => c.IdCatalogYear == id);
     }
@@ -61,7 +61,7 @@ public class CatalogYearMainRepository : ICatalogYearMainRepository
         await _context.CatalogYearsMains.AddAsync(entity);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
         return await _context.CatalogYearsMains
             .Where(c => c.IdCatalogYear == id)

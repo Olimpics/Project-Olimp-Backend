@@ -1,13 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
-using OlimpBack.Infrastructure.Database;
+using OlimpBack.Data;
 using OlimpBack.Models;
 using OlimpBack.Utils;
-using System.Linq.Expressions;
-using OlimpBack.Data;
 
 namespace OlimpBack.Application.Services;
 
@@ -24,10 +27,8 @@ public class StudentService : IStudentService
 
     public async Task<PaginatedResponseDto<StudentForCatalogDto>> GetStudentsAsync(StudentQueryDto queryDto)
     {
-        // Відключаємо трекінг, Include нам більше не потрібні завдяки ProjectTo!
         var query = _context.Students.AsNoTracking().AsQueryable();
 
-        // 1. ПОШУК І ФІЛЬТРАЦІЯ НА РІВНІ БД
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
@@ -36,14 +37,7 @@ public class StudentService : IStudentService
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
-            var numericValues = queryDto.Faculties.Where(f => int.TryParse(f, out _)).Select(int.Parse).ToList();
-            var textValues = queryDto.Faculties.Where(f => !int.TryParse(f, out _)).Select(f => f.ToLower()).ToList();
-
-            // Динамічний OR для факультетів
-            query = query.Where(s =>
-                numericValues.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId) ||
-                s.Group.EducationalProgram.Speciality.Department.Faculty != null && textValues.Any(t => s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.ToLower().Contains(t) || s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation.ToLower().Contains(t))
-            );
+            query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId != null && queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
         }
 
         if (queryDto.Specialities != null && queryDto.Specialities.Any())
@@ -52,23 +46,22 @@ public class StudentService : IStudentService
         }
 
         if (queryDto.GroupIds != null && queryDto.GroupIds.Any())
-            query = query.Where(s => queryDto.GroupIds.Contains(s.GroupId));
+            query = query.Where(s => s.GroupId.HasValue && queryDto.GroupIds.Contains(s.GroupId.Value));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
 
         if (queryDto.StudyFormIds != null && queryDto.StudyFormIds.Any())
-            query = query.Where(s => queryDto.StudyFormIds.Contains(s.Group.StudyFormId));
+            query = query.Where(s => s.Group.StudyFormId.HasValue && queryDto.StudyFormIds.Contains(s.Group.StudyFormId.Value));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
+            query = query.Where(s => s.Group.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
 
         if (queryDto.IsShort.HasValue)
         {
             query = query.Where(s => s.IsShort == queryDto.IsShort.Value);
         }
 
-        // 2. СОРТУВАННЯ НА РІВНІ БД (До ToListAsync!)
         query = queryDto.SortOrder switch
         {
             1 => query.OrderByDescending(d => d.NameStudent),
@@ -82,8 +75,6 @@ public class StudentService : IStudentService
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)queryDto.PageSize);
 
-        // 3. БЛИСКАВИЧНА ПАГІНАЦІЯ І ПРОЕКЦІЯ
-        // Ми одразу конвертуємо SQL у DTO, минаючи важкі моделі
         var items = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
@@ -97,13 +88,12 @@ public class StudentService : IStudentService
             CurrentPage = queryDto.Page,
             PageSize = queryDto.PageSize,
             Items = items,
-            Filters = queryDto // Віддаємо просто сам об'єкт, він вже чистий
+            Filters = queryDto
         };
     }
 
-    public async Task<StudentDto?> GetStudentAsync(int id)
+    public async Task<StudentDto?> GetStudentAsync(Guid id)
     {
-        // Ти тут вже написав ідеально! Додав лише AsNoTracking для швидкості
         return await _context.Students
             .AsNoTracking()
             .Where(s => s.IdStudent == id)
@@ -113,11 +103,9 @@ public class StudentService : IStudentService
 
     public async Task<IReadOnlyList<StudentDto>> CreateStudentsAsync(IReadOnlyList<CreateStudentDto> dtos)
     {
-        // 4. ОПТИМІЗАЦІЯ ПАКЕТНОГО ВСТАВЛЕННЯ (BULK INSERT)
         var results = new List<StudentDto>();
         var studentsToAdd = new List<Student>();
 
-        // Перевіряємо всіх існуючих студентів ОДНИМ запитом, а не в циклі
         var namesToCheck = dtos.Where(d => !string.IsNullOrWhiteSpace(d.NameStudent)).Select(d => d.NameStudent).ToList();
         var existingStudents = await _context.Students
             .Where(s => namesToCheck.Contains(s.NameStudent))
@@ -129,14 +117,12 @@ public class StudentService : IStudentService
             if (string.IsNullOrWhiteSpace(dto.NameStudent))
                 continue;
 
-            // Перевіряємо в пам'яті (миттєво)
             if (existingStudents.Any(s => s.NameStudent == dto.NameStudent && s.IdStudent == dto.IdStudent))
                 continue;
 
             var userId = dto.UserId;
             if (userId == Guid.Empty)
             {
-                // Залишив твій сервіс, припускаємо що він зберігає юзера
                 userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
             }
             dto.UserId = userId;
@@ -147,7 +133,6 @@ public class StudentService : IStudentService
 
         if (studentsToAdd.Any())
         {
-            // Додаємо всіх разом і зберігаємо ОДИН раз!
             _context.Students.AddRange(studentsToAdd);
             await _context.SaveChangesAsync();
 
@@ -157,7 +142,7 @@ public class StudentService : IStudentService
         return results;
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateStudentAsync(int id, UpdateStudentDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateStudentAsync(Guid id, UpdateStudentDto dto)
     {
         var student = await _context.Students.FindAsync(id);
         if (student == null)

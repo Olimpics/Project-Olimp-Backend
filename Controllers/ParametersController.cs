@@ -51,7 +51,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("Normative/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<NormativeDto>> GetNormative(int id)
+        public async Task<ActionResult<NormativeDto>> GetNormative(Guid id)
         {
             var result = await _normativeService.GetByIdAsync(id);
             if (result == null)
@@ -70,7 +70,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateNormative/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateNormative(int id, UpdateNormativeDto dto)
+        public async Task<IActionResult> UpdateNormative(Guid id, UpdateNormativeDto dto)
         {
             var (success, statusCode, errorMessage) = await _normativeService.UpdateAsync(id, dto);
 
@@ -82,7 +82,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("DeleteNormative/{id}")]
         [RequirePermission(RbacPermissions.ParametersDelete)]
-        public async Task<IActionResult> DeleteNormative(int id)
+        public async Task<IActionResult> DeleteNormative(Guid id)
         {
             var (success, statusCode, errorMessage) = await _normativeService.DeleteAsync(id);
 
@@ -104,7 +104,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("EducationStatus/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<EducationStatusDto>> GetEducationStatus(int id)
+        public async Task<ActionResult<EducationStatusDto>> GetEducationStatus(Guid id)
         {
             var result = await _educationStatusService.GetByIdAsync(id);
             if (result == null)
@@ -122,7 +122,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateEducationStatus/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateEducationStatus(int id, EducationStatusDto statusDto)
+        public async Task<IActionResult> UpdateEducationStatus(Guid id, EducationStatusDto statusDto)
         {
             var (success, statusCode, errorMessage) = await _educationStatusService.UpdateAsync(id, statusDto);
             if (!success)
@@ -132,7 +132,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("DeleteEducationStatus/{id}")]
         [RequirePermission(RbacPermissions.ParametersDelete)]
-        public async Task<IActionResult> DeleteEducationStatus(int id)
+        public async Task<IActionResult> DeleteEducationStatus(Guid id)
         {
             var (success, statusCode, errorMessage) = await _educationStatusService.DeleteAsync(id);
             if (!success)
@@ -151,7 +151,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("EducationalDegree/{id}")]
         [RequirePermission(RbacPermissions.EducationalDegreesRead)]
-        public async Task<ActionResult<EducationalDegreeDto>> GetEducationalDegree(int id)
+        public async Task<ActionResult<EducationalDegreeDto>> GetEducationalDegree(Guid id)
         {
             var result = await _educationalDegreeService.GetByIdAsync(id);
             if (result == null)
@@ -169,7 +169,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateEducationalDegree/{id}")]
         [RequirePermission(RbacPermissions.EducationalDegreesUpdate)]
-        public async Task<IActionResult> UpdateEducationalDegree(int id, UpdateEducationalDegreeDto dto)
+        public async Task<IActionResult> UpdateEducationalDegree(Guid id, UpdateEducationalDegreeDto dto)
         {
             var (success, statusCode, errorMessage) = await _educationalDegreeService.UpdateAsync(id, dto);
             if (!success)
@@ -179,7 +179,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("DeleteEducationalDegree/{id}")]
         [RequirePermission(RbacPermissions.EducationalDegreesDelete)]
-        public async Task<IActionResult> DeleteEducationalDegree(int id)
+        public async Task<IActionResult> DeleteEducationalDegree(Guid id)
         {
             var (success, statusCode, errorMessage) = await _educationalDegreeService.DeleteAsync(id);
             if (!success)
@@ -199,7 +199,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("NotificationTemplate/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<NotificationTemplateDto>> GetNotificationTemplate(int id)
+        public async Task<ActionResult<NotificationTemplateDto>> GetNotificationTemplate(Guid id)
         {
             var result = await _notificationTemplateService.GetByIdAsync(id);
             if (result == null)
@@ -217,7 +217,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateNotificationTemplate/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateNotificationTemplate(int id, UpdateNotificationTemplateDto dto)
+        public async Task<IActionResult> UpdateNotificationTemplate(Guid id, UpdateNotificationTemplateDto dto)
         {
             var (success, statusCode, errorMessage) = await _notificationTemplateService.UpdateAsync(id, dto);
             if (!success)
@@ -246,7 +246,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("StudyForm/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<StudyFormDto>> GetStudyForm(int id)
+        public async Task<ActionResult<StudyFormDto>> GetStudyForm(Guid id)
         {
             var result = await _studyFormService.GetByIdAsync(id);
             if (result == null)
@@ -264,7 +264,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateStudyForm/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateStudyForm(int id, [FromBody] StudyFormDto dto)
+        public async Task<IActionResult> UpdateStudyForm(Guid id, [FromBody] StudyFormDto dto)
         {
             var (success, statusCode, errorMessage) = await _studyFormService.UpdateAsync(id, dto);
             if (!success)
@@ -274,7 +274,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("DeleteStudyForm/{id}")]
         [RequirePermission(RbacPermissions.ParametersDelete)]
-        public async Task<IActionResult> DeleteStudyForm(int id)
+        public async Task<IActionResult> DeleteStudyForm(Guid id)
         {
             var (success, statusCode, errorMessage) = await _studyFormService.DeleteAsync(id);
             if (!success)
@@ -295,7 +295,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("TypeOfDiscipline/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<TypeOfDisciplineDto>> GetTypeOfDiscipline(int id)
+        public async Task<ActionResult<TypeOfDisciplineDto>> GetTypeOfDiscipline(Guid id)
         {
             var result = await _typeOfDisciplineService.GetByIdAsync(id);
             if (result == null)
@@ -313,7 +313,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateTypeOfDiscipline/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateTypeOfDiscipline(int id, TypeOfDisciplineDto dto)
+        public async Task<IActionResult> UpdateTypeOfDiscipline(Guid id, TypeOfDisciplineDto dto)
         {
             var (success, statusCode, errorMessage) = await _typeOfDisciplineService.UpdateAsync(id, dto);
             if (!success)
@@ -333,7 +333,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("CatalogYearMain/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<CatalogYearMainDto>> GetCatalogYearMain(int id)
+        public async Task<ActionResult<CatalogYearMainDto>> GetCatalogYearMain(Guid id)
         {
             var result = await _catalogYearMainService.GetByIdAsync(id);
             if (result == null)
@@ -351,7 +351,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateCatalogYearMain/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateCatalogYearMain(int id, UpdateCatalogYearMainDto dto)
+        public async Task<IActionResult> UpdateCatalogYearMain(Guid id, UpdateCatalogYearMainDto dto)
         {
             var (success, statusCode, errorMessage) = await _catalogYearMainService.UpdateAsync(id, dto);
             if (!success)
@@ -361,7 +361,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("DeleteCatalogYearMain/{id}")]
         [RequirePermission(RbacPermissions.ParametersDelete)]
-        public async Task<IActionResult> DeleteCatalogYearMain(int id)
+        public async Task<IActionResult> DeleteCatalogYearMain(Guid id)
         {
             var (success, statusCode, errorMessage) = await _catalogYearMainService.DeleteAsync(id);
             if (!success)
@@ -381,7 +381,7 @@ namespace OlimpBack.Controllers
 
         [HttpGet("CatalogYearSelective/{id}")]
         [RequirePermission(RbacPermissions.ParametersRead)]
-        public async Task<ActionResult<CatalogYearSelectiveDto>> GetCatalogYearSelective(int id)
+        public async Task<ActionResult<CatalogYearSelectiveDto>> GetCatalogYearSelective(Guid id)
         {
             var result = await _catalogYearSelectiveService.GetByIdAsync(id);
             if (result == null)
@@ -399,7 +399,7 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateCatalogYearSelective/{id}")]
         [RequirePermission(RbacPermissions.ParametersUpdate)]
-        public async Task<IActionResult> UpdateCatalogYearSelective(int id, UpdateCatalogYearSelectiveDto dto)
+        public async Task<IActionResult> UpdateCatalogYearSelective(Guid id, UpdateCatalogYearSelectiveDto dto)
         {
             var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.UpdateAsync(id, dto);
             if (!success)
@@ -409,7 +409,7 @@ namespace OlimpBack.Controllers
 
         [HttpDelete("DeleteCatalogYearSelective/{id}")]
         [RequirePermission(RbacPermissions.ParametersDelete)]
-        public async Task<IActionResult> DeleteCatalogYearSelective(int id)
+        public async Task<IActionResult> DeleteCatalogYearSelective(Guid id)
         {
             var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.DeleteAsync(id);
             if (!success)

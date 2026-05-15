@@ -1,3 +1,5 @@
+using System;
+
 namespace OlimpBack.Application.DTO
 {
 
@@ -10,7 +12,7 @@ namespace OlimpBack.Application.DTO
 
     public class UpdatePermissionDto
     {
-        public int IdPermissions { get; set; }
+        public Guid IdPermissions { get; set; }
         public string TypePermission { get; set; } = null!;
         public string TableName { get; set; } = null!;
         public int BitIndex { get; set; }
@@ -18,24 +20,25 @@ namespace OlimpBack.Application.DTO
 
     public class BindRolePermissionDto
     {
-        public int IdBindRolePermission { get; set; }
-        public int RoleId { get; set; }
-        public string RoleName { get; set; }
-        public int PermissionId { get; set; }
-        public string TypePermission { get; set; }
-        public string TableName { get; set; }
+        public Guid IdBindRolePermission { get; set; }
+        public Guid RoleId { get; set; }
+        public string RoleName { get; set; } = null!;
+        public Guid PermissionId { get; set; }
+        public string TypePermission { get; set; } = null!;
+        public string TableName { get; set; } = null!;
     }
 
     public class CreateBindRolePermissionDto
     {
-        public int RoleId { get; set; }
-        public int PermissionId { get; set; }
+        public Guid RoleId { get; set; }
+        public Guid PermissionId { get; set; }
     }
 
     public class UpdateBindRolePermissionDto
     {
-        public int IdBindRolePermission { get; set; }
-        public int RoleId { get; set; }
-        public int PermissionId { get; set; }
+        public Guid IdBindRolePermission { get; set; }
+        public Guid RoleId { get; set; }
+        public Guid PermissionId { get; set; }
     }
 } 
+ 

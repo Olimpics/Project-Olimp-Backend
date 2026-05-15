@@ -5,11 +5,15 @@ namespace OlimpBack.Models;
 
 public partial class EducationalDegree
 {
-    public int IdEducationalDegree { get; set; }
-
     public string? NameEducationalDegree { get; set; }
 
+    public string? NameInDocuments { get; set; }
+
+    public Guid Ideducationaldegree { get; set; }
+
     public virtual ICollection<DefaultUniNeed> DefaultUniNeeds { get; set; } = new List<DefaultUniNeed>();
+
+    public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
 
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 

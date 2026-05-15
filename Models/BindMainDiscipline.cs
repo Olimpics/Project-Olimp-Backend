@@ -1,28 +1,27 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class BindMainDiscipline
 {
-    public int IdBindMainDisciplines { get; set; }
-
-    public int? StudentId { get; set; }
-
-    public int? MainDisciplinesId { get; set; }
-
-    public string? Grade { get; set; }
-
-    public BitArray? IsRedo { get; set; }
+    public int? Grade { get; set; }
 
     public int? Semestr { get; set; }
 
-    public int? Year { get; set; }
+    public Guid StudentId { get; set; }
 
-    public virtual MainDiscipline IdBindMainDisciplinesNavigation { get; set; } = null!;
+    public Guid? MainDisciplinesId { get; set; }
 
-    public virtual Student? Student { get; set; }
+    public bool IsRedo { get; set; }
 
-    public virtual CatalogYear? YearNavigation { get; set; }
+    public Guid? YearId { get; set; }
+
+    public Guid IdBindMainDisciplines { get; set; }
+
+    public virtual MainDiscipline? MainDisciplines { get; set; }
+
+    public virtual Student Student { get; set; } = null!;
+
+    public virtual CatalogYear? Year { get; set; }
 }

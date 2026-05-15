@@ -1,9 +1,11 @@
-﻿namespace OlimpBack.Application.DTO
+﻿using System;
+
+namespace OlimpBack.Application.DTO
 {
     public class RoleDto
     {
-        public int IdRole { get; set; }
-        public string NameRole { get; set; }
+        public Guid IdRole { get; set; }
+        public string NameRole { get; set; } = null!;
     }
 
 }

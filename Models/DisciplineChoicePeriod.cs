@@ -6,27 +6,27 @@ namespace OlimpBack.Models;
 
 public partial class DisciplineChoicePeriod
 {
-    public int IdDisciplineChoicePeriod { get; set; }
-
     public BitArray? PeriodType { get; set; }
 
     public int? PeriodCourse { get; set; }
 
-    public int? DegreeLevelId { get; set; }
+    public DateOnly? StartDate { get; set; }
 
-    public BitArray? IsClose { get; set; }
+    public DateOnly? EndDate { get; set; }
 
-    public int? FacultyId { get; set; }
+    public DateOnly? EndOfCheckPeriod { get; set; }
 
-    public int? DepartmentId { get; set; }
+    public bool IsClose { get; set; }
 
-    public string? StartDate { get; set; }
+    public Guid IdDisciplineChoicePeriod { get; set; }
 
-    public string? EndDate { get; set; }
+    public Guid? DepartmentId { get; set; }
 
-    public BitArray? IsForOnSemestr { get; set; }
+    public Guid? DegreeLevelId { get; set; }
+
+    public bool? IsForOnSemestr { get; set; }
+
+    public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual Department? Department { get; set; }
-
-    public virtual Faculty? Faculty { get; set; }
 }

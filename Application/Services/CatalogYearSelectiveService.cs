@@ -10,10 +10,10 @@ namespace OlimpBack.Application.Services;
 public interface ICatalogYearSelectiveService
 {
     Task<IEnumerable<CatalogYearSelectiveDto>> GetAllAsync();
-    Task<CatalogYearSelectiveDto?> GetByIdAsync(int id);
+    Task<CatalogYearSelectiveDto?> GetByIdAsync(Guid id);
     Task<CatalogYearSelectiveDto> CreateAsync(CreateCatalogYearSelectiveDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearSelectiveDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateCatalogYearSelectiveDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class CatalogYearSelectiveService : ICatalogYearSelectiveService
@@ -32,7 +32,7 @@ public class CatalogYearSelectiveService : ICatalogYearSelectiveService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<CatalogYearSelectiveDto?> GetByIdAsync(int id)
+    public async Task<CatalogYearSelectiveDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -44,11 +44,11 @@ public class CatalogYearSelectiveService : ICatalogYearSelectiveService
         await _repository.AddAsync(entity);
         await _repository.SaveChangesAsync();
 
-        var resultDto = await _repository.GetDtoByIdAsync(entity.IdCatalogYear);
+        var resultDto = await _repository.GetDtoByIdAsync(entity.IdCatalogYearSelective);
         return resultDto ?? _mapper.Map<CatalogYearSelectiveDto>(entity);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateCatalogYearSelectiveDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateCatalogYearSelectiveDto dto)
     {
         if (id != dto.IdCatalogYear)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -74,7 +74,7 @@ public class CatalogYearSelectiveService : ICatalogYearSelectiveService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
 

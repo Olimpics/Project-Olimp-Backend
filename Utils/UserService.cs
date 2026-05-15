@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Infrastructure.Database;
 using OlimpBack.Data;
@@ -11,7 +14,6 @@ namespace OlimpBack.Utils
             
             var email = $"{studentName.Replace(" ", ".").ToLower()}@student.local";
             var password = "default_password";
-            int roleId = 1;
 
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (existingUser != null)
@@ -21,17 +23,18 @@ namespace OlimpBack.Utils
 
             var user = new Models.User
             {
+                IdUser = Guid.NewGuid(),
                 Email = email,
                 PasswordHash = hash,
                 PasswordSalt = salt,
-                IsFirstLogin = new System.Collections.BitArray(1, true),
+                IsFirstLogin = true,
                 CreatedAt = ToPostgresTimestamp(DateTime.UtcNow),
                 LastLoginAt = ToPostgresTimestamp(DateTime.UtcNow)
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.IdRole == roleId);
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Student");
             if (role != null)
             {
                 await _context.Database.ExecuteSqlInterpolatedAsync($@"

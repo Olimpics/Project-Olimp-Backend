@@ -48,8 +48,8 @@ public class DeviceTransferService : IDeviceTransferService
             OldDevicePublicKey = request.OldDevicePublicKey,
             ExpiresAt = DateTime.UtcNow.AddMinutes(TransferCodeExpirationMinutes),
             CreatedAt = DateTime.UtcNow,
-            IsCompleted = new BitArray(new[] { false }),
-            IsExpired = new BitArray(new[] { false })
+            IsCompleted = false,
+            IsExpired = false
         };
 
         await _repository.CreateTransferSessionAsync(session);
@@ -72,10 +72,10 @@ public class DeviceTransferService : IDeviceTransferService
         if (session == null)
             return (false, "Invalid transfer code");
 
-        if (session.IsExpired.Get(0) || session.ExpiresAt < DateTime.UtcNow)
+        if (session.IsExpired || session.ExpiresAt < DateTime.UtcNow)
             return (false, "Transfer code expired");
 
-        if (session.IsCompleted.Get(0))
+        if (session.IsCompleted)
             return (false, "Transfer already completed");
 
         return (true, null);
@@ -98,10 +98,10 @@ public class DeviceTransferService : IDeviceTransferService
         if (session.UserId != userId)
             return (null, "Cross-user transfer forbidden");
 
-        if (session.IsExpired.Get(0) || session.ExpiresAt < DateTime.UtcNow)
+        if (session.IsExpired    || session.ExpiresAt < DateTime.UtcNow)
             return (null, "Transfer code expired");
 
-        if (session.IsCompleted.Get(0))
+        if (session.IsCompleted)
             return (null, "Transfer already completed");
 
         await _repository.AttachNewDeviceAsync(session.TransferSessionToken, request.NewDeviceId, request.NewDevicePublicKey);
@@ -121,11 +121,11 @@ public class DeviceTransferService : IDeviceTransferService
             return (false, "Transfer session not found or unauthorized");
 
         // PROTECTION: Expired transfers
-        if (session.IsExpired.Get(0) || session.ExpiresAt < DateTime.UtcNow)
+        if (session.IsExpired || session.ExpiresAt < DateTime.UtcNow)
             return (false, "Transfer session expired");
 
         // PROTECTION: Duplicate transfer usage
-        if (session.IsCompleted.Get(0))
+        if (session.IsCompleted)
             return (false, "Transfer already completed");
 
         await _repository.UploadEncryptedPayloadAsync(request.TransferSessionToken, request.EncryptedTransferPayload);
@@ -143,7 +143,7 @@ public class DeviceTransferService : IDeviceTransferService
         if (string.IsNullOrEmpty(session.EncryptedTransferPayload))
             return (null, "Transfer payload not yet available");
 
-        if (session.IsExpired.Get(0) || session.ExpiresAt < DateTime.UtcNow)
+        if (session.IsExpired || session.ExpiresAt < DateTime.UtcNow)
             return (null, "Transfer session expired");
 
         return (new TransferPayloadResponse
@@ -174,8 +174,8 @@ public class DeviceTransferService : IDeviceTransferService
 
         return (new TransferSessionStatusResponse
         {
-            IsCompleted = session.IsCompleted.Get(0),
-            IsExpired = session.IsExpired.Get(0) || session.ExpiresAt < DateTime.UtcNow,
+            IsCompleted = session.IsCompleted,
+            IsExpired =   session.IsExpired || session.ExpiresAt < DateTime.UtcNow,
             HasPayload = !string.IsNullOrEmpty(session.EncryptedTransferPayload),
             HasNewDevice = session.NewDeviceId.HasValue
         }, null);

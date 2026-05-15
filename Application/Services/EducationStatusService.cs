@@ -10,10 +10,10 @@ namespace OlimpBack.Application.Services;
 public interface IEducationStatusService
 {
     Task<IEnumerable<EducationStatusDto>> GetAllAsync();
-    Task<EducationStatusDto?> GetByIdAsync(int id);
+    Task<EducationStatusDto?> GetByIdAsync(Guid id);
     Task<EducationStatusDto> CreateAsync(EducationStatusDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, EducationStatusDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, EducationStatusDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class EducationStatusService : IEducationStatusService
@@ -32,7 +32,7 @@ public class EducationStatusService : IEducationStatusService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<EducationStatusDto?> GetByIdAsync(int id)
+    public async Task<EducationStatusDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -47,7 +47,7 @@ public class EducationStatusService : IEducationStatusService
         return _mapper.Map<EducationStatusDto>(status);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, EducationStatusDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, EducationStatusDto dto)
     {
         if (id != dto.IdEducationStatus)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -73,7 +73,7 @@ public class EducationStatusService : IEducationStatusService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
 

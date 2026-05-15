@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class Normative
 {
-    public int IdNormative { get; set; }
-
     public int? Count { get; set; }
 
-    public BitArray? IsFaculty { get; set; }
+    public Guid? DegreeLevelId { get; set; }
 
-    public int? DegreeLevelId { get; set; }
+    public bool IsFaculty { get; set; }
+
+    public Guid IdNormative { get; set; }
 
     public virtual EducationalDegree? DegreeLevel { get; set; }
 }

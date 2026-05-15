@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class InventorySg
 {
-    public int IdInventoroy { get; set; }
-
     public string? NameInventory { get; set; }
 
     public string? CodeInventory { get; set; }
 
-    public int? StudentId { get; set; }
+    public Guid StudentId { get; set; }
 
-    public BitArray? Avail { get; set; }
+    public bool Avail { get; set; }
+
+    public Guid IdInventoroy { get; set; }
 
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 
-    public virtual Student? Student { get; set; }
+    public virtual Student Student { get; set; } = null!;
 }

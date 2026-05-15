@@ -10,10 +10,10 @@ namespace OlimpBack.Application.Services;
 public interface IEducationalDegreeService
 {
     Task<IEnumerable<EducationalDegreeDto>> GetAllAsync();
-    Task<EducationalDegreeDto?> GetByIdAsync(int id);
+    Task<EducationalDegreeDto?> GetByIdAsync(Guid id);
     Task<EducationalDegreeDto> CreateAsync(CreateEducationalDegreeDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateEducationalDegreeDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateEducationalDegreeDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class EducationalDegreeService : IEducationalDegreeService
@@ -32,7 +32,7 @@ public class EducationalDegreeService : IEducationalDegreeService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<EducationalDegreeDto?> GetByIdAsync(int id)
+    public async Task<EducationalDegreeDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -47,7 +47,7 @@ public class EducationalDegreeService : IEducationalDegreeService
         return _mapper.Map<EducationalDegreeDto>(degree);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateEducationalDegreeDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateEducationalDegreeDto dto)
     {
         if (id != dto.IdEducationalDegree)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -73,7 +73,7 @@ public class EducationalDegreeService : IEducationalDegreeService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
 

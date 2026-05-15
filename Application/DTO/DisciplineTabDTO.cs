@@ -1,3 +1,4 @@
+using System;
 using OlimpBack.Models;
 using System.Collections.Generic;
 
@@ -5,7 +6,7 @@ namespace OlimpBack.Application.DTO
 {
     public class DisciplineTabResponseDto
     {
-        public int StudentId { get; set; }
+        public Guid StudentId { get; set; }
         public string StudentName { get; set; } = string.Empty;
         public int CurrentCourse { get; set; }
         public bool IsEvenSemester { get; set; }
@@ -14,34 +15,34 @@ namespace OlimpBack.Application.DTO
 
     public class SimpleDisciplineDto
     {
-        public int IdSelectiveDisciplines { get; set; }
+        public Guid IdSelectiveDisciplines { get; set; }
         public string NameSelectiveDisciplines { get; set; } = null!;
         public string CodeSelectiveDisciplines { get; set; } = null!;
     }
 
     public class FullDisciplineDto
     {
-        public int IdSelectiveDisciplines { get; set; }
+        public Guid IdSelectiveDisciplines { get; set; }
         public string NameSelectiveDisciplines { get; set; } = null!;
         public string CodeSelectiveDisciplines { get; set; } = null!;
-        public int FacultyId { get; set; }
+        public Guid FacultyId { get; set; }
         public string FacultyAbbreviation { get; set; } = null!;
         public int? MaxCountPeople { get; set; }
         public List<int> Courses { get; set; } = new List<int>();
-        public int? IsEven { get; set; }
-        public string DegreeLevelName { get; set; }
+        public bool? IsEven { get; set; }
+        public string DegreeLevelName { get; set; } = null!;
         public bool IsAvailable { get; set; }
         public int CountOfPeople { get; set; }
-        public int? CatalogId { get; set; }
-        public int? ApprovalStatusId { get; set; }
-        public int? TypeOfControlId { get; set; }
+        public Guid? CatalogId { get; set; }
+        public Guid? ApprovalStatusId { get; set; }
+        public Guid? TypeOfControlId { get; set; }
     }
 
    
     public class SelectiveDisciplineBindDto
     {
-        public int StudentId { get; set; }
-        public int DisciplineId { get; set; }
+        public Guid StudentId { get; set; }
+        public Guid DisciplineId { get; set; }
         public int Semestr { get; set; }
         public int Loans { get; set; }
     }
@@ -51,18 +52,18 @@ namespace OlimpBack.Application.DTO
         public Student Student { get; set; } = null!;
         public int CurrentCourse { get; set; }
         public string? FacultyAbbreviation { get; set; }
-        public HashSet<int> BoundDisciplineIds { get; set; } = new();
-        public Dictionary<int, int> DisciplineCounts { get; set; } = new();
+        public HashSet<Guid> BoundDisciplineIds { get; set; } = new();
+        public Dictionary<Guid, int> DisciplineCounts { get; set; } = new();
     }
     public class GetDisciplinesBySemesterQueryDto
     {
-        public int StudentId { get; set; }
+        public Guid StudentId { get; set; }
         public bool IsEvenSemester { get; set; }
     }
     public class FullDisciplineWithDetailsDto
     {
         // Basic discipline info
-        public int IdSelectiveDisciplines { get; set; }
+        public Guid IdSelectiveDisciplines { get; set; }
         public string NameSelectiveDisciplines { get; set; } = null!;
         public string CodeSelectiveDisciplines { get; set; } = null!;
 
@@ -70,11 +71,11 @@ namespace OlimpBack.Application.DTO
         public int? MinCountPeople { get; set; }
         public int? MaxCountPeople { get; set; }
         public List<int> Courses { get; set; } = new List<int>();
-        public int? IsEven { get; set; }
+        public bool? IsEven { get; set; }
         public string DegreeLevelName { get; set; } = null!;
-        public int? CatalogId { get; set; }
-        public int? ApprovalStatusId { get; set; }
-        public int? TypeOfControlId { get; set; }
+        public Guid? CatalogId { get; set; }
+        public Guid? ApprovalStatusId { get; set; }
+        public Guid? TypeOfControlId { get; set; }
         
         // Details from SelectiveDetail
         public string? NameSelectiveDisciplinesEng { get; set; }
@@ -99,18 +100,17 @@ namespace OlimpBack.Application.DTO
     /// </summary>
     public class GetAllDisciplinesWithAvailabilityQueryDto
     {
-        public int StudentId { get; set; }
+        public Guid StudentId { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
         public bool OnlyAvailable { get; set; } = false;
         public string? Search { get; set; }
 
-        // ������ string? ������������� ��������� ������
-        public List<int>? Faculties { get; set; }
+        public List<Guid>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
-        public List<int>? DegreeLevelIds { get; set; }
-        public List<int>? TypeOfControlIds { get; set; }
-        public List<int>? ApprovalStatusIds { get; set; }
+        public List<Guid>? DegreeLevelIds { get; set; }
+        public List<Guid>? TypeOfControlIds { get; set; }
+        public List<Guid>? ApprovalStatusIds { get; set; }
 
         public bool? IsEvenSemester { get; set; }
         public int SortOrder { get; set; } = 0;

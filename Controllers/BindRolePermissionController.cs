@@ -24,9 +24,9 @@ public class BindRolePermissionController : ControllerBase
         return Ok(bindings);
     }
 
-    [HttpGet("{roleId:int}/{permissionId:int}")]
+    [HttpGet("{roleId:guid}/{permissionId:guid}")]
     [RequirePermission(RbacPermissions.RolePermissionsRead)]
-    public async Task<ActionResult<BindRolePermissionDto>> GetBindRolePermission(int roleId, int permissionId)
+    public async Task<ActionResult<BindRolePermissionDto>> GetBindRolePermission(Guid roleId, Guid permissionId)
     {
         var binding = await _service.GetByKeyAsync(roleId, permissionId);
         if (binding == null)
@@ -49,9 +49,9 @@ public class BindRolePermissionController : ControllerBase
             resultDto);
     }
 
-    [HttpPut("{roleId:int}/{permissionId:int}")]
+    [HttpPut("{roleId:guid}/{permissionId:guid}")]
     [RequirePermission(RbacPermissions.RolePermissionsUpdate)]
-    public async Task<IActionResult> UpdateBindRolePermission(int roleId, int permissionId, UpdateBindRolePermissionDto dto)
+    public async Task<IActionResult> UpdateBindRolePermission(Guid roleId, Guid permissionId, UpdateBindRolePermissionDto dto)
     {
         var (success, statusCode, errorMessage) = await _service.UpdateAsync(roleId, permissionId, dto);
 
@@ -63,7 +63,7 @@ public class BindRolePermissionController : ControllerBase
 
     [HttpDelete("{roleId:int}/{permissionId:int}")]
     [RequirePermission(RbacPermissions.RolePermissionsDelete)]
-    public async Task<IActionResult> DeleteBindRolePermission(int roleId, int permissionId)
+    public async Task<IActionResult> DeleteBindRolePermission(Guid roleId, Guid permissionId)
     {
         var (success, statusCode, errorMessage) = await _service.DeleteAsync(roleId, permissionId);
 

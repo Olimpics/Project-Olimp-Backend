@@ -35,10 +35,10 @@ public class EducationalProgramService : IEducationalProgramService
         };
     }
 
-    public async Task<EducationalProgramDto?> GetEducationalProgramAsync(int id) =>
+    public async Task<EducationalProgramDto?> GetEducationalProgramAsync(Guid id) =>
         await _repository.GetDtoByIdAsync(id);
 
-    public async Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(int programId, ProgramStudentQueryDto queryDto)
+    public async Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(Guid programId, ProgramStudentQueryDto queryDto)
     {
         var (totalCount, items) = await _repository.GetStudentsPagedAsync(programId, queryDto);
         var totalPages = (int)Math.Ceiling(totalCount / (double)queryDto.PageSize);
@@ -53,7 +53,7 @@ public class EducationalProgramService : IEducationalProgramService
         };
     }
 
-    public async Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(int programId) =>
+    public async Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(Guid programId) =>
         await _repository.GetMainDisciplinesGroupedBySemesterAsync(programId);
 
     public async Task<EducationalProgramDto> CreateEducationalProgramAsync(CreateEducationalProgramDto dto)
@@ -70,7 +70,7 @@ public class EducationalProgramService : IEducationalProgramService
         return result;
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateEducationalProgramAsync(int id, UpdateEducationalProgramDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateEducationalProgramAsync(Guid id, UpdateEducationalProgramDto dto)
     {
         var program = await _repository.GetEntityByIdAsync(id);
         if (program == null)
@@ -92,7 +92,7 @@ public class EducationalProgramService : IEducationalProgramService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteEducationalProgramAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteEducationalProgramAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
         if (deletedRows == 0)

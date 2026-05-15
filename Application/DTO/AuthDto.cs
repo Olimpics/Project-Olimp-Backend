@@ -1,3 +1,5 @@
+using System;
+
 namespace OlimpBack.Application.DTO;
 
 public class LoginDto
@@ -14,7 +16,7 @@ public class ChangePasswordDto
 
 public class PermissionDto
 {
-    public int IdPermissions { get; set; }
+    public Guid IdPermissions { get; set; }
     public string TypePermission { get; set; } = null!;
     public string TableName { get; set; } = null!;
     public int BitIndex { get; set; }
@@ -23,11 +25,11 @@ public class UserLoginResponseDto
 {
 
     
-    public int? Id { get; set; }
+    public Guid? Id { get; set; }
     public string? Name { get; set; }
 
     public Guid UserId { get; set; }
-    public int RoleId { get; set; }
+    public Guid RoleId { get; set; }
     public long PermissionsMask { get; set; }
     public string Token { get; set; } = null!;
 
@@ -36,9 +38,7 @@ public class UserLoginResponseDto
 
 public class LoginResponseStudentDto : UserLoginResponseDto
 {
-    public new int? Id { get; set; }
-    public new string? Name { get; set; }
-    public int FacultyId { get; set; }
+    public Guid? FacultyId { get; set; }
     public string? NameFaculty { get; set; }
     public string? Speciality { get; set; }
     public int? Course { get; set; }
@@ -48,6 +48,6 @@ public class LoginResponseStudentDto : UserLoginResponseDto
 
 public class LoginResponseAdminDto : UserLoginResponseDto
 {
-    public int FacultyId { get; set; }
+    public Guid? FacultyId { get; set; }
     public string? NameFaculty { get; set; }
 }

@@ -57,7 +57,7 @@ namespace OlimpBack.Controllers
                 .Select(g => new SpecialityFilterDto
                 {
                     Id = g.First().IdEducationalProgram,
-                    Code = g.First().Speciality != null && g.First().Speciality.Code.HasValue ? g.First().Speciality.Code.Value.ToString() : "",
+                    Code = g.First().Speciality != null && g.First().Speciality.Code.Length > 0 ? g.First().Speciality.Code : "",
                     Name = g.First().Speciality.Name ?? ""
                 });
 

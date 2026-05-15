@@ -1,24 +1,23 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class MembersOfSg
 {
-    public int IdMembersOfSg { get; set; }
+    public Guid StudentId { get; set; }
 
-    public int? StudentId { get; set; }
+    public Guid? CreatedBy { get; set; }
 
-    public int? BindsubdivisionRoleSgid { get; set; }
+    public Guid? BindsubdivisionRoleSgid { get; set; }
 
-    public int? CreatedBy { get; set; }
+    public bool Avail { get; set; }
 
-    public BitArray? Avail { get; set; }
+    public Guid IdMembersOfSg { get; set; }
 
     public virtual BindSubdivisionRoleSg? BindsubdivisionRoleSg { get; set; }
 
     public virtual Student? CreatedByNavigation { get; set; }
 
-    public virtual Student? Student { get; set; }
+    public virtual Student Student { get; set; } = null!;
 }

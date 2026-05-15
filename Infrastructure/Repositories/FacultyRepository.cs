@@ -10,8 +10,8 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IFacultyRepository
 {
     Task<IEnumerable<FacultyDto>> GetAllDtoAsync();
-    Task<FacultyDto?> GetDtoByIdAsync(int id);
-    Task<Faculty?> GetEntityByIdAsync(int id);
+    Task<FacultyDto?> GetDtoByIdAsync(Guid id);
+    Task<Faculty?> GetEntityByIdAsync(Guid id);
     Task AddAsync(Faculty faculty);
     Task SaveChangesAsync();
 }
@@ -36,7 +36,7 @@ public class FacultyRepository : IFacultyRepository
             .ToListAsync();
     }
 
-    public async Task<FacultyDto?> GetDtoByIdAsync(int id)
+    public async Task<FacultyDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.Faculties
             .AsNoTracking()
@@ -45,7 +45,7 @@ public class FacultyRepository : IFacultyRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Faculty?> GetEntityByIdAsync(int id)
+    public async Task<Faculty?> GetEntityByIdAsync(Guid id)
     {
         // Для Update нам потрібна сутність з відстеженням (Tracking)
         return await _context.Faculties.FindAsync(id);

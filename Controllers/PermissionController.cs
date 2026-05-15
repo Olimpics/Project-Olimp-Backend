@@ -40,9 +40,9 @@ public class PermissionController : ControllerBase
         return Ok(permissions);
     }
 
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:guid}")]
     [RequirePermission(RbacPermissions.PermissionsRead)]
-    public async Task<ActionResult<PermissionDto>> GetPermission(int id)
+    public async Task<ActionResult<PermissionDto>> GetPermission(Guid id)
     {
         var permission = await GetPermissionEntityAsync(id);
         if (permission == null)
@@ -74,9 +74,9 @@ public class PermissionController : ControllerBase
         return CreatedAtAction(nameof(GetPermission), new { id = permission!.IdPermission }, ToDto(permission));
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:guid}")]
     [RequirePermission(RbacPermissions.PermissionsUpdate)]
-    public async Task<IActionResult> UpdatePermission(int id, UpdatePermissionDto permissionDto)
+    public async Task<IActionResult> UpdatePermission(Guid id, UpdatePermissionDto permissionDto)
     {
         if (id != permissionDto.IdPermissions)
             return BadRequest();
@@ -120,9 +120,9 @@ public class PermissionController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:guid}")]
     [RequirePermission(RbacPermissions.PermissionsDelete)]
-    public async Task<IActionResult> DeletePermission(int id)
+    public async Task<IActionResult> DeletePermission(Guid id)
     {
         var permission = await GetPermissionEntityAsync(id);
         if (permission == null)
@@ -172,7 +172,7 @@ public class PermissionController : ControllerBase
         return $"{tableName}.{typePermission}";
     }
 
-    private async Task<Permission?> GetPermissionEntityAsync(int id)
+    private async Task<Permission?> GetPermissionEntityAsync(Guid id)
     {
         return await _context.Permissions
             .FromSqlInterpolated($@"
@@ -200,13 +200,13 @@ public class PermissionController : ControllerBase
             .FirstOrDefaultAsync();
     }
 
-    private async Task<bool> PermissionCodeExistsAsync(string code, int? exceptId = null)
+    private async Task<bool> PermissionCodeExistsAsync(string code, Guid? exceptId = null)
     {
         var permission = await GetPermissionByCodeAsync(code);
         return permission != null && permission.IdPermission != exceptId;
     }
 
-    private async Task<bool> PermissionBitIndexExistsAsync(int bitIndex, int? exceptId = null)
+    private async Task<bool> PermissionBitIndexExistsAsync(int bitIndex, Guid? exceptId = null)
     {
         var permission = await _context.Permissions
             .FromSqlInterpolated($@"

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
@@ -8,11 +12,11 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IBindLoansMainRepository
 {
     Task<(int TotalCount, List<BindLoansMainDto> Items)> GetPagedAsync(BindLoansMainQueryDto queryDto);
-    Task<BindLoansMainDto?> GetDtoByIdAsync(int id);
-    Task<BindLoansMain?> GetEntityByIdAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<BindLoansMainDto?> GetDtoByIdAsync(Guid id);
+    Task<BindLoansMain?> GetEntityByIdAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
     Task AddAsync(BindLoansMain entity);
-    Task<int> DeleteAsync(int id);
+    Task<int> DeleteAsync(Guid id);
     Task SaveChangesAsync();
 }
 
@@ -39,7 +43,7 @@ public class BindLoansMainRepository : IBindLoansMainRepository
                     EF.Functions.Like(b.SelectiveDisciplines.CodeSelectiveDisciplines.ToLower(), $"%{lowerSearch}%"))) ||
                 (b.EducationalProgram != null && (
                     EF.Functions.Like(b.EducationalProgram.NameEducationalProgram.ToLower(), $"%{lowerSearch}%") ||
-                    EF.Functions.Like(b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code.HasValue ? b.EducationalProgram.Speciality.Code.Value.ToString().ToLower() : "", $"%{lowerSearch}%"))));
+                    EF.Functions.Like(b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code != null ? b.EducationalProgram.Speciality.Code.ToLower() : "", $"%{lowerSearch}%"))));
         }
 
         if (queryDto.SelectiveDisciplinesIds != null && queryDto.SelectiveDisciplinesIds.Any())
@@ -66,12 +70,12 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Take(queryDto.PageSize)
             .Select(b => new BindLoansMainDto
             {
-                IdBindLoan = b.IdBindLoan,
-                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? 0,
-                EducationalProgramId = b.EducationalProgramId ?? 0,
+                IdBindLoan = b.IdBindLoanMain,
+                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? Guid.Empty,
+                EducationalProgramId = b.EducationalProgramId ?? Guid.Empty,
                 CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines : "",
                 SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines : "",
-                SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code.HasValue ? b.EducationalProgram.Speciality.Code.Value.ToString() : "",
+                SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code != null ? b.EducationalProgram.Speciality.Code.ToLower() : "",
                 EducationalProgramName = b.EducationalProgram != null ? b.EducationalProgram.NameEducationalProgram : ""
             })
             .ToListAsync();
@@ -79,33 +83,32 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         return (totalCount, items);
     }
 
-    public async Task<BindLoansMainDto?> GetDtoByIdAsync(int id)
+    public async Task<BindLoansMainDto?> GetDtoByIdAsync(Guid id)
     {
         return await _context.BindLoansMains
             .AsNoTracking()
-            .Where(b => b.IdBindLoan == id)
+            .Where(b => b.IdBindLoanMain == id)
             .Select(b => new BindLoansMainDto
             {
-                IdBindLoan = b.IdBindLoan,
-                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? 0,
-                EducationalProgramId = b.EducationalProgramId ?? 0,
+                IdBindLoan = b.IdBindLoanMain,
+                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? Guid.Empty,
+                EducationalProgramId = b.EducationalProgramId ?? Guid.Empty,
                 CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines : "",
                 SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines : "",
-                SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code.HasValue ? b.EducationalProgram.Speciality.Code.Value.ToString() : "",
+                SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code != null ? b.EducationalProgram.Speciality.Code.ToString() : "",
                 EducationalProgramName = b.EducationalProgram != null ? b.EducationalProgram.NameEducationalProgram : ""
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<BindLoansMain?> GetEntityByIdAsync(int id)
+    public async Task<BindLoansMain?> GetEntityByIdAsync(Guid id)
     {
-        // Цей метод потрібен для Update, тому тут НЕМАЄ AsNoTracking
         return await _context.BindLoansMains.FindAsync(id);
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(Guid id)
     {
-        return await _context.BindLoansMains.AnyAsync(b => b.IdBindLoan == id);
+        return await _context.BindLoansMains.AnyAsync(b => b.IdBindLoanMain == id);
     }
 
     public async Task AddAsync(BindLoansMain entity)
@@ -113,11 +116,10 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         await _context.BindLoansMains.AddAsync(entity);
     }
 
-    public async Task<int> DeleteAsync(int id)
+    public async Task<int> DeleteAsync(Guid id)
     {
-        // Сучасне швидке видалення одним SQL-запитом
         return await _context.BindLoansMains
-            .Where(b => b.IdBindLoan == id)
+            .Where(b => b.IdBindLoanMain == id)
             .ExecuteDeleteAsync();
     }
 

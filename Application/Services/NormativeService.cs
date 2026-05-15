@@ -10,10 +10,10 @@ namespace OlimpBack.Application.Services;
 public interface INormativeService
 {
     Task<IEnumerable<NormativeDto>> GetAllAsync();
-    Task<NormativeDto?> GetByIdAsync(int id);
+    Task<NormativeDto?> GetByIdAsync(Guid id);
     Task<NormativeDto> CreateAsync(CreateNormativeDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateNormativeDto dto);
-    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id);
+    Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateNormativeDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id);
 }
 
 public class NormativeService : INormativeService
@@ -32,7 +32,7 @@ public class NormativeService : INormativeService
         return await _repository.GetAllDtoAsync();
     }
 
-    public async Task<NormativeDto?> GetByIdAsync(int id)
+    public async Task<NormativeDto?> GetByIdAsync(Guid id)
     {
         return await _repository.GetDtoByIdAsync(id);
     }
@@ -49,7 +49,7 @@ public class NormativeService : INormativeService
         return resultDto ?? _mapper.Map<NormativeDto>(entity);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(int id, UpdateNormativeDto dto)
+    public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateNormativeDto dto)
     {
         if (id != dto.IdNormative)
             return (false, StatusCodes.Status400BadRequest, "Route ID does not match DTO ID.");
@@ -75,7 +75,7 @@ public class NormativeService : INormativeService
         return (true, StatusCodes.Status204NoContent, null);
     }
 
-    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(int id)
+    public async Task<(bool success, int statusCode, string? errorMessage)> DeleteAsync(Guid id)
     {
         var deletedRows = await _repository.DeleteAsync(id);
 

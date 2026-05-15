@@ -1,3 +1,5 @@
+using System;
+
 namespace OlimpBack.Application.DTO;
 
 public class GradeQueryDto
@@ -8,7 +10,7 @@ public class GradeQueryDto
     public string? SortBy { get; set; }
     public bool SortDescending { get; set; } = false;
 
-    public int DisciplineId { get; set; }
-    public int CatalogYearId { get; set; }
+    public Guid DisciplineId { get; set; }
+    public Guid CatalogYearId { get; set; }
     public bool IsEvenSemester { get; set; }
 }
