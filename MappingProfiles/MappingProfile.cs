@@ -29,7 +29,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Name))
                 .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course))
-                .ForMember(dest => dest.DegreeLevel, opt => opt.MapFrom(src => src.Group.Degree.NameEducationalDegree));
+                .ForMember(dest => dest.DegreeLevel, opt => opt.MapFrom(src => src.Group.DegreeLevel.NameEducationalDegree));
 
 
             CreateMap<AdminsPersonal, LoginResponseAdminDto>()
@@ -43,7 +43,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.EducationStatus.NameEducationStatus))
                 .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
                 .ForMember(dest => dest.ProgramName, opt => opt.MapFrom(src => src.Group.EducationalProgram.NameEducationalProgram))
-                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.Group.Degree.NameEducationalDegree))
+                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.Group.DegreeLevel.NameEducationalDegree))
                 .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupCode))
                 .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.Group.StudyForm.NameStudyForm));
 
@@ -51,7 +51,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.FacultyAbbreviation, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation)) 
                 .ForMember(dest => dest.SpecialityCode, opt => opt.MapFrom(src => src.Group.EducationalProgram != null && src.Group.EducationalProgram.Speciality != null && src.Group.EducationalProgram.Speciality.Code.Length > 0 ? src.Group.EducationalProgram.Speciality.Code : ""))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Name))
-                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.Group.Degree.NameEducationalDegree))
+                .ForMember(dest => dest.DegreeName, opt => opt.MapFrom(src => src.Group.DegreeLevel.NameEducationalDegree))
                 .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupCode));
 
             CreateMap<CreateStudentDto, Student>();

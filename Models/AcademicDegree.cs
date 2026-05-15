@@ -9,7 +9,7 @@ public partial class AcademicDegree
 
     public string AcademicDegreeName { get; set; } = null!;
 
-    public string? AcdemicDegreeShortedName { get; set; }
+    public string AcdemicDegreeShortedName { get; set; } = null!;
 
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 }

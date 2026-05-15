@@ -205,20 +205,21 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<AdminLog>(entity =>
         {
-            entity.HasKey(e => e.IdAdmibLogs).HasName("adminlogs_pk");
+            entity.HasKey(e => e.IdAdminLogs).HasName("adminlogs_pk");
 
-            entity.Property(e => e.IdAdmibLogs)
+            entity.Property(e => e.IdAdminLogs)
                 .HasDefaultValueSql("gen_random_uuid()")
-                .HasColumnName("idAdmibLogs");
+                .HasColumnName("idAdminLogs");
             entity.Property(e => e.Action).HasColumnType("character varying");
-            entity.Property(e => e.ChangeTime).HasColumnType("character varying");
+            entity.Property(e => e.ChangeTime)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("character varying");
             entity.Property(e => e.NewData).HasColumnType("character varying");
             entity.Property(e => e.OldData).HasColumnType("character varying");
             entity.Property(e => e.TableName).HasColumnType("character varying");
 
             entity.HasOne(d => d.Admin).WithMany(p => p.AdminLogs)
                 .HasForeignKey(d => d.AdminId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("adminlogs_adminspersonal_fk");
         });
 
@@ -242,19 +243,21 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.AcademicDegree).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.AcademicDegreeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("adminspersonal_academicdegree_fk");
 
             entity.HasOne(d => d.Department).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("adminspersonal_department_fk");
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("adminspersonal_faculties_fk");
 
             entity.HasOne(d => d.User).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("adminspersonal_users_fk");
         });
 
@@ -273,7 +276,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Role).WithMany(p => p.Approvals)
                 .HasForeignKey(d => d.RoleId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("approval_roles_fk");
         });
 
@@ -497,7 +499,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.RoleInSg).WithMany(p => p.BindSubdivisionRoleSgs)
                 .HasForeignKey(d => d.RoleInSgid)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("bindsubdivisionrolesg_rolesinsg_fk");
 
             entity.HasOne(d => d.SubDivision).WithMany(p => p.BindSubdivisionRoleSgs)
@@ -696,7 +697,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("abbreviation");
             entity.Property(e => e.Avail)
-                .HasDefaultValue(false)
+                .HasDefaultValue(true)
                 .HasColumnName("avail");
             entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
             entity.Property(e => e.NameDepartment)
@@ -705,6 +706,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.Departments)
                 .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("department_faculties_fk");
         });
 
@@ -739,7 +741,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NewDevicePublicKey).HasColumnName("newDevicePublicKey");
             entity.Property(e => e.OldDevicePublicKey).HasColumnName("oldDevicePublicKey");
             entity.Property(e => e.TransferCode)
-                .HasMaxLength(32)
+                .HasColumnType("character varying")
                 .HasColumnName("transferCode");
             entity.Property(e => e.TransferSessionToken)
                 .HasDefaultValueSql("gen_random_uuid()")
@@ -931,7 +933,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("abbreviation");
             entity.Property(e => e.Avail)
-                .HasDefaultValue(false)
+                .HasDefaultValue(true)
                 .HasColumnName("avail");
             entity.Property(e => e.NameFaculty)
                 .HasColumnType("character varying")
@@ -1165,9 +1167,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdNotification)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idNotification");
-            entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.CustomMessage)
-                .HasMaxLength(128)
+                .HasColumnType("character varying")
                 .HasColumnName("customMessage");
             entity.Property(e => e.IsRead)
                 .HasDefaultValue(false)
@@ -1176,14 +1181,17 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("jsonb")
                 .HasColumnName("metadata");
 
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.NotificationCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .HasConstraintName("notification_created_by_fk");
+
             entity.HasOne(d => d.Template).WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.TemplateId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("notifications_notificationtemplates_fk");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+            entity.HasOne(d => d.User).WithMany(p => p.NotificationUsers)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("notifications_users_fk");
         });
 
@@ -1632,7 +1640,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.EducationStatus).WithMany(p => p.Students)
                 .HasForeignKey(d => d.EducationStatusId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("student_educationstatus_fk");
 
             entity.HasOne(d => d.Group).WithMany(p => p.Students)
@@ -1642,7 +1649,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Students)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("student_users_fk");
         });
 
@@ -1660,6 +1666,7 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
             entity.Property(e => e.Course).HasColumnName("course");
+            entity.Property(e => e.DegreeLevelId).HasColumnName("degree_level_id");
             entity.Property(e => e.GroupCode)
                 .HasColumnType("character varying")
                 .HasColumnName("groupCode");
@@ -1671,6 +1678,10 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.AdminId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("studentgroup_adminspersonal_fk");
+
+            entity.HasOne(d => d.DegreeLevel).WithMany(p => p.StudentGroups)
+                .HasForeignKey(d => d.DegreeLevelId)
+                .HasConstraintName("studentgroup_educationaldegree_fk");
 
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.StudentGroups)
                 .HasForeignKey(d => d.EducationalProgramId)
@@ -1753,10 +1764,11 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
             entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdAt");
             entity.Property(e => e.Email)
-                .HasMaxLength(200)
+                .HasColumnType("character varying")
                 .HasColumnName("email");
             entity.Property(e => e.IsFirstLogin)
                 .HasDefaultValue(true)
@@ -1783,7 +1795,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdAt");
             entity.Property(e => e.DeviceName)
-                .HasMaxLength(200)
+                .HasColumnType("character varying")
                 .HasColumnName("deviceName");
             entity.Property(e => e.IdentityKey).HasColumnName("identityKey");
             entity.Property(e => e.LastSeen)

@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class SubDivisionsSg
 {
-    public string? NameDivision { get; set; }
+    public string NameDivision { get; set; } = null!;
 
     public bool Avail { get; set; }
 

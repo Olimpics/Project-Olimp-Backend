@@ -16,7 +16,7 @@ public partial class DisciplineChoicePeriod
 
     public DateOnly? EndOfCheckPeriod { get; set; }
 
-    public bool IsClose { get; set; }
+    public bool? IsClose { get; set; }
 
     public Guid IdDisciplineChoicePeriod { get; set; }
 

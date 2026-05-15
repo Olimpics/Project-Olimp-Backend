@@ -7,7 +7,7 @@ public partial class Notification
 {
     public string? CustomMessage { get; set; }
 
-    public DateOnly? CreatedAt { get; set; }
+    public DateOnly CreatedAt { get; set; }
 
     public string? Metadata { get; set; }
 
@@ -19,7 +19,11 @@ public partial class Notification
 
     public bool IsRead { get; set; }
 
+    public Guid CreatedBy { get; set; }
+
+    public virtual User CreatedByNavigation { get; set; } = null!;
+
     public virtual NotificationTemplate? Template { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual User User { get; set; } = null!;
 }

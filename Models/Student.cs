@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class Student
 {
-    public string? NameStudent { get; set; }
+    public string NameStudent { get; set; } = null!;
 
     public DateOnly EducationStart { get; set; }
 
@@ -16,15 +16,15 @@ public partial class Student
     /// <summary>
     /// Залікова книга
     /// </summary>
-    public string? ReportCard { get; set; }
+    public string ReportCard { get; set; } = null!;
 
     public string? Notes { get; set; }
 
     public Guid UserId { get; set; }
 
-    public Guid? GroupId { get; set; }
+    public Guid GroupId { get; set; }
 
-    public Guid? EducationStatusId { get; set; }
+    public Guid EducationStatusId { get; set; }
 
     public Guid IdStudent { get; set; }
 
@@ -50,9 +50,9 @@ public partial class Student
 
     public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
 
-    public virtual EducationStatus? EducationStatus { get; set; }
+    public virtual EducationStatus EducationStatus { get; set; } = null!;
 
-    public virtual StudentGroup? Group { get; set; }
+    public virtual StudentGroup Group { get; set; } = null!;
 
     public virtual ICollection<InventorySg> InventorySgs { get; set; } = new List<InventorySg>();
 
@@ -60,5 +60,5 @@ public partial class Student
 
     public virtual ICollection<MembersOfSg> MembersOfSgStudents { get; set; } = new List<MembersOfSg>();
 
-    public virtual User? User { get; set; }
+    public virtual User User { get; set; } = null!;
 }

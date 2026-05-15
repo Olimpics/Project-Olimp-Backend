@@ -46,7 +46,7 @@ public class StudentService : IStudentService
         }
 
         if (queryDto.GroupIds != null && queryDto.GroupIds.Any())
-            query = query.Where(s => s.GroupId.HasValue && queryDto.GroupIds.Contains(s.GroupId.Value));
+            query = query.Where(s => s.GroupId != Guid.Empty && queryDto.GroupIds.Contains(s.GroupId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
@@ -55,7 +55,7 @@ public class StudentService : IStudentService
             query = query.Where(s => s.Group.StudyFormId.HasValue && queryDto.StudyFormIds.Contains(s.Group.StudyFormId.Value));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => s.Group.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.DegreeId));
+            query = query.Where(s => s.Group.DegreeLevelId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.DegreeLevelId));
 
         if (queryDto.IsShort.HasValue)
         {

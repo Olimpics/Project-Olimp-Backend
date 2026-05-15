@@ -16,7 +16,7 @@ namespace OlimpBack.Utils
         public static async Task<DisciplineAvailabilityContext?> BuildAvailabilityContext(Guid studentId, AppDbContext _context)
         {
             var student = await _context.Students
-                .Include(s => s.Group.Degree)
+                .Include(s => s.Group.DegreeLevel)
                 .Include(s => s.BindSelectiveDisciplines)
                 .Include(s => s.Group.EducationalProgram.Speciality.Department.Faculty)
                 .FirstOrDefaultAsync(s => s.IdStudent == studentId);
@@ -53,7 +53,7 @@ namespace OlimpBack.Utils
                 return false;
 
             if (discipline.DegreeLevelId != null &&
-                discipline.DegreeLevelId != context.Student.Group?.DegreeId)
+                discipline.DegreeLevelId != context.Student.Group?.DegreeLevelId)
                 return false;
 
             if (discipline.Department?.FacultyId != context.Student.Group?.EducationalProgram?.Speciality?.Department?.FacultyId)

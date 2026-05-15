@@ -45,7 +45,7 @@ namespace OlimpBack.Application.DTO
         public string GroupCode { get; set; } = null!;
         public int? NumberOfStudents { get; set; }
         public Guid? AdminId { get; set; }
-        public Guid? DegreeId { get; set; }
+        public Guid? DegreeLevelId { get; set; }
         public int? Course { get; set; }
         public Guid? FacultyId { get; set; }
         public string? FacultyName { get; set; }

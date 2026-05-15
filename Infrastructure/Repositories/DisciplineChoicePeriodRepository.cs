@@ -43,7 +43,7 @@ public class DisciplineChoicePeriodRepository : IDisciplineChoicePeriodRepositor
             query = query.Where(p => p.PeriodType != null && p.PeriodType.Length > 0 && p.PeriodType[0] == (queryDto.PeriodType.Value != 0));
 
         if (queryDto.IsClose.HasValue)
-            query = query.Where(p => p.IsClose != null && p.IsClose && p.IsClose== (queryDto.IsClose != false));
+            query = query.Where(p => p.IsClose != null && p.IsClose.HasValue && p.IsClose== (queryDto.IsClose != false));
 
         if (queryDto.PeriodCourse.HasValue)
             query = query.Where(p => p.PeriodCourse == queryDto.PeriodCourse.Value);

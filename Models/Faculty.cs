@@ -5,9 +5,9 @@ namespace OlimpBack.Models;
 
 public partial class Faculty
 {
-    public string? NameFaculty { get; set; }
+    public string NameFaculty { get; set; } = null!;
 
-    public string? Abbreviation { get; set; }
+    public string Abbreviation { get; set; } = null!;
 
     public bool Avail { get; set; }
 

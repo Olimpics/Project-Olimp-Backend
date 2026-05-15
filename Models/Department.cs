@@ -7,7 +7,7 @@ public partial class Department
 {
     public string NameDepartment { get; set; } = null!;
 
-    public string? Abbreviation { get; set; }
+    public string Abbreviation { get; set; } = null!;
 
     public bool Avail { get; set; }
 
@@ -19,7 +19,7 @@ public partial class Department
 
     public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();
 
-    public virtual Faculty? Faculty { get; set; }
+    public virtual Faculty Faculty { get; set; } = null!;
 
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 

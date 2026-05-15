@@ -689,7 +689,7 @@ namespace OlimpBack.Migrations
                         .HasColumnName("accreditationType");
 
                   
-                    b.Property<int>("DegreeId")
+                    b.Property<int>("DegreeLevelId")
                         .HasColumnType("integer")
                         .HasColumnName("degreeId");
 
@@ -717,7 +717,7 @@ namespace OlimpBack.Migrations
 
                     b.HasKey("IdEducationalProgram");
 
-                    b.HasIndex(new[] { "DegreeId" }, "EducationalProgram_EducationalDegree_idx");
+                    b.HasIndex(new[] { "DegreeLevelId" }, "EducationalProgram_EducationalDegree_idx");
 
                     b.ToTable("EducationalProgram", (string)null);
                 });
@@ -814,7 +814,7 @@ namespace OlimpBack.Migrations
                     b.Property<int?>("Course")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("DegreeId")
+                    b.Property<int?>("DegreeLevelId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("DepartmentId")
@@ -869,7 +869,7 @@ namespace OlimpBack.Migrations
 
                     b.HasIndex(new[] { "DepartmentId" }, "Group_Department");
 
-                    b.HasIndex(new[] { "DegreeId" }, "Group_Department_idx");
+                    b.HasIndex(new[] { "DegreeLevelId" }, "Group_Department_idx");
 
                     b.HasIndex(new[] { "FacultyId" }, "Group_Faculties");
 
@@ -1729,7 +1729,7 @@ namespace OlimpBack.Migrations
                 {
                     b.HasOne("OlimpBack.Models.EducationalDegree", "Degree")
                         .WithMany("EducationalPrograms")
-                        .HasForeignKey("DegreeId")
+                        .HasForeignKey("DegreeLevelId")
                         .IsRequired()
                         .HasConstraintName("EducationalProgram_EducationalDegree");
 
@@ -1766,7 +1766,7 @@ namespace OlimpBack.Migrations
 
                     b.HasOne("OlimpBack.Models.EducationalDegree", "Degree")
                         .WithMany("StudentGroups")
-                        .HasForeignKey("DegreeId")
+                        .HasForeignKey("DegreeLevelId")
                         .HasConstraintName("Group_Degree");
 
                     b.HasOne("OlimpBack.Models.Department", "Department")

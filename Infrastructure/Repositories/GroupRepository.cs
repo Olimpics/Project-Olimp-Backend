@@ -61,7 +61,7 @@ public class GroupRepository : IGroupRepository
             query = query.Where(g => g.Course.HasValue && queryDto.Courses.Contains(g.Course.Value));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(g => g.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(g.DegreeId));
+            query = query.Where(g => g.DegreeLevelId != Guid.Empty && queryDto.DegreeLevelIds.Contains(g.DegreeLevelId));
 
         query = queryDto.SortOrder switch
         {
@@ -98,7 +98,7 @@ public class GroupRepository : IGroupRepository
                 IdGroup = g.IdGroup,
                 GroupCode = g.GroupCode,
                 AdminId = g.AdminId,
-                DegreeId = g.DegreeId,
+                DegreeLevelId = g.DegreeLevelId,
                 Course = g.Course,
                 FacultyId = g.EducationalProgram != null && g.EducationalProgram.Speciality != null && g.EducationalProgram.Speciality.Department != null 
                             ? g.EducationalProgram.Speciality.Department.FacultyId : null,

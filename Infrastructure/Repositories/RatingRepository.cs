@@ -89,7 +89,7 @@ public class RatingRepository : IRatingRepository
         return members
             .Where(m => m.StudentId != null && m.BindsubdivisionRoleSg != null && m.BindsubdivisionRoleSg.Points != null)
             .GroupBy(m => m.StudentId)
-            .ToDictionary(g => g.Key, g => g.Sum(m => m.BindsubdivisionRoleSg!.Points!.Value));
+            .ToDictionary(g => g.Key, g => g.Sum(m => m.BindsubdivisionRoleSg!.Points!));
     }
 
     public async Task AddRatingsAsync(List<BindRating> ratings)

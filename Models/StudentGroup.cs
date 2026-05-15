@@ -16,16 +16,18 @@ public partial class StudentGroup
     public Guid IdGroup { get; set; }
 
     public Guid? StudyFormId { get; set; }
-    public Guid DegreeId { get; set; }
+
     public bool Avail { get; set; }
 
     public bool IsAccelerated { get; set; }
 
     public Guid? AdminId { get; set; }
 
+    public Guid DegreeLevelId { get; set; }
+
     public virtual AdminsPersonal? Admin { get; set; }
 
-    public virtual EducationalDegree Degree { get; set; } = null!;
+    public virtual EducationalDegree? DegreeLevel { get; set; }
 
     public virtual EducationalProgram? EducationalProgram { get; set; }
 

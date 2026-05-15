@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class NotificationTemplate
 {
-    public string? NotificationType { get; set; }
+    public string NotificationType { get; set; } = null!;
 
-    public string? Title { get; set; }
+    public string Title { get; set; } = null!;
 
-    public string? Message { get; set; }
+    public string Message { get; set; } = null!;
 
     public bool Avail { get; set; }
 

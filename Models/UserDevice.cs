@@ -9,7 +9,7 @@ public partial class UserDevice
 
     public Guid UserId { get; set; }
 
-    public string? DeviceName { get; set; }
+    public string DeviceName { get; set; } = null!;
 
     public string IdentityKey { get; set; } = null!;
 

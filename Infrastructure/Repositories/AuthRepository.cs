@@ -91,7 +91,7 @@ public class AuthRepository : IAuthRepository
             .AsNoTracking()
             .Include(x => x.Group.EducationalProgram.Speciality.Department.Faculty)
             .Include(x => x.Group.EducationalProgram)
-            .Include(x => x.Group.Degree)
+            .Include(x => x.Group.DegreeLevel)
             .Include(x => x.User)
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }

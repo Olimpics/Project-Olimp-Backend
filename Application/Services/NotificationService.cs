@@ -41,7 +41,7 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
                 n.IsRead, // bool не может быть null, просто передаем значение
-                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
+                n.CreatedAt.ToDateTime(TimeOnly.MinValue), // DateOnly всегда задан
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -83,7 +83,7 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
                 n.IsRead, // bool не может быть null, просто передаем значение
-                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
+                n.CreatedAt.ToDateTime(TimeOnly.MinValue), // DateOnly всегда задан
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -112,7 +112,7 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
                 n.IsRead != null && n.IsRead ? false : null,
-                n.CreatedAt.HasValue ? n.CreatedAt.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
+                n.CreatedAt.ToDateTime(TimeOnly.MinValue), // DateOnly всегда задан
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -149,8 +149,8 @@ public class NotificationService : INotificationService
             Title = template?.Title ?? dto.Title ?? string.Empty,
             Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
             IsRead = notification.IsRead != null && notification.IsRead != null && notification.IsRead == true,
-            CreatedAt = notification.CreatedAt.HasValue
-                ? notification.CreatedAt.Value.ToDateTime(TimeOnly.MinValue)
+            CreatedAt = notification.CreatedAt != null
+                ? notification.CreatedAt.ToDateTime(TimeOnly.MinValue)
                 : default,
             NotificationType = template?.NotificationType ?? dto.NotificationType,
             Metadata = dto.Metadata

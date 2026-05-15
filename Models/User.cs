@@ -5,11 +5,11 @@ namespace OlimpBack.Models;
 
 public partial class User
 {
-    public string? Email { get; set; }
+    public string Email { get; set; } = null!;
 
-    public byte[]? PasswordHash { get; set; }
+    public byte[] PasswordHash { get; set; } = null!;
 
-    public byte[]? PasswordSalt { get; set; }
+    public byte[] PasswordSalt { get; set; } = null!;
 
     public DateTime? PasswordChangedAt { get; set; }
 
@@ -33,7 +33,9 @@ public partial class User
 
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public virtual ICollection<Notification> NotificationCreatedByNavigations { get; set; } = new List<Notification>();
+
+    public virtual ICollection<Notification> NotificationUsers { get; set; } = new List<Notification>();
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
