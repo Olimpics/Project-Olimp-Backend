@@ -9,5 +9,5 @@ public class GradeStudentDto
     public string GroupName { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
     public string FacultyName { get; set; } = string.Empty;
-    public string? Score { get; set; }
+    public int? Score { get; set; }
 }

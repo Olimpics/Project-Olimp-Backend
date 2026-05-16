@@ -5,21 +5,21 @@ namespace OlimpBack.Models;
 
 public partial class MainDiscipline
 {
-    public string? CodeMainDisciplines { get; set; }
+    public string CodeMainDisciplines { get; set; } = null!;
 
-    public string? NameBindMainDisciplines { get; set; }
+    public string NameBindMainDisciplines { get; set; } = null!;
 
     public int? Loans { get; set; }
 
-    public string? FormControl { get; set; }
+    public string FormControl { get; set; } = null!;
 
-    public int? Semestr { get; set; }
+    public int Semestr { get; set; }
 
     public int? Hours { get; set; }
 
-    public string? NameDock { get; set; }
+    public string NameDock { get; set; } = null!;
 
-    public Guid? EducationalProgramId { get; set; }
+    public Guid EducationalProgramId { get; set; }
 
     public bool NeedFix { get; set; }
 
@@ -29,5 +29,5 @@ public partial class MainDiscipline
 
     public virtual ICollection<BindTeacherMain> BindTeacherMains { get; set; } = new List<BindTeacherMain>();
 
-    public virtual EducationalProgram? EducationalProgram { get; set; }
+    public virtual EducationalProgram EducationalProgram { get; set; } = null!;
 }

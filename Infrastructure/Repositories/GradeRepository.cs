@@ -43,7 +43,7 @@ public class GradeRepository : IGradeRepository
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
             DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
             FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
-            Score = b.Grade.HasValue ? b.Grade.Value.ToString() : null
+            Score = b.Grade >= 0 ? b.Grade : (int?)null
         });
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
@@ -89,7 +89,7 @@ public class GradeRepository : IGradeRepository
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
             DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
             FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
-            Score = b.Grade.HasValue ? b.Grade.Value.ToString() : null
+            Score = b.Grade
         });
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
@@ -144,7 +144,7 @@ public class GradeRepository : IGradeRepository
                 bmd.Semestr % 2 == parity))
             .Select(btm => new InstructorDisciplineDto
             {
-                Id = btm.MainDisciplinesId ?? Guid.Empty,
+                Id = btm.MainDisciplinesId,
                 Title = btm.MainDisciplines != null ? btm.MainDisciplines.NameBindMainDisciplines ?? "" : ""
             })
             .Distinct()
@@ -163,7 +163,7 @@ public class GradeRepository : IGradeRepository
                 bsd.Semestr % 2 == parity))
             .Select(bts => new InstructorDisciplineDto
             {
-                Id = bts.SelectiveDisciplinesId ?? Guid.Empty,
+                Id = bts.SelectiveDisciplinesId,
                 Title = bts.SelectiveDisciplines != null ? bts.SelectiveDisciplines.NameSelectiveDisciplines ?? "" : ""
             })
             .Distinct()

@@ -185,7 +185,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 d.FormControl,
                 Loans = d.Loans ?? 0,
                 Hours = d.Hours ?? 0,
-                Semester = d.Semestr ?? 0
+                Semester = d.Semestr
             })
             .ToListAsync();
 

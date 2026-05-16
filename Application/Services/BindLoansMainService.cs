@@ -55,8 +55,8 @@ public class BindLoansMainService : IBindLoansMainService
         return new BindLoansMainDto
         {
             IdBindLoan = binding.IdBindLoanMain,
-            SelectiveDisciplinesId = binding.SelectiveDisciplinesId.GetValueOrDefault(),
-            EducationalProgramId = binding.EducationalProgramId.GetValueOrDefault(),
+            SelectiveDisciplinesId = binding.SelectiveDisciplinesId,
+            EducationalProgramId = binding.EducationalProgramId,
             CodeSelectiveDisciplines = "", // При створенні ми не знаємо назв, і це нормально для response
             SelectiveDisciplineName = "",
             SpecialityCode = "",

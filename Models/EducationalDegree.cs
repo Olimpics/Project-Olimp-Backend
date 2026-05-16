@@ -5,9 +5,9 @@ namespace OlimpBack.Models;
 
 public partial class EducationalDegree
 {
-    public string? NameEducationalDegree { get; set; }
+    public string NameEducationalDegree { get; set; } = null!;
 
-    public string? NameInDocuments { get; set; }
+    public string NameInDocuments { get; set; } = null!;
 
     public Guid Ideducationaldegree { get; set; }
 
@@ -20,6 +20,4 @@ public partial class EducationalDegree
     public virtual ICollection<Normative> Normatives { get; set; } = new List<Normative>();
 
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
-
-    public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
 }

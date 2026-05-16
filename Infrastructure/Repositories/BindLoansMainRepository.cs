@@ -47,10 +47,10 @@ public class BindLoansMainRepository : IBindLoansMainRepository
         }
 
         if (queryDto.SelectiveDisciplinesIds != null && queryDto.SelectiveDisciplinesIds.Any())
-            query = query.Where(b => b.SelectiveDisciplinesId.HasValue && queryDto.SelectiveDisciplinesIds.Contains(b.SelectiveDisciplinesId.Value));
+            query = query.Where(b => b.SelectiveDisciplinesId != Guid.Empty && queryDto.SelectiveDisciplinesIds.Contains(b.SelectiveDisciplinesId));
 
         if (queryDto.EducationalProgramIds != null && queryDto.EducationalProgramIds.Any())
-            query = query.Where(b => b.EducationalProgramId.HasValue && queryDto.EducationalProgramIds.Contains(b.EducationalProgramId.Value));
+            query = query.Where(b => b.EducationalProgramId != Guid.Empty && queryDto.EducationalProgramIds.Contains(b.EducationalProgramId));
 
         // 2. ПІДРАХУНОК (до пагінації)
         var totalCount = await query.CountAsync();
@@ -71,8 +71,8 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Select(b => new BindLoansMainDto
             {
                 IdBindLoan = b.IdBindLoanMain,
-                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? Guid.Empty,
-                EducationalProgramId = b.EducationalProgramId ?? Guid.Empty,
+                SelectiveDisciplinesId = b.SelectiveDisciplinesId,
+                EducationalProgramId = b.EducationalProgramId,
                 CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines : "",
                 SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines : "",
                 SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code != null ? b.EducationalProgram.Speciality.Code.ToLower() : "",
@@ -91,8 +91,8 @@ public class BindLoansMainRepository : IBindLoansMainRepository
             .Select(b => new BindLoansMainDto
             {
                 IdBindLoan = b.IdBindLoanMain,
-                SelectiveDisciplinesId = b.SelectiveDisciplinesId ?? Guid.Empty,
-                EducationalProgramId = b.EducationalProgramId ?? Guid.Empty,
+                SelectiveDisciplinesId = b.SelectiveDisciplinesId,
+                EducationalProgramId = b.EducationalProgramId,
                 CodeSelectiveDisciplines = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.CodeSelectiveDisciplines : "",
                 SelectiveDisciplineName = b.SelectiveDisciplines != null ? b.SelectiveDisciplines.NameSelectiveDisciplines : "",
                 SpecialityCode = b.EducationalProgram != null && b.EducationalProgram.Speciality != null && b.EducationalProgram.Speciality.Code != null ? b.EducationalProgram.Speciality.Code.ToString() : "",

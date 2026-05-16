@@ -5,9 +5,9 @@ namespace OlimpBack.Models;
 
 public partial class AccountingJournal
 {
-    public DateOnly? StartDate { get; set; }
+    public DateOnly StartDate { get; set; }
 
-    public DateOnly? EndDate { get; set; }
+    public DateOnly EndDate { get; set; }
 
     public DateOnly? RealBackTime { get; set; }
 
@@ -15,13 +15,13 @@ public partial class AccountingJournal
 
     public Guid StudentId { get; set; }
 
-    public Guid? InventorySgid { get; set; }
+    public Guid InventorySgid { get; set; }
 
     public bool IsBack { get; set; }
 
     public Guid IdAccountingJournal { get; set; }
 
-    public virtual InventorySg? InventorySg { get; set; }
+    public virtual InventorySg InventorySg { get; set; } = null!;
 
     public virtual Student Student { get; set; } = null!;
 }

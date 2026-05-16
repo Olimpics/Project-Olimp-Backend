@@ -165,7 +165,7 @@ public class ImportService : IImportService
                 
                 var specIds = specs.Select(s => s.IdSpeciality).ToList();
                 var epsFromSpecs = await _context.EducationalPrograms
-                    .Where(ep => ep.SpecialityId.HasValue && specIds.Contains(ep.SpecialityId.Value))
+                    .Where(ep => ep.SpecialityId != Guid.Empty && specIds.Contains(ep.SpecialityId))
                     .ToListAsync();
                 
                 foreach (var ep in epsFromSpecs) recommendedEpIds.Add(ep.IdEducationalProgram);

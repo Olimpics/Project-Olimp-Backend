@@ -42,7 +42,7 @@ namespace OlimpBack.Application.DTO
 
         public List<Guid>? AdminIds { get; set; }
 
-        public List<int>? RecomendationCourses { get; set; }
+        public List<Guid>? RecomendationBranches { get; set; }
         public List<Guid>? RecomendationSpeciality { get; set; }
         public List<Guid>? RecomendationEducationalProgram { get; set; }
     }
@@ -50,5 +50,11 @@ namespace OlimpBack.Application.DTO
     public class UpdateSelectiveDisciplineWithDetailsDto : CreateSelectiveDisciplineWithDetailsDto
     {
         public Guid IdSelectiveDisciplines { get; set; }
+    }
+
+    public class UpdateApprovalStatusDto
+    {
+        public bool IsIncrease { get; set; }
+        public string? Message { get; set; }
     }
 }

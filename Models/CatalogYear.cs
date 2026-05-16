@@ -5,9 +5,9 @@ namespace OlimpBack.Models;
 
 public partial class CatalogYear
 {
-    public int? YearStart { get; set; }
+    public int YearStart { get; set; }
 
-    public int? YearEnd { get; set; }
+    public int YearEnd { get; set; }
 
     public Guid IdCatalog { get; set; }
 

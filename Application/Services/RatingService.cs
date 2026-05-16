@@ -66,7 +66,7 @@ public class RatingService : IRatingService
             }
             foreach (var sg in studentSelectiveGrades)
             {
-                sumGrades += ParseGrade(sg.Grade.HasValue ? sg.Grade.Value.ToString() : null);
+                sumGrades += sg.Grade;
                 if (sg.IsRedo == true)
                 {
                     hasRedo = true;
@@ -136,7 +136,7 @@ public class RatingService : IRatingService
         {
             FullName = r.Student?.NameStudent ?? "Unknown",
             GroupName = r.Student?.Group?.GroupCode ?? "Unknown",
-            Score = r.FinalScore ?? 0
+            Score = r.FinalScore
         }).ToList();
 
         return new PaginatedResponseDto<RatingStudentDto>
@@ -162,8 +162,8 @@ public class RatingService : IRatingService
         foreach (var sid in studentIds)
         {
             int totalRaw = 0;
-            totalRaw += eventPoints.Where(ep => ep.StudentId == sid).Sum(ep => ep.Point ?? 0);
-            totalRaw += extraActivityPoints.Where(eap => eap.StudentId == sid).Sum(eap => eap.Points ?? 0);
+            totalRaw += eventPoints.Where(ep => ep.StudentId == sid).Sum(ep => ep.Point);
+            totalRaw += extraActivityPoints.Where(eap => eap.StudentId == sid).Sum(eap => eap.Points);
             if (sgPointsMap.ContainsKey(sid))
             {
                 totalRaw += sgPointsMap[sid];

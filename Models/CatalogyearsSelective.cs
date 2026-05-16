@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class CatalogYearsSelective
 {
-    public string? NameCatalog { get; set; }
+    public string NameCatalog { get; set; } = null!;
 
     public bool IsFormed { get; set; }
 

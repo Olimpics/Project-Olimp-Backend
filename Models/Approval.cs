@@ -11,6 +11,8 @@ public partial class Approval
 
     public Guid IdApproval { get; set; }
 
+    public int ApprobalLevel { get; set; }
+
     public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();

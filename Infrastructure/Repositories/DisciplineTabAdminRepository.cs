@@ -144,12 +144,11 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .AsNoTracking()
             .Where(p => p.Department != null && p.Department.FacultyId == facultyId)
             .OrderByDescending(p => p.StartDate)
-            .Select(p => p.StartDate)
+            .Select(p => (DateOnly?)p.StartDate)
             .FirstOrDefaultAsync();
         if (raw == null)
             return null;
 
-        // Исправление: используем Value для nullable DateOnly и преобразуем в DateTime
         return raw.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
     }
 
@@ -159,7 +158,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         var rows = await _context.DisciplineChoicePeriods
             .AsNoTracking()
             .Where(p => p.Department != null && p.Department.FacultyId == facultyId && p.EndDate != null)
-            .Select(p => p.EndDate!.Value)
+            .Select(p => p.EndDate!)
             .ToListAsync();
         DateOnly? best = null;
         foreach (var end in rows)
@@ -183,17 +182,17 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
-                s.Group.DegreeLevelId,
-                s.Group.DegreeLevel != null ? s.Group.DegreeLevel.NameEducationalDegree : "",
+                s.Group.EducationalProgram != null ? s.Group.EducationalProgram.DegreeId : Guid.Empty,
+                s.Group.EducationalProgram != null && s.Group.EducationalProgram.Degree != null ? s.Group.EducationalProgram.Degree.NameEducationalDegree : "",
                 s.Group.EducationalProgram,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                    IdSelectiveDisciplines = b.SelectiveDisciplineId ?? Guid.Empty,
+                    IdSelectiveDisciplines = b.SelectiveDisciplineId != Guid.Empty ? b.SelectiveDisciplineId : Guid.Empty,
                     NameSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
                     CodeSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.CodeSelectiveDisciplines ?? "" : "",
-                    Semestr = b.Semestr ?? 0,
-                    InProcess = b.InProcess ?? false
+                    Semestr = b.Semestr >= 0 ? b.Semestr : 0,
+                    InProcess = b.InProcess
                 }).ToList()
             ))
             .ToListAsync();
@@ -222,7 +221,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             query = query.Where(s => s.GroupId != null && queryDto.StudentGroups.Contains(s.GroupId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => s.Group.DegreeLevelId != null && queryDto.DegreeLevelIds.Contains(s.Group.DegreeLevelId));
+            query = query.Where(s => s.Group.EducationalProgram != null && s.Group.EducationalProgram.DegreeId != null && queryDto.DegreeLevelIds.Contains(s.Group.EducationalProgram.DegreeId));
 
         if (queryDto.IsNew && queryDto.FacultyId != Guid.Empty)
             query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId == queryDto.FacultyId);
@@ -233,19 +232,19 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
             s.Group != null ? s.Group.GroupCode : "",
             s.Course,
-            s.Group.DegreeLevelId,
-            s.Group.DegreeLevel != null ? s.Group.DegreeLevel.NameEducationalDegree : "",
+            s.Group.EducationalProgram != null ? s.Group.EducationalProgram.DegreeId : Guid.Empty,
+            s.Group.EducationalProgram != null && s.Group.EducationalProgram.Degree != null ? s.Group.EducationalProgram.Degree.NameEducationalDegree : "",
             s.Group.EducationalProgram,
             s.BindSelectiveDisciplines
                 .Where(b => !queryDto.IsNew || periodStart == null)
                 .Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                    IdSelectiveDisciplines = b.SelectiveDisciplineId ?? Guid.Empty,
+                    IdSelectiveDisciplines = b.SelectiveDisciplineId != Guid.Empty ? b.SelectiveDisciplineId : Guid.Empty,
                     NameSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
                     CodeSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.CodeSelectiveDisciplines ?? "" : "",
-                    Semestr = b.Semestr ?? 0,
-                    InProcess = b.InProcess ?? false
+                    Semestr = b.Semestr >= 0 ? b.Semestr : 0,
+                    InProcess = b.InProcess
                 }).ToList()
         )).ToListAsync();
     }
@@ -255,7 +254,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         var rows = await _context.DisciplineChoicePeriods
             .AsNoTracking()
             .Where(p => p.Department != null && p.Department.FacultyId != null && p.StartDate != null)
-            .Select(p => new { FacultyId = p.Department.FacultyId!, StartDate = p.StartDate.Value })
+            .Select(p => new { FacultyId = p.Department.FacultyId!, StartDate = p.StartDate })
             .ToListAsync();
 
         var dict = new Dictionary<Guid, DateTime>();
@@ -277,10 +276,10 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         return await _context.Normatives
             .Where(n => n.DegreeLevelId != null)
-            .GroupBy(n => new { Level = n.DegreeLevelId!.Value, IsFaculty = n.IsFaculty})
+            .GroupBy(n => new { Level = n.DegreeLevelId!, IsFaculty = n.IsFaculty})
             .ToDictionaryAsync(
                 g => (g.Key.Level, g.Key.IsFaculty),
-                g => g.First().Count.GetValueOrDefault()
+                g => g.First().Count
             );
     }
 
@@ -348,11 +347,11 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
                 StudentId = b.StudentId,
                 StudentFullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
-                SelectiveDisciplinesId = b.SelectiveDisciplineId ?? Guid.Empty,
+                SelectiveDisciplinesId = b.SelectiveDisciplineId,
                 SelectiveDisciplineName = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
-                Semestr = b.Semestr ?? 0,
+                Semestr = b.Semestr,
                 Loans = b.Loans ?? 0,
-                InProcess = b.InProcess ?? false
+                InProcess = b.InProcess
             })
             .FirstOrDefaultAsync();
     }
@@ -370,17 +369,17 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                     : "",
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Course,
-                s.Group != null ? s.Group.DegreeLevelId : Guid.Empty,
-                s.Group != null && s.Group.DegreeLevel != null ? s.Group.DegreeLevel.NameEducationalDegree : "",
+                s.Group != null ? s.Group.EducationalProgram != null ? s.Group.EducationalProgram.DegreeId : Guid.Empty : Guid.Empty,
+                s.Group != null && s.Group.EducationalProgram != null && s.Group.EducationalProgram.Degree != null ? s.Group.EducationalProgram.Degree.NameEducationalDegree : "",
                 s.Group != null ? s.Group.EducationalProgram : null,
                 s.BindSelectiveDisciplines.Select(b => new StudentSelectedDisciplineDto
                 {
                     IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
-                    IdSelectiveDisciplines = b.SelectiveDisciplineId ?? Guid.Empty,
+                    IdSelectiveDisciplines = b.SelectiveDisciplineId != Guid.Empty ? b.SelectiveDisciplineId : Guid.Empty,
                     NameSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
                     CodeSelectiveDisciplines = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.CodeSelectiveDisciplines ?? "" : "",
-                    Semestr = b.Semestr ?? 0,
-                    InProcess = b.InProcess ?? false
+                    Semestr = b.Semestr >= 0 ? b.Semestr : 0,
+                    InProcess = b.InProcess
                 }).ToList()
             )).FirstOrDefaultAsync();
     }

@@ -146,7 +146,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             }
             else
             {
-                var (success, errorMessage) = await RepealChoiceAsync(bind.SelectiveDisciplineId ?? Guid.Empty, bind.Student!.IdStudent);
+                var (success, errorMessage) = await RepealChoiceAsync(bind.SelectiveDisciplineId, bind.Student!.IdStudent);
                 if (!success)
                 {
                     response.Errors.Add(new ChoiceErrorDto { BindId = dto.BindId, Error = errorMessage ?? "Failed to repeal choice" });

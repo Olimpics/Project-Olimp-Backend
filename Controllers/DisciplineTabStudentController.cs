@@ -121,5 +121,19 @@ namespace OlimpBack.Controllers
             }
             return NoContent();
         }
+
+        [HttpPut("UpdateApprovalStatusAuto/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
+        public async Task<IActionResult> UpdateApprovalStatusAuto(Guid id, UpdateApprovalStatusDto dto)
+        {
+            var (success, error) = await _service.UpdateDisciplineApprovalStatusAsync(id, dto);
+            if (!success)
+            {
+                if (error == "Discipline not found")
+                    return NotFound("Discipline not found");
+                return BadRequest(error);
+            }
+            return Ok(new { message = error ?? "Status updated successfully" });
+        }
     }
 }

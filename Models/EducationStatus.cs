@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class EducationStatus
 {
-    public string? NameEducationStatus { get; set; }
+    public string NameEducationStatus { get; set; } = null!;
 
     public Guid IdEducationStatus { get; set; }
 

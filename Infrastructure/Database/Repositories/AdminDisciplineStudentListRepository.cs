@@ -53,7 +53,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 EF.Functions.Like(b.Student.Group.GroupCode.ToLower(), $"%{search}%") ||
                 (b.Student.Group.EducationalProgram.Speciality.Department != null &&
                  EF.Functions.Like(b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment.ToLower(), $"%{search}%")) ||
-                EF.Functions.Like(b.Student.Group.DegreeLevel.NameEducationalDegree.ToLower(), $"%{search}%"));
+                EF.Functions.Like(b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Degree != null ? b.Student.Group.EducationalProgram.Degree.NameEducationalDegree.ToLower() : string.Empty, $"%{search}%"));
         }
 
         var totalCount = await baseQuery.CountAsync();
@@ -72,8 +72,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 : string.Empty),
             6 => baseQuery.OrderBy(b => b.Student.Course),
             7 => baseQuery.OrderByDescending(b => b.Student.Course),
-            8 => baseQuery.OrderBy(b => b.Student.Group.DegreeLevel.NameEducationalDegree),
-            9 => baseQuery.OrderByDescending(b => b.Student.Group.DegreeLevel.NameEducationalDegree),
+            8 => baseQuery.OrderBy(b => b.Student.Group.EducationalProgram.Degree.NameEducationalDegree),
+            9 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Degree.NameEducationalDegree),
             10 => baseQuery.OrderBy(b => b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty),
             11 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty),
             _ => baseQuery.OrderBy(b => b.Student.NameStudent)
@@ -92,7 +92,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                     ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? ""
                     : string.Empty,
                 Year = b.Student.Course,
-                EducationLevel = b.Student.Group.DegreeLevel != null ? b.Student.Group.DegreeLevel.NameEducationalDegree ?? "" : "",
+                EducationLevel = b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Degree != null ? b.Student.Group.EducationalProgram.Degree.NameEducationalDegree ?? "" : "",
                 IsShort = b.Student.IsShort ? true : false,
                 Faculty = b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : ""
             })

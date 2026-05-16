@@ -16,7 +16,7 @@ namespace OlimpBack.Utils
         public static async Task<DisciplineAvailabilityContext?> BuildAvailabilityContext(Guid studentId, AppDbContext _context)
         {
             var student = await _context.Students
-                .Include(s => s.Group.DegreeLevel)
+                .Include(s => s.Group.EducationalProgram.Degree)
                 .Include(s => s.BindSelectiveDisciplines)
                 .Include(s => s.Group.EducationalProgram.Speciality.Department.Faculty)
                 .FirstOrDefaultAsync(s => s.IdStudent == studentId);
@@ -28,13 +28,13 @@ namespace OlimpBack.Utils
 
             var boundDisciplineIds = student.BindSelectiveDisciplines
                 .Select(b => b.SelectiveDisciplineId)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
+                .Where(id => id != Guid.Empty)
+                .Select(id => id!)
                 .ToHashSet();
 
             var disciplineCounts = await _context.BindSelectiveDisciplines
                 .Where(b => b.InProcess == true && b.SelectiveDisciplineId != null)
-                .GroupBy(b => b.SelectiveDisciplineId!.Value)
+                .GroupBy(b => b.SelectiveDisciplineId!)
                 .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
 
@@ -53,7 +53,7 @@ namespace OlimpBack.Utils
                 return false;
 
             if (discipline.DegreeLevelId != null &&
-                discipline.DegreeLevelId != context.Student.Group?.DegreeLevelId)
+                discipline.DegreeLevelId != context.Student.Group?.EducationalProgram?.DegreeId)
                 return false;
 
             if (discipline.Department?.FacultyId != context.Student.Group?.EducationalProgram?.Speciality?.Department?.FacultyId)

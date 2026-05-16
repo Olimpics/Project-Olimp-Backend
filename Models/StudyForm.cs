@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class StudyForm
 {
-    public string? NameStudyForm { get; set; }
+    public string NameStudyForm { get; set; } = null!;
 
     public Guid IdStudyForm { get; set; }
 

@@ -5,9 +5,9 @@ namespace OlimpBack.Models;
 
 public partial class InventorySg
 {
-    public string? NameInventory { get; set; }
+    public string NameInventory { get; set; } = null!;
 
-    public string? CodeInventory { get; set; }
+    public string CodeInventory { get; set; } = null!;
 
     public Guid StudentId { get; set; }
 

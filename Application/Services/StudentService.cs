@@ -42,7 +42,7 @@ public class StudentService : IStudentService
 
         if (queryDto.Specialities != null && queryDto.Specialities.Any())
         {
-            query = query.Where(s => s.Group.EducationalProgram.SpecialityId.HasValue && queryDto.Specialities.Contains(s.Group.EducationalProgram.SpecialityId.Value));
+            query = query.Where(s => s.Group.EducationalProgram.SpecialityId != Guid.Empty && queryDto.Specialities.Contains(s.Group.EducationalProgram.SpecialityId));
         }
 
         if (queryDto.GroupIds != null && queryDto.GroupIds.Any())
@@ -52,10 +52,10 @@ public class StudentService : IStudentService
             query = query.Where(s => queryDto.Courses.Contains(s.Course));
 
         if (queryDto.StudyFormIds != null && queryDto.StudyFormIds.Any())
-            query = query.Where(s => s.Group.StudyFormId.HasValue && queryDto.StudyFormIds.Contains(s.Group.StudyFormId.Value));
+            query = query.Where(s => s.Group.StudyFormId != Guid.Empty && queryDto.StudyFormIds.Contains(s.Group.StudyFormId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => s.Group.DegreeLevelId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.DegreeLevelId));
+            query = query.Where(s => s.Group.EducationalProgram.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.EducationalProgram.DegreeId));
 
         if (queryDto.IsShort.HasValue)
         {
