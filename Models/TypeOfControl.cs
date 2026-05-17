@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class TypeOfControl
 {
-    public string? Type { get; set; }
+    public string Type { get; set; } = null!;
 
     public Guid IdTypeOfControl { get; set; }
 

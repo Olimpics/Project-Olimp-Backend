@@ -134,12 +134,12 @@ public class ImportService : IImportService
         File.Copy(originalFilePath, finalPath, true);
 
         // Lookup Department
-        Guid? departmentId = null;
+        Guid departmentId = Guid.Empty;
         if (!string.IsNullOrEmpty(dto.Department))
         {
             var dept = await _context.Departments
                 .FirstOrDefaultAsync(d => d.NameDepartment != null && d.NameDepartment.Contains(dto.Department));
-            departmentId = dept?.IdDepartment;
+            departmentId = dept?.IdDepartment ?? Guid.Empty;
         }
 
         // Recommended and RecommendedEp preparation
@@ -187,7 +187,7 @@ public class ImportService : IImportService
             IsFaculty = isFaculty,
             MinCountPeople = dto.MinCountPeople,
             MaxCountPeople = dto.MaxCountPeople,
-            IsEven = dto.IsEven.HasValue ? (dto.IsEven) : (bool?)null,
+            IsEven = dto.IsEven,
             DegreeLevelId = dto.DegreeLevelId,
             CatalogId = catalogId,
             ApprovalStatusId = Guid.Parse("00000000-0000-0000-0000-000000000004"), // Placeholder for 'Approved'

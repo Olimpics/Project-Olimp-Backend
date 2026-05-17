@@ -24,7 +24,7 @@ namespace OlimpBack.Utils
             if (student == null)
                 return null;
 
-            int currentCourse = student.Course;
+            int currentCourse = student.Group?.Course ?? 0;
 
             var boundDisciplineIds = student.BindSelectiveDisciplines
                 .Select(b => b.SelectiveDisciplineId)

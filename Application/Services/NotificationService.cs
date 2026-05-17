@@ -41,7 +41,7 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
                 n.IsRead, // bool не может быть null, просто передаем значение
-                n.CreatedAt.ToDateTime(TimeOnly.MinValue), // DateOnly всегда задан
+                n.CreatedAt, // DateOnly всегда задан
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -83,7 +83,7 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
                 n.IsRead, // bool не может быть null, просто передаем значение
-                n.CreatedAt.ToDateTime(TimeOnly.MinValue), // DateOnly всегда задан
+                n.CreatedAt, // DateOnly всегда задан
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -112,7 +112,7 @@ public class NotificationService : INotificationService
                 n.Template != null ? n.Template.Message : null,
                 n.CustomMessage,
                 n.IsRead != null && n.IsRead ? false : null,
-                n.CreatedAt.ToDateTime(TimeOnly.MinValue), // DateOnly всегда задан
+                n.CreatedAt, // DateOnly всегда задан
                 n.Template != null ? n.Template.NotificationType : "",
                 n.Metadata
             ))
@@ -145,13 +145,11 @@ public class NotificationService : INotificationService
         {
             IdNotification = notification.IdNotification,
             UserId = notification.UserId,
-            TemplateId = notification.TemplateId ?? Guid.Empty,
+            TemplateId = notification.TemplateId != Guid.Empty ? notification.TemplateId : Guid.Empty,
             Title = template?.Title ?? dto.Title ?? string.Empty,
             Message = notification.CustomMessage ?? template?.Message ?? string.Empty,
-            IsRead = notification.IsRead != null && notification.IsRead != null && notification.IsRead == true,
-            CreatedAt = notification.CreatedAt != null
-                ? notification.CreatedAt.ToDateTime(TimeOnly.MinValue)
-                : default,
+            IsRead = notification.IsRead,
+            CreatedAt = notification.CreatedAt,
             NotificationType = template?.NotificationType ?? dto.NotificationType,
             Metadata = dto.Metadata
         };
@@ -235,7 +233,7 @@ public class NotificationService : INotificationService
         string? TemplateMessage,
         string? CustomMessage,
         bool? IsRead,
-        DateTime? CreatedAt,
+        DateOnly CreatedAt,
         string NotificationType,
         string? Metadata
     );
@@ -243,14 +241,7 @@ public class NotificationService : INotificationService
     // ШШШШШ Ш ШШШШ ШШШШШ ШШШШШШШШ Ш DTO
     private static NotificationDto MapProjectedToDto(NotificationProjection p)
     {
-        var createdAt = DateTime.TryParse(
-            p.CreatedAt?.ToString("O"),
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.RoundtripKind,
-            out var dt)
-            ? dt
-            : default;
-
+    
         return new NotificationDto
         {
             IdNotification = p.IdNotification,
@@ -259,7 +250,7 @@ public class NotificationService : INotificationService
             Title = p.TemplateTitle ?? string.Empty,
             Message = p.TemplateMessage ?? p.CustomMessage ?? string.Empty,
             IsRead = (p.IsRead != null && p.IsRead.HasValue),
-            CreatedAt = createdAt,
+            CreatedAt = p.CreatedAt,
             NotificationType = p.NotificationType ?? string.Empty,
             Metadata = !string.IsNullOrWhiteSpace(p.Metadata) ? JsonDocument.Parse(p.Metadata) : null
         };

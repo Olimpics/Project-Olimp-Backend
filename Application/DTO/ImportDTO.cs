@@ -57,9 +57,9 @@ namespace OlimpBack.Application.DTO
         public bool NeedFix { get; set; }
         public string? Department { get; set; }
         public List<string>? Teachers { get; set; }
-        public Guid? DegreeLevelId { get; set; }
+        public Guid DegreeLevelId { get; set; }
         public List<int>? Courses { get; set; }
-        public bool? IsEven { get; set; }
+        public bool IsEven { get; set; }
         public string? Language { get; set; }
         public string? Prerequisites { get; set; }
         public string? WhyInterestingDetermination { get; set; }

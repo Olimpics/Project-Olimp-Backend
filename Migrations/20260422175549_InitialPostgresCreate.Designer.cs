@@ -876,7 +876,7 @@ namespace OlimpBack.Migrations
                     b.ToTable("Group", (string)null);
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.MainGrade", b =>
+            modelBuilder.Entity("OlimpBack.Models.MainGradeValue", b =>
                 {
                     b.Property<int>("IdMainGrade")
                         .ValueGeneratedOnAdd()
@@ -888,9 +888,9 @@ namespace OlimpBack.Migrations
                     b.Property<int>("MainDisciplinesId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("MainGrade1")
+                    b.Property<int?>("MainGradeValue")
                         .HasColumnType("integer")
-                        .HasColumnName("MainGrade");
+                        .HasColumnName("MainGradeValue");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("integer");
@@ -901,7 +901,7 @@ namespace OlimpBack.Migrations
 
                     b.HasIndex(new[] { "MainDisciplinesId" }, "MainGrade_MainDisciplines_idx");
 
-                    b.ToTable("MainGrade", (string)null);
+                    b.ToTable("MainGradeValue", (string)null);
                 });
 
             modelBuilder.Entity("OlimpBack.Models.Member", b =>
@@ -1818,7 +1818,7 @@ namespace OlimpBack.Migrations
                     b.Navigation("IdStudyFormNavigation");
                 });
 
-            modelBuilder.Entity("OlimpBack.Models.MainGrade", b =>
+            modelBuilder.Entity("OlimpBack.Models.MainGradeValue", b =>
                 {
                     b.HasOne("OlimpBack.Models.BindMainDiscipline", "MainDisciplines")
                         .WithMany("MainGrades")

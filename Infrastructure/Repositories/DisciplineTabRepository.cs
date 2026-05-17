@@ -60,13 +60,13 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         }
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
+            query = query.Where(d => d.DegreeLevelId != Guid.Empty && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId));
 
         if (queryDto.TypeOfControlIds != null && queryDto.TypeOfControlIds.Any())
-            query = query.Where(d => d.TypeOfControlId.HasValue && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId.Value));
+            query = query.Where(d =>d.TypeOfControlId != Guid.Empty && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId));
 
         if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
-            query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+            query = query.Where(d => d.ApprovalStatusId != Guid.Empty && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(d =>

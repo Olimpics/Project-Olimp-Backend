@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class RoleInEvent
 {
-    public string? RoleName { get; set; }
+    public string RoleName { get; set; } = null!;
 
     public Guid IdRoleInEvent { get; set; }
 

@@ -49,7 +49,7 @@ public class StudentService : IStudentService
             query = query.Where(s => s.GroupId != Guid.Empty && queryDto.GroupIds.Contains(s.GroupId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
-            query = query.Where(s => queryDto.Courses.Contains(s.Course));
+            query = query.Where(s => queryDto.Courses.Contains(s.Group.Course));
 
         if (queryDto.StudyFormIds != null && queryDto.StudyFormIds.Any())
             query = query.Where(s => s.Group.StudyFormId != Guid.Empty && queryDto.StudyFormIds.Contains(s.Group.StudyFormId));
@@ -59,7 +59,7 @@ public class StudentService : IStudentService
 
         if (queryDto.IsShort.HasValue)
         {
-            query = query.Where(s => s.IsShort == queryDto.IsShort.Value);
+            query = query.Where(s => s.Group.IsAccelerated == queryDto.IsShort.Value);
         }
 
         query = queryDto.SortOrder switch

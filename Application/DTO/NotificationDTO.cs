@@ -11,7 +11,7 @@ public class NotificationDto
     public string Title { get; set; } = null!;
     public string Message { get; set; } = null!;
     public bool IsRead { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateOnly CreatedAt { get; set; }
     public string NotificationType { get; set; } = null!;
     public JsonDocument? Metadata { get; set; }
 }

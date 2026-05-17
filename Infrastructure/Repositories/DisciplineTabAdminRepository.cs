@@ -86,19 +86,19 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         // 5. DegreeLevel
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
         {
-            query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
+            query = query.Where(d => d.DegreeLevelId != Guid.Empty && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId));
         }
 
         // TypeOfControl
         if (queryDto.TypeOfControlIds != null && queryDto.TypeOfControlIds.Any())
         {
-            query = query.Where(d => d.TypeOfControlId.HasValue && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId.Value));
+            query = query.Where(d => d.TypeOfControlId != Guid.Empty && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId));
         }
 
         // ApprovalStatus
         if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
         {
-            query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+            query = query.Where(d => d.ApprovalStatusId != Guid.Empty && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId));
         }
 
         var totalCount = await query.CountAsync();
@@ -181,7 +181,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 s.NameStudent ?? "",
                 s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
                 s.Group != null ? s.Group.GroupCode : "",
-                s.Course,
+                s.Group != null ? s.Group.Course : 0,
                 s.Group.EducationalProgram != null ? s.Group.EducationalProgram.DegreeId : Guid.Empty,
                 s.Group.EducationalProgram != null && s.Group.EducationalProgram.Degree != null ? s.Group.EducationalProgram.Degree.NameEducationalDegree : "",
                 s.Group.EducationalProgram,
@@ -215,7 +215,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId != null && queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
-            query = query.Where(s => queryDto.Courses.Contains(s.Course));
+            query = query.Where(s => queryDto.Courses.Contains(s.Group.Course));
 
         if (queryDto.StudentGroups != null && queryDto.StudentGroups.Any())
             query = query.Where(s => s.GroupId != null && queryDto.StudentGroups.Contains(s.GroupId));
@@ -231,7 +231,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             s.NameStudent ?? "",
             s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
             s.Group != null ? s.Group.GroupCode : "",
-            s.Course,
+            s.Group != null ? s.Group.Course : 0,
             s.Group.EducationalProgram != null ? s.Group.EducationalProgram.DegreeId : Guid.Empty,
             s.Group.EducationalProgram != null && s.Group.EducationalProgram.Degree != null ? s.Group.EducationalProgram.Degree.NameEducationalDegree : "",
             s.Group.EducationalProgram,
@@ -303,13 +303,13 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             query = query.Where(d => d.IsFaculty == queryDto.IsFaculty.Value);
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(d => d.DegreeLevelId.HasValue && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId.Value));
+            query = query.Where(d => d.DegreeLevelId != Guid.Empty && queryDto.DegreeLevelIds.Contains(d.DegreeLevelId));
 
         if (queryDto.TypeOfControlIds != null && queryDto.TypeOfControlIds.Any())
-            query = query.Where(d => d.TypeOfControlId.HasValue && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId.Value));
+            query = query.Where(d =>d.TypeOfControlId != Guid.Empty && queryDto.TypeOfControlIds.Contains(d.TypeOfControlId));
 
         if (queryDto.ApprovalStatusIds != null && queryDto.ApprovalStatusIds.Any())
-            query = query.Where(d => d.ApprovalStatusId.HasValue && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId.Value));
+            query = query.Where(d =>d.ApprovalStatusId != Guid.Empty && queryDto.ApprovalStatusIds.Contains(d.ApprovalStatusId));
 
         return await query.Select(d => new DisciplineStatusProjection(
             d.IdSelectiveDisciplines,
@@ -318,10 +318,10 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             d.Department != null ? d.Department.NameDepartment : null,
             d.MinCountPeople,
             d.MaxCountPeople,
-            d.IsForseChange == 1,
+            d.IsForseChange == true,
             d.Type != null ? d.Type.TypeName ?? "" : "",
             d.DegreeLevelId,
-            d.IsFaculty ?? false,
+            d.IsFaculty,
             d.Department.FacultyId,
             d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
             d.BindSelectiveDisciplines.Select(b => b.CreatedAt.ToString()).ToList()
@@ -368,7 +368,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                     ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty
                     : "",
                 s.Group != null ? s.Group.GroupCode : "",
-                s.Course,
+                s.Group != null ? s.Group.Course : 0,
                 s.Group != null ? s.Group.EducationalProgram != null ? s.Group.EducationalProgram.DegreeId : Guid.Empty : Guid.Empty,
                 s.Group != null && s.Group.EducationalProgram != null && s.Group.EducationalProgram.Degree != null ? s.Group.EducationalProgram.Degree.NameEducationalDegree : "",
                 s.Group != null ? s.Group.EducationalProgram : null,

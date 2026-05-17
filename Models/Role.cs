@@ -13,6 +13,8 @@ public partial class Role
 
     public Guid IdRole { get; set; }
 
+    public bool IsSystem { get; set; }
+
     public virtual ICollection<Approval> Approvals { get; set; } = new List<Approval>();
 
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();

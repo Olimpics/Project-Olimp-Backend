@@ -14,5 +14,5 @@ public class RatingStatusQueryDto
 public class RatingStatusResponseDto
 {
     public bool Exists { get; set; }
-    public DateTime? CalculationTime { get; set; }
+    public DateOnly CalculationTime { get; set; }
 }

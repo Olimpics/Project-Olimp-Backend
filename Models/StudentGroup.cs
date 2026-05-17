@@ -21,9 +21,9 @@ public partial class StudentGroup
 
     public bool IsAccelerated { get; set; }
 
-    public Guid AdminId { get; set; }
+    public Guid? AdminId { get; set; }
 
-    public virtual AdminsPersonal Admin { get; set; } = null!;
+    public virtual AdminsPersonal? Admin { get; set; }
 
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
 

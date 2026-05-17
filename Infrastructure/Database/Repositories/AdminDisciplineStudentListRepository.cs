@@ -70,8 +70,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             5 => baseQuery.OrderByDescending(b => b.Student.Group != null
                 ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment
                 : string.Empty),
-            6 => baseQuery.OrderBy(b => b.Student.Course),
-            7 => baseQuery.OrderByDescending(b => b.Student.Course),
+            6 => baseQuery.OrderBy(b => b.Student.Group.Course),
+            7 => baseQuery.OrderByDescending(b => b.Student.Group.Course),
             8 => baseQuery.OrderBy(b => b.Student.Group.EducationalProgram.Degree.NameEducationalDegree),
             9 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Degree.NameEducationalDegree),
             10 => baseQuery.OrderBy(b => b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty),
@@ -91,9 +91,9 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 DepartmentName = b.Student.Group.EducationalProgram.Speciality.Department != null
                     ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? ""
                     : string.Empty,
-                Year = b.Student.Course,
+                Year = b.Student.Group != null ? b.Student.Group.Course : 0,
                 EducationLevel = b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Degree != null ? b.Student.Group.EducationalProgram.Degree.NameEducationalDegree ?? "" : "",
-                IsShort = b.Student.IsShort ? true : false,
+                IsShort = b.Student.Group != null ? b.Student.Group.IsAccelerated : false,
                 Faculty = b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : ""
             })
             .ToListAsync();
@@ -151,7 +151,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 FacultyName = g.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? g.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : "",
                 GroupId = g.Student.GroupId,
                 GroupCode = g.Student.Group.GroupCode ?? "",
-                Course = g.Student.Course
+                Course = g.Student.Group != null ? g.Student.Group.Course : 0
             })
             .ToListAsync();
 

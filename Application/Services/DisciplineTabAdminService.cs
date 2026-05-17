@@ -262,7 +262,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         var discipline = await _repository.GetDisciplineEntityAsync(dto.DisciplineId);
         if (discipline == null) return null;
 
-        discipline.IsForseChange = 1;
+        discipline.IsForseChange = true;
         discipline.TypeId = Guid.Parse("00000000-0000-0000-0000-00000000000" + dto.Status); // This is a hack, but without knowing the actual GUIDs for types...
         // Actually, the user said all IDs are GUIDs. If TypeId is now a Guid, we need to know what Guid corresponds to status 1, 2, 3, 4.
         // For now, I'll assume we might need a lookup or that status is actually a separate table.

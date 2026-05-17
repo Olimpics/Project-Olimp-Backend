@@ -5,11 +5,13 @@ namespace OlimpBack.Models;
 
 public partial class CatalogYearsMain
 {
-    public string NameCatalog { get; set; } = null!;
-
     public bool IsFormed { get; set; }
 
     public Guid IdCatalogYear { get; set; }
+
+    public int YearStart { get; set; }
+
+    public int YearEnd { get; set; }
 
     public virtual ICollection<EducationalProgram> EducationalPrograms { get; set; } = new List<EducationalProgram>();
 }

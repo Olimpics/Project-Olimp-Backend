@@ -27,7 +27,7 @@ public class RatingService : IRatingService
     public async Task GenerateRatingAsync(GenerateRatingQueryDto query)
     {
         // 1. Filter students
-        var students = await _repository.GetStudentsForRatingAsync(query.EducationalProgramId, query.Course, query.IsAccelerated);
+        var students = await _repository.GetStudentsForRatingAsync(query.SpecialityId, query.Course, query.IsAccelerated);
         if (!students.Any()) return;
 
         var studentIds = students.Select(s => s.IdStudent).ToList();
@@ -58,7 +58,7 @@ public class RatingService : IRatingService
             double sumGrades = 0;
             foreach (var mg in studentMainGrades)
             {
-                sumGrades += ParseGrade(mg.MainGrade1);
+                sumGrades += mg.MainGradeValue;
                 if (mg.MainDisciplines?.BindMainDisciplines?.Any(bmd => bmd.IsRedo == true) == true)
                 {
                     hasRedo = true;
@@ -105,7 +105,7 @@ public class RatingService : IRatingService
         var calcTime = new RatingCalculationTime
         {
             IdRatingCalculationTime = Guid.NewGuid(),
-            SpecialityId = students.First().Group?.EducationalProgram?.SpecialityId, 
+            SpecialityId = query.SpecialityId, 
             Course = query.Course,
             IsEven = (query.SemesterType == 2),
             IsShorted = query.IsAccelerated,
@@ -120,11 +120,11 @@ public class RatingService : IRatingService
     public async Task<RatingStatusResponseDto> GetRatingStatusAsync(RatingStatusQueryDto query)
     {
         var calcTime = await _repository.GetCalculationTimeAsync(query.SpecialityId, query.Course, query.Semester, query.CatalogYearId, query.IsAccelerated);
-        
+
         return new RatingStatusResponseDto
         {
             Exists = calcTime != null,
-            CalculationTime = calcTime?.Date?.ToDateTime(TimeOnly.MinValue)
+            CalculationTime = calcTime.Date
         };
     }
 

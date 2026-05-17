@@ -4,7 +4,7 @@ namespace OlimpBack.Application.DTO;
 
 public class GenerateRatingQueryDto
 {
-    public Guid EducationalProgramId { get; set; }
+    public Guid SpecialityId { get; set; }
     public int Course { get; set; }
     public int SemesterType { get; set; } // 1 or 2
     public Guid CatalogYearId { get; set; }

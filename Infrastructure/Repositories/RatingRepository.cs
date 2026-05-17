@@ -11,7 +11,7 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 
 public interface IRatingRepository
 {
-    Task<List<Student>> GetStudentsForRatingAsync(Guid programId, int course, bool isAccelerated);
+    Task<List<Student>> GetStudentsForRatingAsync(Guid specialityId, int course, bool isAccelerated);
     Task<List<MainGrade>> GetMainGradesAsync(List<Guid> studentIds, int semester);
     Task<List<BindSelectiveDiscipline>> GetSelectiveGradesAsync(List<Guid> studentIds, int semester);
     Task<List<BindEventStudent>> GetEventPointsAsync(List<Guid> studentIds);
@@ -33,12 +33,13 @@ public class RatingRepository : IRatingRepository
         _context = context;
     }
 
-    public async Task<List<Student>> GetStudentsForRatingAsync(Guid programId, int course, bool isAccelerated)
+    public async Task<List<Student>> GetStudentsForRatingAsync(Guid specialityId, int course, bool isAccelerated)
     {
         return await _context.Students
             .Include(s => s.Group)
                 .ThenInclude(g => g.EducationalProgram)
-            .Where(s => s.Group != null && s.Group.EducationalProgramId == programId && s.Course == course && s.IsShort == isAccelerated)
+                    .ThenInclude(ep => ep.Speciality)
+            .Where(s => s.Group != null && s.Group.EducationalProgram.SpecialityId == specialityId && s.Group.Course == course && s.Group.IsAccelerated == isAccelerated)
             .ToListAsync();
     }
 
@@ -135,8 +136,8 @@ public class RatingRepository : IRatingRepository
                         r.Student.Group != null &&
                         r.Student.Group.EducationalProgram != null &&
                         r.Student.Group.EducationalProgram.SpecialityId == query.SpecialityId &&
-                        r.Student.Course == query.Course &&
-                        r.Student.IsShort == query.IsAccelerated);
+                        r.Student.Group.Course == query.Course &&
+                        r.Student.Group.IsAccelerated == query.IsAccelerated);
 
 
         if (query.IsFundedOnly == true)

@@ -19,7 +19,7 @@ public partial class SelectiveDetail
 
     public string? TypesOfTraining { get; set; }
 
-    public string? Recommended { get; set; }
+    public string Recommended { get; set; } = null!;
 
     public string? NameSelectiveDisciplinesEng { get; set; }
 

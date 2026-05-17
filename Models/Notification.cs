@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class Notification
 {
-    public string? CustomMessage { get; set; }
+    public string CustomMessage { get; set; } = null!;
 
     public DateOnly CreatedAt { get; set; }
 
@@ -15,7 +15,7 @@ public partial class Notification
 
     public Guid IdNotification { get; set; }
 
-    public Guid? TemplateId { get; set; }
+    public Guid TemplateId { get; set; }
 
     public bool IsRead { get; set; }
 
@@ -23,7 +23,7 @@ public partial class Notification
 
     public virtual User CreatedByNavigation { get; set; } = null!;
 
-    public virtual NotificationTemplate? Template { get; set; }
+    public virtual NotificationTemplate Template { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

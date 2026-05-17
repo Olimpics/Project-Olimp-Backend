@@ -143,7 +143,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             query = queryDto.SortBy.ToLower() switch
             {
                 "group" => queryDto.IsDescending ? query.OrderByDescending(s => s.Group.GroupCode) : query.OrderBy(s => s.Group.GroupCode),
-                "isshort" => queryDto.IsDescending ? query.OrderByDescending(s => s.IsShort) : query.OrderBy(s => s.IsShort),
+                "isshort" => queryDto.IsDescending ? query.OrderByDescending(s => s.Group.IsAccelerated) : query.OrderBy(s => s.Group.IsAccelerated),
                 "status" => queryDto.IsDescending ? query.OrderByDescending(s => s.EducationStatus.NameEducationStatus) : query.OrderBy(s => s.EducationStatus.NameEducationStatus),
                 "educationstart" => queryDto.IsDescending ? query.OrderByDescending(s => s.EducationStart) : query.OrderBy(s => s.EducationStart),
                 "name" => queryDto.IsDescending ? query.OrderByDescending(s => s.NameStudent) : query.OrderBy(s => s.NameStudent),
@@ -163,7 +163,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 IdStudent = s.IdStudent,
                 NameStudent = s.NameStudent ?? "",
                 GroupName = s.Group.GroupCode ?? "",
-                IsShort = s.IsShort,
+                IsShort = s.Group != null ? s.Group.IsAccelerated : false,
                 Status = s.EducationStatus.NameEducationStatus ?? "",
                 EducationStart = s.EducationStart
             })

@@ -354,7 +354,7 @@ public class DisciplineTabService : IDisciplineTabService
         if (branchIds != null && branchIds.Any())
         {
             var epsFromBranches = await _context.EducationalPrograms
-                .Where(ep => ep.Speciality.BranchId != null && branchIds.Contains(ep.Speciality.BranchId.Value))
+                .Where(ep => ep.Speciality.BranchId != Guid.Empty && branchIds.Contains(ep.Speciality.BranchId))
                 .Select(ep => ep.IdEducationalProgram)
                 .ToListAsync();
             foreach (var id in epsFromBranches) recommendedEpIds.Add(id);

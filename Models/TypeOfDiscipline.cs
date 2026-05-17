@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class TypeOfDiscipline
 {
-    public string? TypeName { get; set; }
+    public string TypeName { get; set; } = null!;
 
     public Guid IdTypeOfDiscipline { get; set; }
 

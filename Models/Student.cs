@@ -11,8 +11,6 @@ public partial class Student
 
     public DateOnly EducationEnd { get; set; }
 
-    public int Course { get; set; }
-
     /// <summary>
     /// Залікова книга
     /// </summary>
@@ -27,8 +25,6 @@ public partial class Student
     public Guid EducationStatusId { get; set; }
 
     public Guid IdStudent { get; set; }
-
-    public bool IsShort { get; set; }
 
     public bool IsInSg { get; set; }
 
