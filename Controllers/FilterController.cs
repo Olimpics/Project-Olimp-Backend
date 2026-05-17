@@ -37,6 +37,34 @@ namespace OlimpBack.Controllers
             var items = await _educationalProgramService.GetEducationalProgramsForFilterAsync(search);
             return Ok(items);
         }
+
+        [HttpGet("faculties")]
+        [RequirePermission(RbacPermissions.FacultiesRead)]
+        public async Task<ActionResult<IEnumerable<FacultyDto>>> GetFaculties([FromQuery] string? search = null)
+        {
+            var query = _context.Faculties.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.Trim().ToLower();
+                query = query.Where(f => 
+                    EF.Functions.Like(f.NameFaculty.ToLower(), $"%{searchLower}%") || 
+                    (f.Abbreviation != null && EF.Functions.Like(f.Abbreviation.ToLower(), $"%{searchLower}%")));
+            }
+
+            var faculties = await query
+                .OrderBy(f => f.NameFaculty)
+                .Select(f => new FacultyDto
+                {
+                    IdFaculty = f.IdFaculty,
+                    NameFaculty = f.NameFaculty,
+                    Abbreviation = f.Abbreviation
+                })
+                .ToListAsync();
+
+            return Ok(faculties);
+        }
+
         [HttpGet("departments")]
         [RequirePermission(RbacPermissions.DepartmentsRead)]
         public async Task<ActionResult<IEnumerable<FiltersDepartmentDTO>>> GetDepartmentsForFilter()

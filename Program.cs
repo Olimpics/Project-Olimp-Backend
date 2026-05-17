@@ -31,6 +31,7 @@ using OlimpBack.Infrastructure.Security;
 using OlimpBack.Infrastructure.Middleware;
 using OlimpBack.Hubs;
 using OlimpBack.Infrastructure.Realtime;
+using OlimpBack.Infrastructure.Repositories;
 
 Environment.SetEnvironmentVariable(
     "ASPNETCORE_ENVIRONMENT",

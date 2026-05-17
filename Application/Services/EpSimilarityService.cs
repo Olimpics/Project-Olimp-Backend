@@ -25,7 +25,7 @@ public class EpSimilarityService : IEpSimilarityService
         var programs = await _repository.GetAllProgramsAsync();
         foreach (var p in programs)
         {
-            p.Keys = ExtractKeywords(p).ToArray();
+            p.Keys = ExtractKeywords(p);
         }
         await _repository.SaveChangesAsync();
     }
@@ -73,7 +73,7 @@ public class EpSimilarityService : IEpSimilarityService
 
         foreach (var p in newPrograms)
         {
-            p.Keys = ExtractKeywords(p).ToArray();
+            p.Keys = ExtractKeywords(p);
             
             foreach (var group in groups)
             {

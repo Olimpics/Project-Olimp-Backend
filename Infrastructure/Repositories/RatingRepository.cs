@@ -12,7 +12,7 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IRatingRepository
 {
     Task<List<Student>> GetStudentsForRatingAsync(Guid specialityId, int course, bool isAccelerated);
-    Task<List<MainGrade>> GetMainGradesAsync(List<Guid> studentIds, int semester);
+    Task<List<BindMainDiscipline>> GetMainGradesAsync(List<Guid> studentIds, int semester);
     Task<List<BindSelectiveDiscipline>> GetSelectiveGradesAsync(List<Guid> studentIds, int semester);
     Task<List<BindEventStudent>> GetEventPointsAsync(List<Guid> studentIds);
     Task<List<BindExtraActivity>> GetExtraActivityPointsAsync(List<Guid> studentIds);
@@ -43,10 +43,10 @@ public class RatingRepository : IRatingRepository
             .ToListAsync();
     }
 
-    public async Task<List<MainGrade>> GetMainGradesAsync(List<Guid> studentIds, int semester)
+    public async Task<List<BindMainDiscipline>> GetMainGradesAsync(List<Guid> studentIds, int semester)
     {
-        return await _context.MainGrades
-            .Include(mg => mg.MainDisciplines)
+        return await _context.BindMainDisciplines
+            .Include(bmd => bmd.MainDisciplines)
                 .ThenInclude(md => md!.BindMainDisciplines)
             .Where(mg => studentIds.Contains(mg.StudentId) && 
                          mg.MainDisciplines != null && mg.MainDisciplines.Semestr == semester)

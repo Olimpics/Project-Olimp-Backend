@@ -58,7 +58,7 @@ public class RatingService : IRatingService
             double sumGrades = 0;
             foreach (var mg in studentMainGrades)
             {
-                sumGrades += mg.MainGradeValue;
+                sumGrades += mg.Grade;
                 if (mg.MainDisciplines?.BindMainDisciplines?.Any(bmd => bmd.IsRedo == true) == true)
                 {
                     hasRedo = true;
