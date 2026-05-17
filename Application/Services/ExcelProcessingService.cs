@@ -85,10 +85,15 @@ public class ExcelProcessingService : IExcelProcessingService
                     var cells = row.Elements<Cell>().ToList();
                     if (cells.Count < 9) continue;
 
+                    var fullName = GetCellValue(cells[1], sharedStringTablePart);
+                    var nameParts = fullName?.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
                     var dto = new StudentExcelRowDto
                     {
                         EdboCode = GetCellValue(cells[0], sharedStringTablePart),
-                        NameStudent = GetCellValue(cells[1], sharedStringTablePart),
+                        SecondName = nameParts.Length > 0 ? nameParts[0] : "",
+                        FirstName = nameParts.Length > 1 ? nameParts[1] : "",
+                        ThirdName = nameParts.Length > 2 ? nameParts[2] : "",
                         EducationStart = GetCellValue(cells[2], sharedStringTablePart),
                         EducationEnd = GetCellValue(cells[3], sharedStringTablePart),
                         GroupCode = GetCellValue(cells[4], sharedStringTablePart),

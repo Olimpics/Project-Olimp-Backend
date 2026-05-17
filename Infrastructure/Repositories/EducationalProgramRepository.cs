@@ -133,7 +133,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
-            query = query.Where(s => EF.Functions.Like((s.NameStudent ?? "").ToLower(), $"%{lowerSearch}%"));
+            query = query.Where(s => EF.Functions.Like(s.FirstName.ToLower(), $"%{lowerSearch}%") ||
+                                     (s.SecondName != null && EF.Functions.Like(s.SecondName.ToLower(), $"%{lowerSearch}%")) ||
+                                     (s.ThirdName != null && EF.Functions.Like(s.ThirdName.ToLower(), $"%{lowerSearch}%")));
         }
 
         var totalCount = await query.CountAsync();
@@ -146,13 +148,15 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 "isshort" => queryDto.IsDescending ? query.OrderByDescending(s => s.Group.IsAccelerated) : query.OrderBy(s => s.Group.IsAccelerated),
                 "status" => queryDto.IsDescending ? query.OrderByDescending(s => s.EducationStatus.NameEducationStatus) : query.OrderBy(s => s.EducationStatus.NameEducationStatus),
                 "educationstart" => queryDto.IsDescending ? query.OrderByDescending(s => s.EducationStart) : query.OrderBy(s => s.EducationStart),
-                "name" => queryDto.IsDescending ? query.OrderByDescending(s => s.NameStudent) : query.OrderBy(s => s.NameStudent),
-                _ => query.OrderBy(s => s.NameStudent)
+                "name" => queryDto.IsDescending 
+                    ? query.OrderByDescending(s => s.SecondName).ThenByDescending(s => s.FirstName).ThenByDescending(s => s.ThirdName) 
+                    : query.OrderBy(s => s.SecondName).ThenBy(s => s.FirstName).ThenBy(s => s.ThirdName),
+                _ => query.OrderBy(s => s.SecondName).ThenBy(s => s.FirstName).ThenBy(s => s.ThirdName)
             };
         }
         else
         {
-            query = query.OrderBy(s => s.NameStudent);
+            query = query.OrderBy(s => s.SecondName).ThenBy(s => s.FirstName).ThenBy(s => s.ThirdName);
         }
 
         var items = await query
@@ -161,7 +165,9 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .Select(s => new ProgramStudentDto
             {
                 IdStudent = s.IdStudent,
-                NameStudent = s.NameStudent ?? "",
+                FirstName = s.FirstName ?? "",
+                SecondName = s.SecondName ?? "",
+                ThirdName = s.ThirdName ?? "",
                 GroupName = s.Group.GroupCode ?? "",
                 IsShort = s.Group != null ? s.Group.IsAccelerated : false,
                 Status = s.EducationStatus.NameEducationStatus ?? "",
@@ -181,7 +187,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             {
                 d.IdMainDisciplines,
                 d.CodeMainDisciplines,
-                d.NameBindMainDisciplines,
+                d.NameMainDisciplines,
                 d.FormControl,
                 Loans = d.Loans ?? 0,
                 Hours = d.Hours ?? 0,
@@ -198,7 +204,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 {
                     Id = d.IdMainDisciplines,
                     Code = d.CodeMainDisciplines ?? "",
-                    Name = d.NameBindMainDisciplines ?? "",
+                    Name = d.NameMainDisciplines ?? "",
                     FormControl = d.FormControl,
                     Loans = d.Loans,
                     Hours = d.Hours

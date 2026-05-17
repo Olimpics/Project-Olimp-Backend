@@ -23,7 +23,9 @@ public class GroupExcelRowDto
 public class StudentExcelRowDto
 {
     public string? EdboCode { get; set; }
-    public string? NameStudent { get; set; }
+    public string? FirstName { get; set; }
+    public string? SecondName { get; set; }
+    public string? ThirdName { get; set; }
     public string? EducationStart { get; set; }
     public string? EducationEnd { get; set; }
     public string? GroupCode { get; set; }

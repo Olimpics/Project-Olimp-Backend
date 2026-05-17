@@ -32,7 +32,10 @@ public class StudentService : IStudentService
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
-            query = query.Where(s => EF.Functions.Like(s.NameStudent.ToLower(), $"%{lowerSearch}%"));
+            query = query.Where(s => 
+                EF.Functions.Like(s.FirstName.ToLower(), $"%{lowerSearch}%") ||
+                (s.SecondName != null && EF.Functions.Like(s.SecondName.ToLower(), $"%{lowerSearch}%")) ||
+                (s.ThirdName != null && EF.Functions.Like(s.ThirdName.ToLower(), $"%{lowerSearch}%")));
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
@@ -64,12 +67,12 @@ public class StudentService : IStudentService
 
         query = queryDto.SortOrder switch
         {
-            1 => query.OrderByDescending(d => d.NameStudent),
+            1 => query.OrderByDescending(d => d.SecondName).ThenByDescending(d => d.FirstName).ThenByDescending(d => d.ThirdName),
             2 => query.OrderBy(d => d.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
             3 => query.OrderByDescending(d => d.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation),
             4 => query.OrderBy(d => d.Group.GroupCode),
             5 => query.OrderByDescending(d => d.Group.GroupCode),
-            _ => query.OrderBy(d => d.NameStudent)
+            _ => query.OrderBy(d => d.SecondName).ThenBy(d => d.FirstName).ThenBy(d => d.ThirdName)
         };
 
         var totalItems = await query.CountAsync();
@@ -106,24 +109,25 @@ public class StudentService : IStudentService
         var results = new List<StudentDto>();
         var studentsToAdd = new List<Student>();
 
-        var namesToCheck = dtos.Where(d => !string.IsNullOrWhiteSpace(d.NameStudent)).Select(d => d.NameStudent).ToList();
-        var existingStudents = await _context.Students
-            .Where(s => namesToCheck.Contains(s.NameStudent))
-            .Select(s => new { s.IdStudent, s.NameStudent })
-            .ToListAsync();
-
         foreach (var dto in dtos)
         {
-            if (string.IsNullOrWhiteSpace(dto.NameStudent))
+            if (string.IsNullOrWhiteSpace(dto.FirstName))
                 continue;
 
-            if (existingStudents.Any(s => s.NameStudent == dto.NameStudent && s.IdStudent == dto.IdStudent))
-                continue;
+            // Check for existing student (by all three names as a rough check, or better by ID if provided)
+            var exists = await _context.Students.AnyAsync(s => 
+                s.FirstName == dto.FirstName && 
+                s.SecondName == dto.SecondName && 
+                s.ThirdName == dto.ThirdName &&
+                s.IdStudent == dto.IdStudent);
+
+            if (exists) continue;
 
             var userId = dto.UserId;
             if (userId == Guid.Empty)
             {
-                userId = await UserService.CreateUserForStudent(dto.NameStudent, _context);
+                string fullName = $"{dto.SecondName} {dto.FirstName} {dto.ThirdName}".Trim();
+                userId = await UserService.CreateUserForStudent(fullName, _context);
             }
             dto.UserId = userId;
 

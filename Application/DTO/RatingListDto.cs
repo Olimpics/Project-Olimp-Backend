@@ -19,7 +19,10 @@ public class RatingListQueryDto
 
 public class RatingStudentDto
 {
-    public string FullName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string SecondName { get; set; } = string.Empty;
+    public string ThirdName { get; set; } = string.Empty;
+    public string FullName => $"{SecondName} {FirstName} {ThirdName}".Trim();
     public string GroupName { get; set; } = string.Empty;
     public float Score { get; set; }
 }

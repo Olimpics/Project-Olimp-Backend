@@ -30,7 +30,9 @@ public class StudentPageRepository : IStudentPageRepository
             .Select(s => new
             {
                 s.IdStudent,
-                s.NameStudent,
+                s.FirstName,
+                s.SecondName,
+                s.ThirdName,
                 MainDisciplines = s.Group != null && s.Group.EducationalProgram != null ? s.Group.EducationalProgram.MainDisciplines : null,
                 AdditionalDisciplines = s.BindSelectiveDisciplines
             })
@@ -42,7 +44,9 @@ public class StudentPageRepository : IStudentPageRepository
         return new StudentEducationalProgramDto
         {
             StudentId = data.IdStudent,
-            StudentName = data.NameStudent ?? "",
+            FirstName = data.FirstName,
+            SecondName = data.SecondName ?? "",
+            ThirdName = data.ThirdName ?? "",
             MainDisciplines = data.MainDisciplines != null
                 ? _mapper.Map<List<MainDisciplineDto>>(data.MainDisciplines)
                 : new List<MainDisciplineDto>(),
@@ -59,7 +63,9 @@ public class StudentPageRepository : IStudentPageRepository
             .Select(s => new
             {
                 s.IdStudent,
-                s.NameStudent,
+                s.FirstName,
+                s.SecondName,
+                s.ThirdName,
                 AdditionalDisciplines = s.BindSelectiveDisciplines
             })
             .FirstOrDefaultAsync();
@@ -70,7 +76,9 @@ public class StudentPageRepository : IStudentPageRepository
         return new StudentSelectiveDisciplinesDto
         {
             StudentId = data.IdStudent,
-            StudentName = data.NameStudent ?? "",
+            FirstName = data.FirstName,
+            SecondName = data.SecondName ?? "",
+            ThirdName = data.ThirdName ?? "",
             AdditionalDisciplines = data.AdditionalDisciplines != null
                 ? _mapper.Map<List<BindSelectiveDisciplineDto>>(data.AdditionalDisciplines)
                 : new List<BindSelectiveDisciplineDto>()

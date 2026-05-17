@@ -39,7 +39,9 @@ public class GradeRepository : IGradeRepository
         var projection = query.Select(b => new GradeStudentDto
         {
             IdBind = b.IdBindMainDisciplines,
-            FullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
+            FirstName = b.Student != null ? b.Student.FirstName : "",
+            SecondName = b.Student != null ? b.Student.SecondName : "",
+            ThirdName = b.Student != null ? b.Student.ThirdName : "",
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
             DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
             FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Speciality != null && b.Student.Group.EducationalProgram.Speciality.Department != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
@@ -50,7 +52,9 @@ public class GradeRepository : IGradeRepository
         {
             var s = queryDto.Search.ToLower();
             projection = projection.Where(p =>
-                p.FullName.ToLower().Contains(s) ||
+                p.FirstName.ToLower().Contains(s) ||
+                (p.SecondName != null && p.SecondName.ToLower().Contains(s)) ||
+                (p.ThirdName != null && p.ThirdName.ToLower().Contains(s)) ||
                 p.GroupName.ToLower().Contains(s) ||
                 p.DepartmentName.ToLower().Contains(s) ||
                 p.FacultyName.ToLower().Contains(s));
@@ -60,12 +64,14 @@ public class GradeRepository : IGradeRepository
 
         projection = queryDto.SortBy?.ToLower() switch
         {
-            "fullname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.FullName) : projection.OrderBy(p => p.FullName),
+            "fullname" => queryDto.SortDescending 
+                ? projection.OrderByDescending(p => p.SecondName).ThenByDescending(p => p.FirstName).ThenByDescending(p => p.ThirdName) 
+                : projection.OrderBy(p => p.SecondName).ThenBy(p => p.FirstName).ThenBy(p => p.ThirdName),
             "groupname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.GroupName) : projection.OrderBy(p => p.GroupName),
             "departmentname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.DepartmentName) : projection.OrderBy(p => p.DepartmentName),
             "facultyname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.FacultyName) : projection.OrderBy(p => p.FacultyName),
             "score" => queryDto.SortDescending ? projection.OrderByDescending(p => p.Score) : projection.OrderBy(p => p.Score),
-            _ => projection.OrderBy(p => p.FullName)
+            _ => projection.OrderBy(p => p.SecondName).ThenBy(p => p.FirstName).ThenBy(p => p.ThirdName)
         };
 
         var items = await projection
@@ -85,7 +91,9 @@ public class GradeRepository : IGradeRepository
         var projection = query.Select(b => new GradeStudentDto
         {
             IdBind = b.IdBindSelectiveDisciplines,
-            FullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
+            FirstName = b.Student != null ? b.Student.FirstName : "",
+            SecondName = b.Student != null ? b.Student.SecondName : "",
+            ThirdName = b.Student != null ? b.Student.ThirdName : "",
             GroupName = b.Student != null && b.Student.Group != null ? b.Student.Group.GroupCode ?? "" : "",
             DepartmentName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department != null ? b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment ?? "" : "",
             FacultyName = b.Student != null && b.Student.Group != null && b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : "",
@@ -96,7 +104,9 @@ public class GradeRepository : IGradeRepository
         {
             var s = queryDto.Search.ToLower();
             projection = projection.Where(p =>
-                p.FullName.ToLower().Contains(s) ||
+                p.FirstName.ToLower().Contains(s) ||
+                (p.SecondName != null && p.SecondName.ToLower().Contains(s)) ||
+                (p.ThirdName != null && p.ThirdName.ToLower().Contains(s)) ||
                 p.GroupName.ToLower().Contains(s) ||
                 p.DepartmentName.ToLower().Contains(s) ||
                 p.FacultyName.ToLower().Contains(s));
@@ -106,12 +116,14 @@ public class GradeRepository : IGradeRepository
 
         projection = queryDto.SortBy?.ToLower() switch
         {
-            "fullname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.FullName) : projection.OrderBy(p => p.FullName),
+            "fullname" => queryDto.SortDescending 
+                ? projection.OrderByDescending(p => p.SecondName).ThenByDescending(p => p.FirstName).ThenByDescending(p => p.ThirdName) 
+                : projection.OrderBy(p => p.SecondName).ThenBy(p => p.FirstName).ThenBy(p => p.ThirdName),
             "groupname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.GroupName) : projection.OrderBy(p => p.GroupName),
             "departmentname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.DepartmentName) : projection.OrderBy(p => p.DepartmentName),
             "facultyname" => queryDto.SortDescending ? projection.OrderByDescending(p => p.FacultyName) : projection.OrderBy(p => p.FacultyName),
             "score" => queryDto.SortDescending ? projection.OrderByDescending(p => p.Score) : projection.OrderBy(p => p.Score),
-            _ => projection.OrderBy(p => p.FullName)
+            _ => projection.OrderBy(p => p.SecondName).ThenBy(p => p.FirstName).ThenBy(p => p.ThirdName)
         };
 
         var items = await projection
@@ -145,7 +157,7 @@ public class GradeRepository : IGradeRepository
             .Select(btm => new InstructorDisciplineDto
             {
                 Id = btm.MainDisciplinesId,
-                Title = btm.MainDisciplines != null ? btm.MainDisciplines.NameBindMainDisciplines ?? "" : ""
+                Title = btm.MainDisciplines != null ? btm.MainDisciplines.NameMainDisciplines ?? "" : ""
             })
             .Distinct()
             .ToListAsync();

@@ -70,7 +70,9 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             items.Add(new StudentWithDisciplineChoicesDto
             {
                 StudentId = s.IdStudent,
-                FullName = s.NameStudent,
+                FirstName = s.FirstName,
+                SecondName = s.SecondName,
+                ThirdName = s.ThirdName,
                 Faculty = s.FacultyName,
                 Group = s.GroupCode,
                 Year = s.Course,
@@ -279,7 +281,9 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         return new StudentWithDisciplineChoicesDto
         {
             StudentId = studentData.IdStudent,
-            FullName = studentData.NameStudent,
+            FirstName = studentData.FirstName,
+            SecondName = studentData.SecondName,
+            ThirdName = studentData.ThirdName,
             Faculty = studentData.FacultyName,
             Group = studentData.GroupCode,
             Year = studentData.Course,
@@ -385,7 +389,12 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         var students = await _repository.GetStudentsChoicesForFacultyAsync(facultyId);
         return students
             .Where(s => !IsSelectiveDisciplineselectionComplete(s.Program, s.SelectedDisciplines))
-            .Select(s => new StudentIdNameDto { StudentId = s.IdStudent, StudentName = s.NameStudent })
+            .Select(s => new StudentIdNameDto { 
+                StudentId = s.IdStudent, 
+                FirstName = s.FirstName,
+                SecondName = s.SecondName ?? "",
+                ThirdName = s.ThirdName ?? ""
+            })
             .OrderBy(x => x.StudentName)
             .ToList();
     }

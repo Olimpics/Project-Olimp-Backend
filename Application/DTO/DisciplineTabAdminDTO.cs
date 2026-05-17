@@ -24,7 +24,10 @@ namespace OlimpBack.Application.DTO
     public class StudentWithDisciplineChoicesDto
     {
         public Guid StudentId { get; set; }
-        public string FullName { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string? SecondName { get; set; }
+        public string? ThirdName { get; set; }
+        public string FullName => $"{SecondName} {FirstName} {ThirdName}".Trim();
         public string Faculty { get; set; } = null!;
         public string Group { get; set; } = null!;
         public int Year { get; set; }
@@ -192,7 +195,9 @@ namespace OlimpBack.Application.DTO
 
     // 
     public record StudentChoicesProjection(Guid IdStudent, 
-        string NameStudent, 
+        string FirstName, 
+        string? SecondName,
+        string? ThirdName,
         string FacultyName, 
         string GroupCode, 
         int Course, 

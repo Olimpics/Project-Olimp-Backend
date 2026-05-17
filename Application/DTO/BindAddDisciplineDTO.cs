@@ -7,7 +7,10 @@ namespace OlimpBack.Application.DTO
     {
         public Guid IdBindSelectiveDisciplines { get; set; }
         public Guid StudentId { get; set; }
-        public string StudentFullName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string SecondName { get; set; } = string.Empty;
+        public string ThirdName { get; set; } = string.Empty;
+        public string StudentFullName => $"{SecondName} {FirstName} {ThirdName}".Trim();
         public Guid SelectiveDisciplinesId { get; set; }
         public string SelectiveDisciplineName { get; set; } = string.Empty;
         public int Semestr { get; set; }

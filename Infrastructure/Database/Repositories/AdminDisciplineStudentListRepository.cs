@@ -49,7 +49,9 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             var search = query.Search.Trim().ToLower();
 
             baseQuery = baseQuery.Where(b =>
-                EF.Functions.Like(b.Student.NameStudent.ToLower(), $"%{search}%") ||
+                EF.Functions.Like(b.Student.FirstName.ToLower(), $"%{search}%") ||
+                (b.Student.SecondName != null && EF.Functions.Like(b.Student.SecondName.ToLower(), $"%{search}%")) ||
+                (b.Student.ThirdName != null && EF.Functions.Like(b.Student.ThirdName.ToLower(), $"%{search}%")) ||
                 EF.Functions.Like(b.Student.Group.GroupCode.ToLower(), $"%{search}%") ||
                 (b.Student.Group.EducationalProgram.Speciality.Department != null &&
                  EF.Functions.Like(b.Student.Group.EducationalProgram.Speciality.Department.NameDepartment.ToLower(), $"%{search}%")) ||
@@ -60,8 +62,8 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         baseQuery = query.SortOrder switch
         {
-            0 => baseQuery.OrderBy(b => b.Student.NameStudent),
-            1 => baseQuery.OrderByDescending(b => b.Student.NameStudent),
+            0 => baseQuery.OrderBy(b => b.Student.SecondName).ThenBy(b => b.Student.FirstName).ThenBy(b => b.Student.ThirdName),
+            1 => baseQuery.OrderByDescending(b => b.Student.SecondName).ThenByDescending(b => b.Student.FirstName).ThenByDescending(b => b.Student.ThirdName),
             2 => baseQuery.OrderBy(b => b.Student.Group.GroupCode),
             3 => baseQuery.OrderByDescending(b => b.Student.Group.GroupCode),
             4 => baseQuery.OrderBy(b => b.Student.Group != null
@@ -76,7 +78,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             9 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Degree.NameEducationalDegree),
             10 => baseQuery.OrderBy(b => b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty),
             11 => baseQuery.OrderByDescending(b => b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty),
-            _ => baseQuery.OrderBy(b => b.Student.NameStudent)
+            _ => baseQuery.OrderBy(b => b.Student.SecondName).ThenBy(b => b.Student.FirstName).ThenBy(b => b.Student.ThirdName)
         };
 
         var items = await baseQuery
@@ -85,7 +87,9 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             .Select(b => new AdminStudentBySelectiveDisciplineDto
             {
                 StudentId = b.StudentId,
-                StudentName = b.Student.NameStudent ?? "",
+                FirstName = b.Student.FirstName,
+                SecondName = b.Student.SecondName ?? string.Empty,
+                ThirdName = b.Student.ThirdName ?? string.Empty,
                 GroupId = b.Student.GroupId,
                 GroupCode = b.Student.Group.GroupCode ?? "",
                 DepartmentName = b.Student.Group.EducationalProgram.Speciality.Department != null
@@ -103,7 +107,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
     public async Task<(int totalCount, List<AdminStudentByMainDisciplineDto> items)> GetStudentsByMainDisciplineAsync(GetStudentsByMainDisciplineQueryDto query)
     {
-        var baseQuery = _context.MainGrades
+        var baseQuery = _context.BindMainDisciplines
             .AsNoTracking()
             .Where(g => g.MainDisciplinesId == query.DisciplineId);
 
@@ -121,6 +125,9 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
         {
             var search = query.Search.Trim().ToLower();
             baseQuery = baseQuery.Where(g =>
+                EF.Functions.Like(g.Student.FirstName.ToLower(), $"%{search}%") ||
+                (g.Student.SecondName != null && EF.Functions.Like(g.Student.SecondName.ToLower(), $"%{search}%")) ||
+                (g.Student.ThirdName != null && EF.Functions.Like(g.Student.ThirdName.ToLower(), $"%{search}%")) ||
                 EF.Functions.Like(g.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.ToLower(), $"%{search}%") ||
                 EF.Functions.Like(g.Student.Group.GroupCode.ToLower(), $"%{search}%"));
         }
@@ -132,10 +139,11 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
 
         grouped = query.SortOrder switch
         {
-            1 => grouped.OrderByDescending(g => g.Student.NameStudent),
+            0 => grouped.OrderBy(g => g.Student.SecondName).ThenBy(g => g.Student.FirstName).ThenBy(g => g.Student.ThirdName),
+            1 => grouped.OrderByDescending(g => g.Student.SecondName).ThenByDescending(g => g.Student.FirstName).ThenByDescending(g => g.Student.ThirdName),
             2 => grouped.OrderBy(g => g.Student.Group.GroupCode),
             3 => grouped.OrderByDescending(g => g.Student.Group.GroupCode),
-            _ => grouped.OrderBy(g => g.Student.NameStudent)
+            _ => grouped.OrderBy(g => g.Student.SecondName).ThenBy(g => g.Student.FirstName).ThenBy(g => g.Student.ThirdName)
         };
 
         var totalCount = await grouped.CountAsync();
@@ -146,7 +154,9 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
             .Select(g => new AdminStudentByMainDisciplineDto
             {
                 StudentId = g.StudentId,
-                StudentName = g.Student.NameStudent ?? "",
+                FirstName = g.Student.FirstName,
+                SecondName = g.Student.SecondName ?? string.Empty,
+                ThirdName = g.Student.ThirdName ?? string.Empty,
                 FacultyId = g.Student.Group.EducationalProgram.Speciality.Department.FacultyId,
                 FacultyName = g.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? g.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : "",
                 GroupId = g.Student.GroupId,

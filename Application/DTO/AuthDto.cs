@@ -24,7 +24,9 @@ public class PermissionDto
 public class UserLoginResponseDto
 {
     public Guid? Id { get; set; }
-    public string? Name { get; set; }
+    public string? FirstName { get; set; }
+    public string? SecondName { get; set; }
+    public string? ThirdName { get; set; }
 
     public Guid UserId { get; set; }
     public Guid RoleId { get; set; }

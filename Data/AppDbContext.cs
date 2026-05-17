@@ -86,8 +86,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<MainDiscipline> MainDisciplines { get; set; }
 
-    public virtual DbSet<MainGrade> MainGrades { get; set; }
-
     public virtual DbSet<MarkOfScore> MarkOfScores { get; set; }
 
     public virtual DbSet<MembersOfSg> MembersOfSgs { get; set; }
@@ -238,9 +236,15 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("avail");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
             entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
-            entity.Property(e => e.NameAdmin)
+            entity.Property(e => e.FirstName)
                 .HasColumnType("character varying")
-                .HasColumnName("nameAdmin");
+                .HasColumnName("first_name");
+            entity.Property(e => e.SecondName)
+                .HasColumnType("character varying")
+                .HasColumnName("second_name");
+            entity.Property(e => e.ThirdName)
+                .HasColumnType("character varying")
+                .HasColumnName("third_name");
 
             entity.HasOne(d => d.AcademicDegree).WithMany(p => p.AdminsPersonals)
                 .HasForeignKey(d => d.AcademicDegreeId)
@@ -1022,12 +1026,12 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("formControl");
             entity.Property(e => e.Hours).HasColumnName("hours");
             entity.Property(e => e.Loans).HasColumnName("loans");
-            entity.Property(e => e.NameBindMainDisciplines)
-                .HasColumnType("character varying")
-                .HasColumnName("nameBindMainDisciplines");
             entity.Property(e => e.NameDock)
                 .HasColumnType("character varying")
                 .HasColumnName("nameDock");
+            entity.Property(e => e.NameMainDisciplines)
+                .HasColumnType("character varying")
+                .HasColumnName("nameMainDisciplines");
             entity.Property(e => e.NeedFix)
                 .HasDefaultValue(false)
                 .HasColumnName("needFix");
@@ -1036,28 +1040,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.MainDisciplines)
                 .HasForeignKey(d => d.EducationalProgramId)
                 .HasConstraintName("maindisciplines_educationalprogram_fk");
-        });
-
-        modelBuilder.Entity<MainGrade>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("MainGradeValue");
-
-            entity.Property(e => e.IdMainGrade)
-                .HasDefaultValueSql("gen_random_uuid()")
-                .HasColumnName("idMainGrade");
-            entity.Property(e => e.MainGradeValue)
-                .HasDefaultValue(0)
-                .HasColumnName("mainGrade");
-
-            entity.HasOne(d => d.MainDisciplines).WithMany()
-                .HasForeignKey(d => d.MainDisciplinesId)
-                .HasConstraintName("maingrade_maindisciplines_fk");
-
-            entity.HasOne(d => d.Student).WithMany()
-                .HasForeignKey(d => d.StudentId)
-                .HasConstraintName("maingrade_student_fk");
         });
 
         modelBuilder.Entity<MarkOfScore>(entity =>
@@ -1633,15 +1615,15 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("edboCode");
             entity.Property(e => e.EducationEnd).HasColumnName("educationEnd");
             entity.Property(e => e.EducationStart).HasColumnName("educationStart");
+            entity.Property(e => e.FirstName)
+                .HasColumnType("character varying")
+                .HasColumnName("first_name");
             entity.Property(e => e.IsFunded)
                 .HasDefaultValue(true)
                 .HasColumnName("isFunded");
             entity.Property(e => e.IsInSg)
                 .HasDefaultValue(false)
                 .HasColumnName("isInSG");
-            entity.Property(e => e.NameStudent)
-                .HasColumnType("character varying")
-                .HasColumnName("nameStudent");
             entity.Property(e => e.Notes)
                 .HasColumnType("character varying")
                 .HasColumnName("notes");
@@ -1649,6 +1631,12 @@ public partial class AppDbContext : DbContext
                 .HasComment("Залікова книга")
                 .HasColumnType("character varying")
                 .HasColumnName("reportCard");
+            entity.Property(e => e.SecondName)
+                .HasColumnType("character varying")
+                .HasColumnName("second_name");
+            entity.Property(e => e.ThirdName)
+                .HasColumnType("character varying")
+                .HasColumnName("third_name");
 
             entity.HasOne(d => d.EducationStatus).WithMany(p => p.Students)
                 .HasForeignKey(d => d.EducationStatusId)

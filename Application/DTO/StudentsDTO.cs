@@ -6,7 +6,9 @@ namespace OlimpBack.Application.DTO
     public class StudentDto
     {
         public Guid IdStudent { get; set; }
-        public string NameStudent { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string? SecondName { get; set; }
+        public string? ThirdName { get; set; }
         public string? StatusName { get; set; }
         public string? FacultyName { get; set; }
         public string? ProgramName { get; set; }
@@ -21,7 +23,9 @@ namespace OlimpBack.Application.DTO
     public class StudentForCatalogDto
     {
         public Guid IdStudent { get; set; }
-        public string NameStudent { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string? SecondName { get; set; }
+        public string? ThirdName { get; set; }
         public string? FacultyAbbreviation { get; set; }
         public string? SpecialityCode { get; set; }
         public string? Speciality { get; set; }
@@ -36,7 +40,9 @@ namespace OlimpBack.Application.DTO
     {
         public Guid IdStudent { get; set; }
         public Guid UserId { get; set; }
-        public string NameStudent { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string? SecondName { get; set; }
+        public string? ThirdName { get; set; }
         public Guid StatusId { get; set; }
         public DateOnly? EducationStart { get; set; }
         public DateOnly? EducationEnd { get; set; }

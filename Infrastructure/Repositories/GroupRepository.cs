@@ -125,12 +125,14 @@ public class GroupRepository : IGroupRepository
         return await _context.Students
             .AsNoTracking()
             .Where(s => s.GroupId == groupId)
-            .OrderBy(s => s.NameStudent)
+            .OrderBy(s => s.SecondName).ThenBy(s => s.FirstName).ThenBy(s => s.ThirdName)
             .Select(s => new GroupStudentDto
             {
                 IdStudent = s.IdStudent,
                 UserId = s.UserId,
-                NameStudent = s.NameStudent,
+                FirstName = s.FirstName,
+                SecondName = s.SecondName,
+                ThirdName = s.ThirdName,
                 EmailStudent = s.User.Email,
                 EductionalStatus = s.EducationStatus.NameEducationStatus
             })
@@ -151,7 +153,7 @@ public class GroupRepository : IGroupRepository
                     .Select(bmd => new GroupMainDisciplineDto
                     {
                         idMainDisciplines = bmd.IdMainDisciplines,
-                        nameMainDisciplines = bmd.NameBindMainDisciplines,
+                        nameMainDisciplines = bmd.NameMainDisciplines,
                         Semestr = bmd.Semestr,
                         Loans = bmd.Loans,
                         Hours = bmd.Hours,

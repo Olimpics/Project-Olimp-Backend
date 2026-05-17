@@ -25,7 +25,9 @@ namespace OlimpBack.MappingProfiles
              CreateMap<Student, LoginResponseStudentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdStudent))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameStudent))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.SecondName, opt => opt.MapFrom(src => src.SecondName))
+                .ForMember(dest => dest.ThirdName, opt => opt.MapFrom(src => src.ThirdName))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.FacultyId))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Name))
@@ -35,7 +37,9 @@ namespace OlimpBack.MappingProfiles
 
             CreateMap<AdminsPersonal, LoginResponseAdminDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAdmin))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.SecondName, opt => opt.MapFrom(src => src.SecondName))
+                .ForMember(dest => dest.ThirdName, opt => opt.MapFrom(src => src.ThirdName))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
 
 
@@ -85,8 +89,9 @@ namespace OlimpBack.MappingProfiles
 
             // BindSelectiveDiscipline
             CreateMap<BindSelectiveDiscipline, BindSelectiveDisciplineDto>()
-                .ForMember(dest => dest.StudentFullName,
-                           opt => opt.MapFrom(src => src.Student.NameStudent))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Student.FirstName))
+                .ForMember(dest => dest.SecondName, opt => opt.MapFrom(src => src.Student.SecondName))
+                .ForMember(dest => dest.ThirdName, opt => opt.MapFrom(src => src.Student.ThirdName))
                 .ForMember(dest => dest.SelectiveDisciplineName,
                            opt => opt.MapFrom(src => src.SelectiveDiscipline.NameSelectiveDisciplines))
                 .ForMember(dest => dest.InProcess,
@@ -179,7 +184,9 @@ namespace OlimpBack.MappingProfiles
             //DisciplineTab
             CreateMap<(Student student, List<SelectiveDiscipline> disciplines, int currentCourse, bool isEvenSemester), DisciplineTabResponseDto>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.student.IdStudent))
-                .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.student.NameStudent))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.student.FirstName))
+                .ForMember(dest => dest.SecondName, opt => opt.MapFrom(src => src.student.SecondName))
+                .ForMember(dest => dest.ThirdName, opt => opt.MapFrom(src => src.student.ThirdName))
                 .ForMember(dest => dest.CurrentCourse, opt => opt.MapFrom(src => src.currentCourse))
                 .ForMember(dest => dest.IsEvenSemester, opt => opt.MapFrom(src => src.isEvenSemester))
                 .ForMember(dest => dest.Disciplines, opt => opt.MapFrom(src => src.disciplines));

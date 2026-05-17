@@ -7,7 +7,7 @@ public partial class MainDiscipline
 {
     public string CodeMainDisciplines { get; set; } = null!;
 
-    public string NameBindMainDisciplines { get; set; } = null!;
+    public string NameMainDisciplines { get; set; } = null!;
 
     public int? Loans { get; set; }
 

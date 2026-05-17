@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class AdminsPersonal
 {
-    public string NameAdmin { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
 
     public Guid UserId { get; set; }
 
@@ -20,6 +20,10 @@ public partial class AdminsPersonal
     public Guid DepartmentId { get; set; }
 
     public Guid FacultyId { get; set; }
+
+    public string? SecondName { get; set; }
+
+    public string? ThirdName { get; set; }
 
     public virtual AcademicDegree AcademicDegree { get; set; } = null!;
 

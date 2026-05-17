@@ -5,7 +5,7 @@ namespace OlimpBack.Models;
 
 public partial class Student
 {
-    public string NameStudent { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
 
     public DateOnly EducationStart { get; set; }
 
@@ -35,6 +35,10 @@ public partial class Student
     public bool IsFunded { get; set; }
 
     public bool Avail { get; set; }
+
+    public string? SecondName { get; set; }
+
+    public string? ThirdName { get; set; }
 
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 

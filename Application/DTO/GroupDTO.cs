@@ -66,7 +66,9 @@ namespace OlimpBack.Application.DTO
     {
         public Guid IdStudent { get; set; }
         public Guid UserId { get; set; }
-        public string NameStudent { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string? SecondName { get; set; }
+        public string? ThirdName { get; set; }
         public string EmailStudent { get; set; } = null!;
         public string EductionalStatus { get; set; } = null!;
     }

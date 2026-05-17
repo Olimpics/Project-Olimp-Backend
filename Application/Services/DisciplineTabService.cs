@@ -103,7 +103,9 @@ public class DisciplineTabService : IDisciplineTabService
         return new DisciplineTabResponseDto
         {
             StudentId = context.Student.IdStudent,
-            StudentName = context.Student.NameStudent ?? "",
+            FirstName = context.Student.FirstName,
+            SecondName = context.Student.SecondName ?? "",
+            ThirdName = context.Student.ThirdName ?? "",
             CurrentCourse = context.CurrentCourse,
             IsEvenSemester = queryDto.IsEvenSemester,
             Disciplines = availableDisciplines

@@ -7,7 +7,10 @@ namespace OlimpBack.Application.DTO
     public class DisciplineTabResponseDto
     {
         public Guid StudentId { get; set; }
-        public string StudentName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string SecondName { get; set; } = string.Empty;
+        public string ThirdName { get; set; } = string.Empty;
+        public string StudentName => $"{SecondName} {FirstName} {ThirdName}".Trim();
         public int CurrentCourse { get; set; }
         public bool IsEvenSemester { get; set; }
         public List<SimpleDisciplineDto> Disciplines { get; set; } = new List<SimpleDisciplineDto>();

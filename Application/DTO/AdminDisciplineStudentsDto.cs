@@ -5,7 +5,10 @@ namespace OlimpBack.Application.DTO;
 public class AdminStudentBySelectiveDisciplineDto
 {
     public Guid StudentId { get; set; }
-    public string StudentName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string SecondName { get; set; } = string.Empty;
+    public string ThirdName { get; set; } = string.Empty;
+    public string StudentName => $"{SecondName} {FirstName} {ThirdName}".Trim();
     public Guid? GroupId { get; set; }
     public string GroupCode { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
@@ -19,13 +22,19 @@ public class AdminStudentBySelectiveDisciplineDto
 public class StudentIdNameDto
 {
     public Guid StudentId { get; set; }
-    public string StudentName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string SecondName { get; set; } = string.Empty;
+    public string ThirdName { get; set; } = string.Empty;
+    public string StudentName => $"{SecondName} {FirstName} {ThirdName}".Trim();
 }
 
 public class AdminStudentByMainDisciplineDto
 {
     public Guid StudentId { get; set; }
-    public string StudentName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string SecondName { get; set; } = string.Empty;
+    public string ThirdName { get; set; } = string.Empty;
+    public string StudentName => $"{SecondName} {FirstName} {ThirdName}".Trim();
     public Guid? FacultyId { get; set; }
     public string FacultyName { get; set; } = string.Empty;
     public Guid? GroupId { get; set; }

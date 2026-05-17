@@ -5,7 +5,9 @@ namespace OlimpBack.Application.DTO;
 public class ProgramStudentDto
 {
     public Guid IdStudent { get; set; }
-    public string NameStudent { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
+    public string SecondName { get; set; } = null!;
+    public string? ThirdName { get; set; }
     public string GroupName { get; set; } = null!;
     public bool IsShort { get; set; }
     public string Status { get; set; } = null!;

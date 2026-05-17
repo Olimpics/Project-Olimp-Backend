@@ -192,7 +192,9 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId == facultyId)
             .Select(s => new StudentChoicesProjection(
                 s.IdStudent,
-                s.NameStudent ?? "",
+                s.FirstName,
+                s.SecondName,
+                s.ThirdName,
                 s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
                 s.Group != null ? s.Group.GroupCode : "",
                 s.Group != null ? s.Group.Course : 0,
@@ -220,7 +222,9 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         {
             var lowerSearch = queryDto.Search.Trim().ToLower();
             query = query.Where(s =>
-                EF.Functions.Like(s.NameStudent.ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like(s.FirstName.ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like(s.SecondName.ToLower(), $"%{lowerSearch}%") ||
+                EF.Functions.Like(s.ThirdName.ToLower(), $"%{lowerSearch}%") ||
                 (s.Group.EducationalProgram.Speciality.Department.Faculty != null && (EF.Functions.Like(s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty.ToLower(), $"%{lowerSearch}%") || EF.Functions.Like(s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation.ToLower(), $"%{lowerSearch}%"))) ||
                 (s.Group != null && EF.Functions.Like(s.Group.GroupCode.ToLower(), $"%{lowerSearch}%")));
         }
@@ -242,7 +246,9 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
 
         return await query.Select(s => new StudentChoicesProjection(
             s.IdStudent,
-            s.NameStudent ?? "",
+            s.FirstName,
+            s.SecondName,
+            s.ThirdName,
             s.Group.EducationalProgram.Speciality.Department.Faculty != null ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty : "",
             s.Group != null ? s.Group.GroupCode : "",
             s.Group != null ? s.Group.Course : 0,
@@ -360,7 +366,9 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             {
                 IdBindSelectiveDisciplines = b.IdBindSelectiveDisciplines,
                 StudentId = b.StudentId,
-                StudentFullName = b.Student != null ? b.Student.NameStudent ?? "" : "",
+                FirstName = b.Student != null ? b.Student.FirstName : "",
+                SecondName = b.Student != null ? b.Student.SecondName : "",
+                ThirdName = b.Student != null ? b.Student.ThirdName : "",
                 SelectiveDisciplinesId = b.SelectiveDisciplineId,
                 SelectiveDisciplineName = b.SelectiveDiscipline != null ? b.SelectiveDiscipline.NameSelectiveDisciplines ?? "" : "",
                 Semestr = b.Semestr,
@@ -377,7 +385,9 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
             .Where(s => s.IdStudent == studentId)
             .Select(s => new StudentChoicesProjection(
                 s.IdStudent,
-                s.NameStudent ?? "",
+                s.FirstName,
+                s.SecondName,
+                s.ThirdName,
                 s.Group != null && s.Group.EducationalProgram != null && s.Group.EducationalProgram.Speciality != null && s.Group.EducationalProgram.Speciality.Department != null && s.Group.EducationalProgram.Speciality.Department.Faculty != null
                     ? s.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? s.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty
                     : "",

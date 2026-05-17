@@ -170,7 +170,9 @@ public class ImportService : IImportService
                 if (existingStudent != null)
                 {
                     student = existingStudent;
-                    student.NameStudent = row.NameStudent ?? student.NameStudent;
+                    student.FirstName = row.FirstName ?? student.FirstName;
+                    student.SecondName = row.SecondName ?? student.SecondName;
+                    student.ThirdName = row.ThirdName ?? student.ThirdName;
                     student.EducationStart = start;
                     student.EducationEnd = end;
                     student.GroupId = group.IdGroup;
@@ -185,7 +187,9 @@ public class ImportService : IImportService
                     {
                         IdStudent = Guid.NewGuid(),
                         EdboCode = row.EdboCode,
-                        NameStudent = row.NameStudent ?? "Unknown",
+                        FirstName = row.FirstName ?? "Unknown",
+                        SecondName = row.SecondName,
+                        ThirdName = row.ThirdName,
                         EducationStart = start,
                         EducationEnd = end,
                         GroupId = group.IdGroup,
@@ -495,11 +499,15 @@ public class ImportService : IImportService
             foreach (var teacherName in dto.Teachers)
             {
                 var admin = await _context.AdminsPersonals
-                    .FirstOrDefaultAsync(a => a.NameAdmin != null && a.NameAdmin.Contains(teacherName));
+                    .FirstOrDefaultAsync(a => 
+                        EF.Functions.Like(a.FirstName.ToLower(), $"%{teacherName.ToLower()}%") ||
+                        (a.SecondName != null && EF.Functions.Like(a.SecondName.ToLower(), $"%{teacherName.ToLower()}%")) ||
+                        (a.ThirdName != null && EF.Functions.Like(a.ThirdName.ToLower(), $"%{teacherName.ToLower()}%")));
                 
                 if (admin != null)
                 {
-                    teachersJson.Add(new { Id = admin.IdAdmins, Name = admin.NameAdmin });
+                    string fullName = $"{admin.SecondName} {admin.FirstName} {admin.ThirdName}".Trim();
+                    teachersJson.Add(new { Id = admin.IdAdmins, Name = fullName });
                     _context.BindTeachersSelectives.Add(new BindTeachersSelective
                     {
                         IdBindTeacherSelective = Guid.NewGuid(),

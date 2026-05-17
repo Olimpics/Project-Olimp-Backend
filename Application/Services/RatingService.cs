@@ -134,7 +134,9 @@ public class RatingService : IRatingService
 
         var studentDtos = items.Select(r => new RatingStudentDto
         {
-            FullName = r.Student?.NameStudent ?? "Unknown",
+            FirstName = r.Student?.FirstName ?? "Unknown",
+            SecondName = r.Student?.SecondName ?? string.Empty,
+            ThirdName = r.Student?.ThirdName ?? string.Empty,
             GroupName = r.Student?.Group?.GroupCode ?? "Unknown",
             Score = r.FinalScore
         }).ToList();
