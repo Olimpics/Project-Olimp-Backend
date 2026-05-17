@@ -27,6 +27,8 @@ namespace OlimpBack.Application.DTO
         public string CodeSelectiveDisciplines { get; set; } = null!;
         public Guid FacultyId { get; set; }
         public string FacultyAbbreviation { get; set; } = null!;
+        public Guid DepartmentId { get; set; }
+        public string DepartmentName { get; set; } = null!;
         public int? MaxCountPeople { get; set; }
         public List<int> Courses { get; set; } = new List<int>();
         public bool? IsEven { get; set; }
@@ -106,6 +108,7 @@ namespace OlimpBack.Application.DTO
         public bool OnlyAvailable { get; set; } = false;
         public string? Search { get; set; }
 
+        public Guid? CatalogId { get; set; }
         public List<Guid>? Faculties { get; set; }
         public List<int>? Courses { get; set; }
         public List<Guid>? DegreeLevelIds { get; set; }

@@ -58,10 +58,22 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 (d.SelectiveDetail != null && EF.Functions.Like(d.SelectiveDetail.Teachers.ToLower(), $"%{lowerSearch}%")));
         }
 
+        // 1.1 Catalog
+        if (queryDto.CatalogId.HasValue && queryDto.CatalogId != Guid.Empty)
+        {
+            query = query.Where(d => d.CatalogId == queryDto.CatalogId.Value);
+        }
+
         // 2. Faculties
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
             query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
+        }
+
+        // 2.1 Departments
+        if (queryDto.Departments != null && queryDto.Departments.Any())
+        {
+            query = query.Where(d => d.DepartmentId != null && d.DepartmentId != Guid.Empty && queryDto.Departments.Contains(d.DepartmentId));
         }
 
         // 3. Courses
@@ -124,6 +136,8 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
                 CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? "",
                 FacultyId = d.Department.FacultyId,
                 FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation ?? "" : "",
+                DepartmentId = d.DepartmentId,
+                DepartmentName = d.Department != null ? d.Department.NameDepartment ?? "" : "",
                 MaxCountPeople = d.MaxCountPeople,
                 Courses = d.Courses ?? new List<int>(),
                 IsEven = d.IsEven,

@@ -130,7 +130,9 @@ namespace OlimpBack.Application.DTO
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
         public string? Search { get; set; }
+        public Guid? CatalogId { get; set; }
         public List<Guid>? Faculties { get; set; }
+        public List<Guid>? Departments { get; set; }
         public List<int>? Courses { get; set; }
         public bool? IsEvenSemester { get; set; }
         public List<Guid>? DegreeLevelIds { get; set; }

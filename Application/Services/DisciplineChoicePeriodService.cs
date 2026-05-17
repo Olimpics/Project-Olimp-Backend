@@ -34,29 +34,36 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
 
     public async Task<DisciplineChoicePeriodDto> CreateAsync(CreateDisciplineChoicePeriodDto dto)
     {
+        if (dto.EndOfCheckPeriod.HasValue && dto.EndDate.HasValue && dto.EndOfCheckPeriod < dto.EndDate)
+            throw new ArgumentException("EndOfCheckPeriod cannot be less than EndDate");
+
         var period = _mapper.Map<DisciplineChoicePeriod>(dto);
 
         await _repository.AddAsync(period);
         await _repository.SaveChangesAsync();
 
-        // Витягуємо новостворену DTO (або можеш просто змапити period, якщо там немає складних JOIN'ів)
         return _mapper.Map<DisciplineChoicePeriodDto>(period);
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateDisciplineChoicePeriodDto dto)
     {
         if (id != dto.Id) return (false, StatusCodes.Status400BadRequest, "ID mismatch");
+        if (dto.EndOfCheckPeriod.HasValue && dto.EndDate.HasValue && dto.EndOfCheckPeriod < dto.EndDate)
+            return (false, StatusCodes.Status400BadRequest, "EndOfCheckPeriod cannot be less than EndDate");
 
         var period = await _repository.GetEntityByIdAsync(id);
         if (period == null) return (false, StatusCodes.Status404NotFound, "Period not found");
 
         _mapper.Map(dto, period);
+        // Ensure IsClose is not changed by mapper if DTO doesn't have it (or manually reset if it does)
         return await SaveWithConcurrencyCheckAsync(id);
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAfterStartAsync(Guid id, UpdateDisciplineChoicePeriodAfterStartDto dto)
     {
         if (id != dto.Id) return (false, StatusCodes.Status400BadRequest, "ID mismatch");
+        if (dto.EndOfCheckPeriod.HasValue && dto.EndDate.HasValue && dto.EndOfCheckPeriod < dto.EndDate)
+            return (false, StatusCodes.Status400BadRequest, "EndOfCheckPeriod cannot be less than EndDate");
 
         var period = await _repository.GetEntityByIdAsync(id);
         if (period == null) return (false, StatusCodes.Status404NotFound, "Period not found");
@@ -67,16 +74,12 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
 
     public async Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(Guid id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
     {
-        if (id != dto.Id) return (false, StatusCodes.Status400BadRequest, "ID mismatch");
-
-        var period = await _repository.GetEntityByIdAsync(id);
-        if (period == null) return (false, StatusCodes.Status404NotFound, "Period not found");
-
-        _mapper.Map(dto, period);
-        return await SaveWithConcurrencyCheckAsync(id);
+        // This method is now effectively a no-op for closing, but we'll keep the signature
+        return (true, StatusCodes.Status204NoContent, "Manual closing is disabled");
     }
 
-    // Допоміжний метод для обробки помилок конкурентності (щоб не дублювати try-catch 3 рази)
+
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ try-catch 3 пїЅпїЅпїЅпїЅ)
     private async Task<(bool success, int statusCode, string? errorMessage)> SaveWithConcurrencyCheckAsync(Guid id)
     {
         try

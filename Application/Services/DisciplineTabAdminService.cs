@@ -134,17 +134,8 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 continue;
             }
 
-            if (dto.IsConfirm)
-            {
-                bind.InProcess = false;
-                successfulConfirms.Add(new ChoiceResultDto
-                {
-                    Message = "Choice confirmed",
-                    BindId = bind.IdBindSelectiveDisciplines,
-                    DisciplineName = bind.SelectiveDiscipline?.NameSelectiveDisciplines
-                });
-            }
-            else
+            // Only process rejections. Confirmed ones stay as they are.
+            if (!dto.IsConfirm)
             {
                 var (success, errorMessage) = await RepealChoiceAsync(bind.SelectiveDisciplineId, bind.Student!.IdStudent);
                 if (!success)

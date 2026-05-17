@@ -279,21 +279,40 @@ namespace OlimpBack.MappingProfiles
 
             //DisciplineChoicePeriod
             CreateMap<DisciplineChoicePeriod, DisciplineChoicePeriodDto>()
-    .ForMember(
-        dest => dest.Id,
-        opt => opt.MapFrom(src => src.IdDisciplineChoicePeriod)
-    )
-    .ReverseMap()
-    .ForMember(
-        dest => dest.IdDisciplineChoicePeriod,
-        opt => opt.MapFrom(src => src.Id)
-    );
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.IdDisciplineChoicePeriod))
+                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Department.FacultyId))
+                .ForMember(dest => dest.PeriodType, opt => opt.MapFrom(src => src.PeriodType.Cast<bool>().First() ? (sbyte)1 : (sbyte)0))
+                .ForMember(dest => dest.PeriodCourse, opt => opt.MapFrom(src => (sbyte)src.PeriodCourse))
+                .ForMember(dest => dest.isShort, opt => opt.MapFrom(src => src.IsForOnSemestr))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.ToDateTime(TimeOnly.MinValue)))
+                .ForMember(dest => dest.EndOfCheckPeriod, opt => opt.MapFrom(src => src.EndOfCheckPeriod.ToDateTime(TimeOnly.MinValue)));
+
             CreateMap<CreateDisciplineChoicePeriodDto, DisciplineChoicePeriod>()
-                .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId));
+                .ForMember(dest => dest.PeriodType, opt => opt.MapFrom(src => new BitArray(new bool[] { src.PeriodType != 0 })))
+                .ForMember(dest => dest.PeriodCourse, opt => opt.MapFrom(src => (int)src.PeriodCourse))
+                .ForMember(dest => dest.IsForOnSemestr, opt => opt.MapFrom(src => src.isShort))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.StartDate ?? DateTime.UtcNow)))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.EndDate ?? DateTime.UtcNow.AddDays(7))))
+                .ForMember(dest => dest.EndOfCheckPeriod, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.EndOfCheckPeriod ?? (src.EndDate ?? DateTime.UtcNow.AddDays(7)).AddDays(1))))
+                .ForMember(dest => dest.IsClose, opt => opt.MapFrom(src => false));
+
             CreateMap<UpdateDisciplineChoicePeriodDto, DisciplineChoicePeriod>()
-                .ForMember(dest => dest.DegreeLevelId, opt => opt.MapFrom(src => src.DegreeLevelId));
-            CreateMap<UpdateDisciplineChoicePeriodAfterStartDto, DisciplineChoicePeriod>();
-            CreateMap<UpdateDisciplineChoicePeriodOpenOrCloseDto, DisciplineChoicePeriod>();
+                .ForMember(dest => dest.PeriodType, opt => opt.MapFrom(src => new BitArray(new bool[] { src.PeriodType != 0 })))
+                .ForMember(dest => dest.PeriodCourse, opt => opt.MapFrom(src => (int)src.PeriodCourse))
+                .ForMember(dest => dest.IsForOnSemestr, opt => opt.MapFrom(src => src.isShort))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.StartDate ?? DateTime.UtcNow)))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.EndDate ?? DateTime.UtcNow)))
+                .ForMember(dest => dest.EndOfCheckPeriod, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.EndOfCheckPeriod ?? (src.EndDate ?? DateTime.UtcNow).AddDays(1))))
+                .ForMember(dest => dest.IsClose, opt => opt.Ignore());
+
+            CreateMap<UpdateDisciplineChoicePeriodAfterStartDto, DisciplineChoicePeriod>()
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.HasValue ? DateOnly.FromDateTime(src.EndDate.Value) : default))
+                .ForMember(dest => dest.EndOfCheckPeriod, opt => opt.MapFrom(src => src.EndOfCheckPeriod.HasValue ? DateOnly.FromDateTime(src.EndOfCheckPeriod.Value) : default))
+                .ForMember(dest => dest.IsClose, opt => opt.Ignore());
+
+            CreateMap<UpdateDisciplineChoicePeriodOpenOrCloseDto, DisciplineChoicePeriod>()
+                .ForMember(dest => dest.IsClose, opt => opt.Ignore());
 
         }
 

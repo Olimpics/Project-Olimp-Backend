@@ -394,6 +394,7 @@ builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<FileCleanupService>();
 builder.Services.AddHostedService<DatabaseAvailabilityService>();
+builder.Services.AddHostedService<DisciplineChoicePeriodCleanupService>();
 
 
 var app = builder.Build();

@@ -14,6 +14,7 @@ namespace OlimpBack.Application.DTO
         public Guid? DepartmentId { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public DateTime? EndOfCheckPeriod { get; set; }
     }
 
     public class CreateDisciplineChoicePeriodDto
@@ -22,11 +23,11 @@ namespace OlimpBack.Application.DTO
         public sbyte PeriodCourse { get; set; }
         public Guid DegreeLevelId { get; set; }
         public bool isShort { get; set; }
-        public bool IsClose { get; set; }
         public Guid? FacultyId { get; set; }
         public Guid? DepartmentId { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public DateTime? EndOfCheckPeriod { get; set; }
     }
 
     public class UpdateDisciplineChoicePeriodDto
@@ -36,21 +37,20 @@ namespace OlimpBack.Application.DTO
         public sbyte PeriodCourse { get; set; }
         public Guid DegreeLevelId { get; set; }
         public bool isShort { get; set; }
-        public bool IsClose { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public DateTime? EndOfCheckPeriod { get; set; }
     }
 
     public class UpdateDisciplineChoicePeriodAfterStartDto
     {
         public Guid Id { get; set; }
-        public bool IsClose { get; set; }
         public DateTime? EndDate { get; set; }
+        public DateTime? EndOfCheckPeriod { get; set; }
     }
     public class UpdateDisciplineChoicePeriodOpenOrCloseDto
     {
         public Guid Id { get; set; }
-        public bool IsClose { get; set; }
     }
 
     /// <summary>

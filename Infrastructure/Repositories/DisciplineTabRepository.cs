@@ -51,6 +51,9 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 (d.SelectiveDetail != null && EF.Functions.Like(d.SelectiveDetail.Teachers.ToLower(), $"%{lowerSearch}%")));
         }
 
+        if (queryDto.CatalogId.HasValue && queryDto.CatalogId != Guid.Empty)
+            query = query.Where(d => d.CatalogId == queryDto.CatalogId.Value);
+
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
             query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
 
