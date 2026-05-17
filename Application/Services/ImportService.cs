@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
+using OlimpBack.Utils;
 
 namespace OlimpBack.Application.Services;
 
@@ -19,6 +20,8 @@ public class ImportService : IImportService
 {
     private readonly IWordProcessingService _wordService;
     private readonly IGeminiService _geminiService;
+    private readonly IExcelProcessingService _excelService;
+    private readonly IEmailService _emailService;
     private readonly AppDbContext _context;
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<ImportService> _logger;
@@ -30,12 +33,16 @@ public class ImportService : IImportService
     public ImportService(
         IWordProcessingService wordService,
         IGeminiService geminiService,
+        IExcelProcessingService excelService,
+        IEmailService emailService,
         AppDbContext context,
         IWebHostEnvironment environment,
         ILogger<ImportService> logger)
     {
         _wordService = wordService;
         _geminiService = geminiService;
+        _excelService = excelService;
+        _emailService = emailService;
         _context = context;
         _environment = environment;
         _logger = logger;
@@ -124,6 +131,288 @@ public class ImportService : IImportService
         }
     }
 
+    public async Task<string> ImportStudentsAsync(IFormFile file)
+    {
+        var excelRows = await _excelService.ExtractStudentsAsync(file);
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        foreach (var row in excelRows)
+        {
+            try
+            {
+                // 1. Lookup Group
+                var group = await _context.StudentGroups
+                    .Include(g => g.EducationalProgram)
+                    .FirstOrDefaultAsync(g => g.GroupCode == row.GroupCode);
+                if (group == null) throw new Exception($"Group '{row.GroupCode}' not found");
+
+                // 2. Lookup EducationStatus
+                var status = await _context.EducationStatuses
+                    .FirstOrDefaultAsync(s => s.NameEducationStatus.ToLower() == row.EducationStatus.ToLower());
+                if (status == null) throw new Exception($"Status '{row.EducationStatus}' not found");
+
+                // 3. Dates
+                if (!DateOnly.TryParse(row.EducationStart, out var start))
+                    throw new Exception($"Invalid EducationStart: {row.EducationStart}");
+                if (!DateOnly.TryParse(row.EducationEnd, out var end))
+                    throw new Exception($"Invalid EducationEnd: {row.EducationEnd}");
+
+                // 4. IsFunded
+                bool isFunded = row.IsFunded?.Trim().Equals("Бюджет", StringComparison.OrdinalIgnoreCase) ?? true;
+
+                // 5. Check for existing student (by EdboCode)
+                var existingStudent = await _context.Students
+                    .FirstOrDefaultAsync(s => s.EdboCode == row.EdboCode);
+
+                Student student;
+                if (existingStudent != null)
+                {
+                    student = existingStudent;
+                    student.NameStudent = row.NameStudent ?? student.NameStudent;
+                    student.EducationStart = start;
+                    student.EducationEnd = end;
+                    student.GroupId = group.IdGroup;
+                    student.EducationStatusId = status.IdEducationStatus;
+                    student.IsFunded = isFunded;
+                    student.ReportCard = row.ReportCard ?? student.ReportCard;
+                    student.Avail = true;
+                }
+                else
+                {
+                    student = new Student
+                    {
+                        IdStudent = Guid.NewGuid(),
+                        EdboCode = row.EdboCode,
+                        NameStudent = row.NameStudent ?? "Unknown",
+                        EducationStart = start,
+                        EducationEnd = end,
+                        GroupId = group.IdGroup,
+                        EducationStatusId = status.IdEducationStatus,
+                        IsFunded = isFunded,
+                        ReportCard = row.ReportCard ?? "Unknown",
+                        Avail = true,
+                        UserId = Guid.Empty // Placeholder
+                    };
+                    _context.Students.Add(student);
+                }
+
+                // Save to get the ID if new
+                await _context.SaveChangesAsync();
+
+                // 6. Link disciplines
+                var mainDisciplines = await _context.MainDisciplines
+                    .Where(md => md.EducationalProgramId == group.EducationalProgramId)
+                    .ToListAsync();
+
+                // Find CatalogYear
+                var catalogYear = await _context.CatalogYears
+                    .FirstOrDefaultAsync(cy => group.AdmissionYear.HasValue && cy.YearStart == group.AdmissionYear.Value.Year);
+
+                if (catalogYear != null)
+                {
+                    foreach (var md in mainDisciplines)
+                    {
+                        var exists = await _context.BindMainDisciplines
+                            .AnyAsync(bmd => bmd.StudentId == student.IdStudent && bmd.MainDisciplinesId == md.IdMainDisciplines);
+
+                        if (!exists)
+                        {
+                            _context.BindMainDisciplines.Add(new BindMainDiscipline
+                            {
+                                IdBindMainDisciplines = Guid.NewGuid(),
+                                StudentId = student.IdStudent,
+                                MainDisciplinesId = md.IdMainDisciplines,
+                                YearId = catalogYear.IdCatalog,
+                                Semestr = md.Semestr,
+                                Grade = 0,
+                                IsRedo = false
+                            });
+                        }
+                    }
+                }
+
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error importing student {row.EdboCode}");
+                errorCount++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return $"Student import finished. Success: {successCount}, Errors: {errorCount}";
+    }
+
+    public async Task<string> ImportGroupsAsync(IFormFile file)
+    {
+        var excelRows = await _excelService.ExtractGroupsAsync(file);
+
+        // 1. Set Avail = false for all groups
+        await _context.StudentGroups.ExecuteUpdateAsync(s => s.SetProperty(g => g.Avail, false));
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        foreach (var row in excelRows)
+        {
+            try
+            {
+                // Parse year
+                int year = 0;
+                if (DateTime.TryParse(row.StartOfStudy, out var date))
+                {
+                    year = date.Year;
+                }
+                else if (int.TryParse(row.StartOfStudy, out var parsedYear))
+                {
+                    year = parsedYear;
+                }
+
+                if (year == 0) throw new Exception("Invalid Start of Study");
+
+                // Lookup StudyForm
+                var studyForm = await _context.StudyForms
+                    .FirstOrDefaultAsync(sf => sf.NameStudyForm.ToLower() == row.FormOfStudy.ToLower());
+                if (studyForm == null) throw new Exception($"Study form '{row.FormOfStudy}' not found");
+
+                // Lookup EducationalProgram
+                var ep = await _context.EducationalPrograms
+                    .Include(e => e.Catalog)
+                    .FirstOrDefaultAsync(e => e.NameEducationalProgram.ToLower() == row.EducationalProgram.ToLower() && e.Catalog.YearStart == year);
+                if (ep == null) throw new Exception($"Educational program '{row.EducationalProgram}' for year {year} not found");
+
+                // IsAccelerated
+                bool isAccelerated = row.TermOfStudy?.Trim().Equals("Tak", StringComparison.OrdinalIgnoreCase) ?? false;
+
+
+                // Course
+                int course = int.TryParse(row.Course, out var c) ? c : 0;
+
+                // AdmissionYear as DateOnly
+                var admissionDate = new DateOnly(year, 9, 1);
+
+                // Check for existing group
+                var existingGroup = await _context.StudentGroups
+                    .FirstOrDefaultAsync(g => g.GroupCode == row.GroupCode && g.AdmissionYear == admissionDate);
+
+                if (existingGroup != null)
+                {
+                    existingGroup.Course = course;
+                    existingGroup.EducationalProgramId = ep.IdEducationalProgram;
+                    existingGroup.StudyFormId = studyForm.IdStudyForm;
+                    existingGroup.IsAccelerated = isAccelerated;
+                    existingGroup.Avail = true;
+                }
+                else
+                {
+                    var newGroup = new StudentGroup
+                    {
+                        IdGroup = Guid.NewGuid(),
+                        GroupCode = row.GroupCode,
+                        Course = course,
+                        AdmissionYear = admissionDate,
+                        EducationalProgramId = ep.IdEducationalProgram,
+                        StudyFormId = studyForm.IdStudyForm,
+                        IsAccelerated = isAccelerated,
+                        Avail = true
+                    };
+                    _context.StudentGroups.Add(newGroup);
+                }
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error importing group {row.GroupCode}");
+                errorCount++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return $"Group import finished. Success: {successCount}, Errors: {errorCount}";
+    }
+
+    public async Task<string> CreateStudentUsersAsync(IFormFile file)
+    {
+        var excelRows = await _excelService.ExtractStudentsAsync(file);
+
+        int createdCount = 0;
+        int errorCount = 0;
+
+        var studentRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Student");
+
+        foreach (var row in excelRows)
+        {
+            try
+            {
+                // Find student by EdboCode
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.EdboCode == row.EdboCode);
+
+                if (student == null) continue;
+
+                // Check if student already has a user
+                if (student.UserId != Guid.Empty)
+                {
+                    // Optionally update email if needed
+                    var existingUser = await _context.Users.FindAsync(student.UserId);
+                    if (existingUser != null && !string.IsNullOrEmpty(row.Email))
+                    {
+                        existingUser.Email = row.Email;
+                    }
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(row.Email))
+                {
+                    _logger.LogWarning($"No email provided for student {row.EdboCode}");
+                    continue;
+                }
+
+                // Generate password
+                string password = PasswordHelper.GeneratePassword();
+                PasswordHelper.CreatePasswordHash(password, out var hash, out var salt);
+
+                var user = new User
+                {
+                    IdUser = Guid.NewGuid(),
+                    Email = row.Email,
+                    PasswordHash = hash,
+                    PasswordSalt = salt,
+                    CreatedAt = DateTime.UtcNow,
+                    LastLoginAt = DateTime.UtcNow,
+                    IsFirstLogin = true,
+                    Avail = true
+                };
+
+                _context.Users.Add(user);
+                student.UserId = user.IdUser;
+
+                if (studentRole != null)
+                {
+                    _context.UserRoles.Add(new UserRole
+                    {
+                        UserId = user.IdUser,
+                        RoleId = studentRole.IdRole
+                    });
+                }
+
+                await _emailService.SendPasswordEmailAsync(row.Email, password);
+                createdCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error creating user for row {row.EdboCode}");
+                errorCount++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return $"User creation finished. Created: {createdCount}, Errors: {errorCount}";
+    }
+
     private async Task SaveToDatabaseAsync(GeminiSelectiveDisciplineDto dto, Guid catalogId, bool isFaculty, string originalFilePath)
     {
         // Generate unique name
@@ -190,8 +479,8 @@ public class ImportService : IImportService
             IsEven = dto.IsEven,
             DegreeLevelId = dto.DegreeLevelId,
             CatalogId = catalogId,
-            ApprovalStatusId = Guid.Parse("00000000-0000-0000-0000-000000000004"), // Placeholder for 'Approved'
-            TypeOfControlId = Guid.Parse("00000000-0000-0000-0000-000000000002"), // Placeholder for default control type
+            ApprovalStatusId = (await _context.Approvals.FirstOrDefaultAsync(sf => sf.ApprobalLevel == 1))?.IdApproval ?? Guid.Empty,
+            TypeOfControlId = (await _context.TypeOfControls.FirstOrDefaultAsync(tc => tc.Type.ToLower() == "���������������� ����"))?.IdTypeOfControl ?? Guid.Empty,
             DepartmentId = departmentId,
             NameDock = uniqueFileName,
             Courses = dto.Courses,

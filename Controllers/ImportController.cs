@@ -58,6 +58,62 @@ namespace OlimpBack.Controllers
             }
         }
 
+        [HttpPost("groups")]
+        [Consumes("multipart/form-data")]
+        [RequirePermission(RbacPermissions.GroupsCreate)]
+        public async Task<IActionResult> UploadGroups(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            try
+            {
+                var result = await _importService.ImportGroupsAsync(file);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Import failed", error = ex.Message });
+            }
+        }
+
+        [HttpPost("students")]
+        [Consumes("multipart/form-data")]
+        [RequirePermission(RbacPermissions.UsersCreate)] // Or suitable permission
+        public async Task<IActionResult> UploadStudents(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            try
+            {
+                var result = await _importService.ImportStudentsAsync(file);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Import failed", error = ex.Message });
+            }
+        }
+
+        [HttpPost("create-student-users")]
+        [RequirePermission(RbacPermissions.UsersCreate)]
+        public async Task<IActionResult> CreateStudentUsers(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            try
+            {
+                var result = await _importService.CreateStudentUsersAsync(file);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "User creation failed", error = ex.Message });
+            }
+        }
+
         [HttpGet("selective-disciplines/file/{fileName}")]
         [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<IActionResult> GetSelectiveDisciplineFile(string fileName)

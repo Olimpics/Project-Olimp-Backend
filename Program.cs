@@ -377,8 +377,16 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 // Student
 builder.Services.AddScoped<IStudentService, StudentService>();
 
+// Similarity Services
+builder.Services.AddScoped<ISimilarityRepository, SimilarityRepository>();
+builder.Services.AddScoped<IEpSimilarityRepository, EpSimilarityRepository>();
+builder.Services.AddScoped<ISimilarityService, SimilarityService>();
+builder.Services.AddScoped<IEpSimilarityService, EpSimilarityService>();
+
 // Import and AI Services
 builder.Services.AddScoped<IWordProcessingService, WordProcessingService>();
+builder.Services.AddScoped<IExcelProcessingService, ExcelProcessingService>();
+builder.Services.AddScoped<IEmailService, LoggingEmailService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IImportService, ImportService>();
 
