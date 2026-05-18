@@ -84,11 +84,11 @@ public class RatingRepository : IRatingRepository
     {
         var members = await _context.MembersOfSgs
             .Include(m => m.BindsubdivisionRoleSg)
-            .Where(m => m.StudentId != null && studentIds.Contains(m.StudentId))
+            .Where(m => m.StudentId != Guid.Empty && studentIds.Contains(m.StudentId))
             .ToListAsync();
 
         return members
-            .Where(m => m.StudentId != null && m.BindsubdivisionRoleSg != null && m.BindsubdivisionRoleSg.Points != null)
+            .Where(m => m.StudentId != Guid.Empty && m.BindsubdivisionRoleSg != null && m.BindsubdivisionRoleSg.Points != null)
             .GroupBy(m => m.StudentId)
             .ToDictionary(g => g.Key, g => g.Sum(m => m.BindsubdivisionRoleSg!.Points!));
     }

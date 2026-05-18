@@ -67,13 +67,13 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         // 2. Faculties
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
         {
-            query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
+            query = query.Where(d => d.Department.FacultyId != Guid.Empty && queryDto.Faculties.Contains(d.Department.FacultyId));
         }
 
         // 2.1 Departments
         if (queryDto.Departments != null && queryDto.Departments.Any())
         {
-            query = query.Where(d => d.DepartmentId != null && d.DepartmentId != Guid.Empty && queryDto.Departments.Contains(d.DepartmentId));
+            query = query.Where(d => d.DepartmentId != Guid.Empty && queryDto.Departments.Contains(d.DepartmentId));
         }
 
         // 3. Courses
@@ -230,16 +230,16 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId != null && queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
+            query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId != Guid.Empty && queryDto.Faculties.Contains(s.Group.EducationalProgram.Speciality.Department.FacultyId));
 
         if (queryDto.Courses != null && queryDto.Courses.Any())
             query = query.Where(s => queryDto.Courses.Contains(s.Group.Course));
 
         if (queryDto.StudentGroups != null && queryDto.StudentGroups.Any())
-            query = query.Where(s => s.GroupId != null && queryDto.StudentGroups.Contains(s.GroupId));
+            query = query.Where(s => s.GroupId != Guid.Empty && queryDto.StudentGroups.Contains(s.GroupId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
-            query = query.Where(s => s.Group.EducationalProgram != null && s.Group.EducationalProgram.DegreeId != null && queryDto.DegreeLevelIds.Contains(s.Group.EducationalProgram.DegreeId));
+            query = query.Where(s => s.Group.EducationalProgram != null && s.Group.EducationalProgram.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.EducationalProgram.DegreeId));
 
         if (queryDto.IsNew && queryDto.FacultyId != Guid.Empty)
             query = query.Where(s => s.Group.EducationalProgram.Speciality.Department.FacultyId == queryDto.FacultyId);
@@ -273,7 +273,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     {
         var rows = await _context.DisciplineChoicePeriods
             .AsNoTracking()
-            .Where(p => p.Department != null && p.Department.FacultyId != null && p.StartDate != null)
+            .Where(p => p.Department != null && p.Department.FacultyId != Guid.Empty && p.StartDate != null)
             .Select(p => new { FacultyId = p.Department.FacultyId!, StartDate = p.StartDate })
             .ToListAsync();
 
@@ -295,7 +295,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
     public async Task<Dictionary<(Guid Level, bool IsFaculty), int>> GetNormativesLookupAsync()
     {
         return await _context.Normatives
-            .Where(n => n.DegreeLevelId != null)
+            .Where(n => n.DegreeLevelId != Guid.Empty)
             .GroupBy(n => new { Level = n.DegreeLevelId!, IsFaculty = n.IsFaculty})
             .ToDictionaryAsync(
                 g => (g.Key.Level, g.Key.IsFaculty),
@@ -317,7 +317,7 @@ public class DisciplineTabAdminRepository : IDisciplineTabAdminRepository
         }
 
         if (queryDto.Faculties != null && queryDto.Faculties.Any())
-            query = query.Where(d => d.Department.FacultyId != null && queryDto.Faculties.Contains(d.Department.FacultyId));
+            query = query.Where(d => d.Department.FacultyId != Guid.Empty && queryDto.Faculties.Contains(d.Department.FacultyId));
 
         if (queryDto.IsFaculty.HasValue)
             query = query.Where(d => d.IsFaculty == queryDto.IsFaculty.Value);

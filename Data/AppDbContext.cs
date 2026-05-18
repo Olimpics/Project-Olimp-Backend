@@ -166,9 +166,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AcademicDegreeName)
                 .HasColumnType("character varying")
                 .HasColumnName("academicDegreeName");
-            entity.Property(e => e.AcdemicDegreeShortedName)
+            entity.Property(e => e.AcademicDegreeShortedName)
                 .HasColumnType("character varying")
-                .HasColumnName("acdemicDegreeShortedName");
+                .HasColumnName("academicDegreeShortedName");
         });
 
         modelBuilder.Entity<AccountingJournal>(entity =>
@@ -228,6 +228,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("AdminsPersonal");
 
+            entity.HasIndex(e => e.UserId, "adminspersonal_unique").IsUnique();
+
             entity.Property(e => e.IdAdmins)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idAdmins");
@@ -261,8 +263,8 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("adminspersonal_faculties_fk");
 
-            entity.HasOne(d => d.User).WithMany(p => p.AdminsPersonals)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.User).WithOne(p => p.AdminsPersonal)
+                .HasForeignKey<AdminsPersonal>(d => d.UserId)
                 .HasConstraintName("adminspersonal_users_fk");
         });
 
@@ -857,6 +859,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Instrument)
                 .HasColumnType("character varying")
                 .HasColumnName("instrument");
+            entity.Property(e => e.IsAccelerated)
+                .HasDefaultValue(false)
+                .HasColumnName("is_accelerated");
             entity.Property(e => e.Keys)
                 .HasColumnType("character varying[]")
                 .HasColumnName("keys");
@@ -876,6 +881,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.SelectiveDisciplineBySemestr).HasColumnName("selectiveDisciplineBySemestr");
             entity.Property(e => e.SpecialityId).HasColumnName("speciality_id");
             entity.Property(e => e.SpecializationId).HasColumnName("specialization_id");
+            entity.Property(e => e.StudyFormId).HasColumnName("study_form_id");
+            entity.Property(e => e.StudyTurm)
+                .HasColumnType("character varying")
+                .HasColumnName("study_turm");
             entity.Property(e => e.Subject)
                 .HasColumnType("character varying")
                 .HasColumnName("subject");
@@ -898,6 +907,11 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Specialization).WithMany(p => p.EducationalPrograms)
                 .HasForeignKey(d => d.SpecializationId)
                 .HasConstraintName("educationalprogram_specialization_fk");
+
+            entity.HasOne(d => d.StudyForm).WithMany(p => p.EducationalPrograms)
+                .HasForeignKey(d => d.StudyFormId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("educationalprogram_studyform_fk");
         });
 
         modelBuilder.Entity<Event>(entity =>
@@ -1021,9 +1035,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodeMainDisciplines)
                 .HasColumnType("character varying")
                 .HasColumnName("codeMainDisciplines");
-            entity.Property(e => e.FormControl)
-                .HasColumnType("character varying")
-                .HasColumnName("formControl");
             entity.Property(e => e.Hours).HasColumnName("hours");
             entity.Property(e => e.Loans).HasColumnName("loans");
             entity.Property(e => e.NameDock)
@@ -1036,10 +1047,16 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("needFix");
             entity.Property(e => e.Semestr).HasColumnName("semestr");
+            entity.Property(e => e.TypeOfControl).HasColumnName("type_of_control");
 
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.MainDisciplines)
                 .HasForeignKey(d => d.EducationalProgramId)
                 .HasConstraintName("maindisciplines_educationalprogram_fk");
+
+            entity.HasOne(d => d.TypeOfControlNavigation).WithMany(p => p.MainDisciplines)
+                .HasForeignKey(d => d.TypeOfControl)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("maindisciplines_typeofcontrol_fk");
         });
 
         modelBuilder.Entity<MarkOfScore>(entity =>
@@ -1604,6 +1621,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Student");
 
+            entity.HasIndex(e => e.UserId, "student_unique").IsUnique();
+
             entity.Property(e => e.IdStudent)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idStudent");
@@ -1647,8 +1666,8 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("student_studentgroup_fk");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Students)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.User).WithOne(p => p.Student)
+                .HasForeignKey<Student>(d => d.UserId)
                 .HasConstraintName("student_users_fk");
         });
 

@@ -23,7 +23,7 @@ public partial class User
 
     public bool Avail { get; set; }
 
-    public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
+    public virtual AdminsPersonal? AdminsPersonal { get; set; }
 
     public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
 
@@ -39,7 +39,7 @@ public partial class User
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+    public virtual Student? Student { get; set; }
 
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
 

@@ -8,7 +8,7 @@ public class ProgramMainDisciplineDto
     public Guid Id { get; set; }
     public string Code { get; set; } = null!;
     public string Name { get; set; } = null!;
-    public string? FormControl { get; set; }
+    public Guid? TypeOfControl { get; set; }
     public int Loans { get; set; }
     public int Hours { get; set; }
 }

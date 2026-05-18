@@ -14,7 +14,7 @@ public partial class Student
     /// <summary>
     /// Залікова книга
     /// </summary>
-    public string ReportCard { get; set; } = null!;
+    public string? ReportCard { get; set; }
 
     public string? Notes { get; set; }
 

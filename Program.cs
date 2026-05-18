@@ -391,6 +391,9 @@ builder.Services.AddScoped<IEmailService, LoggingEmailService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IImportService, ImportService>();
 
+// Statements
+builder.Services.AddScoped<IStatementService, StatementService>();
+
 // Authorization
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<FileCleanupService>();

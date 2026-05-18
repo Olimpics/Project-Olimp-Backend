@@ -11,13 +11,11 @@ public partial class MainDiscipline
 
     public int? Loans { get; set; }
 
-    public string FormControl { get; set; } = null!;
-
     public int Semestr { get; set; }
 
     public int? Hours { get; set; }
 
-    public string NameDock { get; set; } = null!;
+    public string? NameDock { get; set; }
 
     public Guid EducationalProgramId { get; set; }
 
@@ -25,9 +23,13 @@ public partial class MainDiscipline
 
     public Guid IdMainDisciplines { get; set; }
 
+    public Guid TypeOfControl { get; set; }
+
     public virtual ICollection<BindMainDiscipline> BindMainDisciplines { get; set; } = new List<BindMainDiscipline>();
 
     public virtual ICollection<BindTeacherMain> BindTeacherMains { get; set; } = new List<BindTeacherMain>();
 
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
+
+    public virtual TypeOfControl TypeOfControlNavigation { get; set; } = null!;
 }

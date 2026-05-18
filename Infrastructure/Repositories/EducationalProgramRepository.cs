@@ -128,7 +128,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
     {
         var query = _context.Students
             .AsNoTracking()
-            .Where(s => s.Group.EducationalProgramId != null && s.Group.EducationalProgramId == programId);
+            .Where(s => s.Group.EducationalProgramId != Guid.Empty && s.Group.EducationalProgramId == programId);
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
@@ -188,7 +188,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                 d.IdMainDisciplines,
                 d.CodeMainDisciplines,
                 d.NameMainDisciplines,
-                d.FormControl,
+                d.TypeOfControl,
                 Loans = d.Loans ?? 0,
                 Hours = d.Hours ?? 0,
                 Semester = d.Semestr
@@ -205,7 +205,7 @@ public class EducationalProgramRepository : IEducationalProgramRepository
                     Id = d.IdMainDisciplines,
                     Code = d.CodeMainDisciplines ?? "",
                     Name = d.NameMainDisciplines ?? "",
-                    FormControl = d.FormControl,
+                    TypeOfControl = d.TypeOfControl,
                     Loans = d.Loans,
                     Hours = d.Hours
                 }).ToList()

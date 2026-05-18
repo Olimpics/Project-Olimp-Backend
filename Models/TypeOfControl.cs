@@ -9,5 +9,7 @@ public partial class TypeOfControl
 
     public Guid IdTypeOfControl { get; set; }
 
+    public virtual ICollection<MainDiscipline> MainDisciplines { get; set; } = new List<MainDiscipline>();
+
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 }

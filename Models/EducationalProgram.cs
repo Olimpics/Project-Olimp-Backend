@@ -41,6 +41,12 @@ public partial class EducationalProgram
 
     public Guid SpecialityId { get; set; }
 
+    public Guid? StudyFormId { get; set; }
+
+    public string? StudyTurm { get; set; }
+
+    public bool IsAccelerated { get; set; }
+
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();
 
     public virtual ICollection<BindSimilaEducationalProgramInGroup> BindSimilaEducationalProgramInGroups { get; set; } = new List<BindSimilaEducationalProgramInGroup>();
@@ -58,4 +64,6 @@ public partial class EducationalProgram
     public virtual Specialization Specialization { get; set; } = null!;
 
     public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
+
+    public virtual StudyForm? StudyForm { get; set; }
 }
