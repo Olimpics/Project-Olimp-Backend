@@ -41,7 +41,7 @@ public partial class EducationalProgram
 
     public Guid SpecialityId { get; set; }
 
-    public Guid? StudyFormId { get; set; }
+    public Guid StudyFormId { get; set; }
 
     public string? StudyTurm { get; set; }
 

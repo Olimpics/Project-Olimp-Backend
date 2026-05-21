@@ -282,10 +282,16 @@ public class ImportService : IImportService
                     .FirstOrDefaultAsync(sf => sf.NameStudyForm.ToLower() == row.FormOfStudy.ToLower());
                 if (studyForm == null) throw new Exception($"Study form '{row.FormOfStudy}' not found");
 
+                var degreeLevel = await _context.EducationalDegrees
+                   .FirstOrDefaultAsync(dl => dl.NameEducationalDegree.ToLower() == row.EducationDegree.ToLower());
+                if (degreeLevel == null) throw new Exception($"Degree level '{row.EducationDegree}' not found");
+
                 // Lookup EducationalProgram
                 var ep = await _context.EducationalPrograms
                     .Include(e => e.Catalog)
-                    .FirstOrDefaultAsync(e => e.NameEducationalProgram.ToLower() == row.EducationalProgram.ToLower() && e.Catalog.YearStart == year);
+                    .Include(e => e.Degree)
+                    .Include(e => e.StudyForm)
+                    .FirstOrDefaultAsync(e => e.NameEducationalProgram.ToLower() == row.EducationalProgram.ToLower() && e.Catalog.YearStart == year && e.Degree.NameEducationalDegree == row.EducationDegree && e.StudyForm.NameStudyForm == row.FormOfStudy);
                 if (ep == null) throw new Exception($"Educational program '{row.EducationalProgram}' for year {year} not found");
 
                 // IsAccelerated
@@ -306,7 +312,7 @@ public class ImportService : IImportService
                 {
                     existingGroup.Course = course;
                     existingGroup.EducationalProgramId = ep.IdEducationalProgram;
-                    existingGroup.StudyFormId = studyForm.IdStudyForm;
+                    existingGroup.EducationalProgram.StudyFormId = studyForm.IdStudyForm;
                     existingGroup.IsAccelerated = isAccelerated;
                     existingGroup.Avail = true;
                 }
@@ -319,7 +325,6 @@ public class ImportService : IImportService
                         Course = course,
                         AdmissionYear = admissionDate,
                         EducationalProgramId = ep.IdEducationalProgram,
-                        StudyFormId = studyForm.IdStudyForm,
                         IsAccelerated = isAccelerated,
                         Avail = true
                     };
@@ -484,7 +489,7 @@ public class ImportService : IImportService
             DegreeLevelId = dto.DegreeLevelId,
             CatalogId = catalogId,
             ApprovalStatusId = (await _context.Approvals.FirstOrDefaultAsync(sf => sf.ApprobalLevel == 1))?.IdApproval ?? Guid.Empty,
-            TypeOfControlId = (await _context.TypeOfControls.FirstOrDefaultAsync(tc => tc.Type.ToLower() == "���������������� ����"))?.IdTypeOfControl ?? Guid.Empty,
+            TypeOfControlId = (await _context.TypeOfControls.FirstOrDefaultAsync(tc => tc.Type.ToLower() == "диференційований залік"))?.IdTypeOfControl ?? Guid.Empty,
             DepartmentId = departmentId,
             NameDock = uniqueFileName,
             Courses = dto.Courses,

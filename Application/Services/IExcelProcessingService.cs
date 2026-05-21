@@ -14,6 +14,7 @@ public class GroupExcelRowDto
 {
     public string? StartOfStudy { get; set; }
     public string? FormOfStudy { get; set; }
+    public string? EducationDegree { get; set; }
     public string? TermOfStudy { get; set; } // Tak/Ni
     public string? EducationalProgram { get; set; }
     public string? Course { get; set; }

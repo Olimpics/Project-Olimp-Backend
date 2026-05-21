@@ -1700,10 +1700,7 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.StudentGroups)
                 .HasForeignKey(d => d.EducationalProgramId)
                 .HasConstraintName("studentgroup_educationalprogram_fk");
-
-            entity.HasOne(d => d.StudyForm).WithMany(p => p.StudentGroups)
-                .HasForeignKey(d => d.StudyFormId)
-                .HasConstraintName("studentgroup_studyform_fk");
+       
         });
 
         modelBuilder.Entity<StudyForm>(entity =>

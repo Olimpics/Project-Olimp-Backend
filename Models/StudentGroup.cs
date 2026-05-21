@@ -15,8 +15,6 @@ public partial class StudentGroup
 
     public Guid IdGroup { get; set; }
 
-    public Guid StudyFormId { get; set; }
-
     public bool Avail { get; set; }
 
     public bool IsAccelerated { get; set; }
@@ -29,5 +27,4 @@ public partial class StudentGroup
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 
-    public virtual StudyForm StudyForm { get; set; } = null!;
 }

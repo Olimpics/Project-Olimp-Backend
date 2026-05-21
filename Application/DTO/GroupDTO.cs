@@ -51,7 +51,7 @@ namespace OlimpBack.Application.DTO
         public string? FacultyName { get; set; }
         public Guid? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
-        public Guid? IdEducationalProgram { get; set; }
+        public Guid IdEducationalProgram { get; set; }
         public string? EducationalProgramName { get; set; }
         public Guid? IdSpeciality { get; set; }
         public string? SpecialityName { get; set; }

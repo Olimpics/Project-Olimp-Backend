@@ -41,10 +41,11 @@ public class ExcelProcessingService : IExcelProcessingService
                     {
                         StartOfStudy = GetCellValue(cells[0], sharedStringTablePart),
                         FormOfStudy = GetCellValue(cells[1], sharedStringTablePart),
-                        TermOfStudy = GetCellValue(cells[2], sharedStringTablePart),
-                        EducationalProgram = GetCellValue(cells[3], sharedStringTablePart),
-                        Course = GetCellValue(cells[4], sharedStringTablePart),
-                        GroupCode = GetCellValue(cells[5], sharedStringTablePart)
+                        EducationDegree = GetCellValue(cells[2], sharedStringTablePart),
+                        TermOfStudy = GetCellValue(cells[3], sharedStringTablePart),
+                        EducationalProgram = GetCellValue(cells[4], sharedStringTablePart),
+                        Course = GetCellValue(cells[5], sharedStringTablePart),
+                        GroupCode = GetCellValue(cells[6], sharedStringTablePart)
                     };
 
                     if (!string.IsNullOrWhiteSpace(dto.GroupCode))

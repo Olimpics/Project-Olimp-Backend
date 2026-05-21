@@ -55,7 +55,7 @@ public class StudentService : IStudentService
             query = query.Where(s => queryDto.Courses.Contains(s.Group.Course));
 
         if (queryDto.StudyFormIds != null && queryDto.StudyFormIds.Any())
-            query = query.Where(s => s.Group.StudyFormId != Guid.Empty && queryDto.StudyFormIds.Contains(s.Group.StudyFormId));
+            query = query.Where(s => s.Group.EducationalProgram.StudyFormId != Guid.Empty && queryDto.StudyFormIds.Contains(s.Group.EducationalProgram.StudyFormId));
 
         if (queryDto.DegreeLevelIds != null && queryDto.DegreeLevelIds.Any())
             query = query.Where(s => s.Group.EducationalProgram.DegreeId != Guid.Empty && queryDto.DegreeLevelIds.Contains(s.Group.EducationalProgram.DegreeId));

@@ -114,7 +114,7 @@ public class GroupRepository : IGroupRepository
                 SpecialityName = g.EducationalProgram != null && g.EducationalProgram.Speciality != null 
                                ? g.EducationalProgram.Speciality.Name : null,
                 AdmissionYear = g.AdmissionYear.HasValue ? g.AdmissionYear.Value.Year : null,
-                IdStudyForm = g.StudyFormId,
+                IdStudyForm = g.EducationalProgram.StudyFormId,
                 IsAccelerated = g.IsAccelerated
             })
             .FirstOrDefaultAsync();
