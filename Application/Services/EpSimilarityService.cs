@@ -115,7 +115,7 @@ public class EpSimilarityService : IEpSimilarityService
 
     private List<string> ExtractKeywords(EducationalProgram p)
     {
-        var text = $"{p.NameEducationalProgram} {p.Goals} {p.Subject} {p.TheoreticalContent} {p.Methodics}";
+        var text = $"{p.NameEducationalProgram} {p.Goals} {p.Subject}";
         return Tokenize(text);
     }
 

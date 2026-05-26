@@ -88,4 +88,59 @@ namespace OlimpBack.Application.DTO
         [Required]
         public bool IsFaculty { get; set; }
     }
+
+    public class EducationalProgramImportRequestDto
+    {
+        [Required]
+        public IFormFile WordFile { get; set; } = null!;
+        [Required]
+        public IFormFile PdfFile { get; set; } = null!;
+        [Required]
+        public Guid CatalogYearMainId { get; set; }
+        [Required]
+        public bool IsAccelerated { get; set; }
+    }
+
+    public class EducationalProgramWordContentDto
+    {
+        public string? NameEducationalProgram { get; set; }
+        public string? Degree { get; set; }
+        public string? StudyForm { get; set; }
+        public string? Goals { get; set; }
+        public string? SpecialityAndSpecializationWithDetails { get; set; }
+        public string? Subject { get; set; }
+        public List<DisciplineRowDto> MainDisciplines { get; set; } = new();
+        public List<DisciplineRowDto> SelectiveDisciplines { get; set; } = new();
+    }
+
+    public class DisciplineRowDto
+    {
+        public string? Code { get; set; }
+        public string? Name { get; set; }
+        public string? Loans { get; set; }
+        public string? Control { get; set; }
+        public string? Semester { get; set; }
+    }
+
+    public class GeminiEducationalProgramDto
+    {
+        public string? NameEducationalProgram { get; set; }
+        public string? Degree { get; set; }
+        public string? StudyForm { get; set; }
+        public string? Subject { get; set; }
+        public string? Speciality { get; set; }
+        public string? Specialization { get; set; }
+        public string? Goals { get; set; }
+        public List<GeminiMainDisciplineDto> MainDisciplines { get; set; } = new();
+        public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
+    }
+
+    public class GeminiMainDisciplineDto
+    {
+        public string? Code { get; set; }
+        public string? Name { get; set; }
+        public string? Loans { get; set; }
+        public string? Control { get; set; }
+        public string? Semester { get; set; }
+    }
 }

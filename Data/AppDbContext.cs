@@ -866,18 +866,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Goals)
                 .HasColumnType("character varying")
                 .HasColumnName("goals");
-            entity.Property(e => e.Instrument)
-                .HasColumnType("character varying")
-                .HasColumnName("instrument");
             entity.Property(e => e.IsAccelerated)
                 .HasDefaultValue(false)
                 .HasColumnName("is_accelerated");
             entity.Property(e => e.Keys)
                 .HasColumnType("character varying[]")
                 .HasColumnName("keys");
-            entity.Property(e => e.Methodics)
-                .HasColumnType("character varying")
-                .HasColumnName("methodics");
             entity.Property(e => e.MinUniSelectiveDisciplineBySemestr).HasColumnName("minUniSelectiveDisciplineBySemestr");
             entity.Property(e => e.NameDock)
                 .HasColumnType("character varying")
@@ -898,9 +892,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Subject)
                 .HasColumnType("character varying")
                 .HasColumnName("subject");
-            entity.Property(e => e.TheoreticalContent)
-                .HasColumnType("character varying")
-                .HasColumnName("theoreticalContent");
 
             entity.HasOne(d => d.Catalog).WithMany(p => p.EducationalPrograms)
                 .HasForeignKey(d => d.CatalogId)

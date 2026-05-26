@@ -21,12 +21,6 @@ public partial class EducationalProgram
 
     public string Goals { get; set; } = null!;
 
-    public string TheoreticalContent { get; set; } = null!;
-
-    public string Methodics { get; set; } = null!;
-
-    public string Instrument { get; set; } = null!;
-
     public List<string>? Keys { get; set; }
 
     public Guid IdEducationalProgram { get; set; }

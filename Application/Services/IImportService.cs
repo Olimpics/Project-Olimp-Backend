@@ -7,6 +7,7 @@ namespace OlimpBack.Application.Services;
 public interface IImportService
 {
     Task<string> ImportSelectiveDisciplinesAsync(SelectiveDisciplineImportRequestDto request);
+    Task<string> ImportEducationalProgramAsync(EducationalProgramImportRequestDto request);
     Task<string> ImportGroupsAsync(IFormFile file);
     Task<string> ImportStudentsAsync(IFormFile file);
     Task<string> CreateStudentUsersAsync(IFormFile file);

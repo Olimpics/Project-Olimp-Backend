@@ -5,4 +5,5 @@ namespace OlimpBack.Application.Services;
 public interface IWordProcessingService
 {
     Task<SelectiveDisciplineWordContentDto> ExtractContentAsync(string filePath);
+    Task<EducationalProgramWordContentDto> ExtractEducationalProgramContentAsync(string filePath);
 }

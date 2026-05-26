@@ -58,6 +58,27 @@ namespace OlimpBack.Controllers
             }
         }
 
+        [HttpPost("educational-programs")]
+        [Consumes("multipart/form-data")]
+        [RequirePermission(RbacPermissions.EducationalProgramsCreate)]
+        public async Task<IActionResult> UploadEducationalPrograms([FromForm] EducationalProgramImportRequestDto dto)
+        {
+            if (dto.WordFile == null || dto.WordFile.Length == 0)
+                return BadRequest("Word file is empty");
+            if (dto.PdfFile == null || dto.PdfFile.Length == 0)
+                return BadRequest("PDF file is empty");
+
+            try
+            {
+                var result = await _importService.ImportEducationalProgramAsync(dto);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Import failed", error = ex.Message });
+            }
+        }
+
         [HttpPost("groups")]
         [Consumes("multipart/form-data")]
         [RequirePermission(RbacPermissions.GroupsCreate)]

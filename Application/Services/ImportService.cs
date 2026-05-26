@@ -30,6 +30,10 @@ public class ImportService : IImportService
     private readonly string _importedPath;
     private readonly string _errorsPath;
 
+    private readonly string _epUploadPath;
+    private readonly string _epImportedPath;
+    private readonly string _epErrorsPath;
+
     public ImportService(
         IWordProcessingService wordService,
         IGeminiService geminiService,
@@ -55,6 +59,117 @@ public class ImportService : IImportService
         Directory.CreateDirectory(_uploadPath);
         Directory.CreateDirectory(_importedPath);
         Directory.CreateDirectory(_errorsPath);
+
+        var epBaseDir = Path.Combine(_environment.ContentRootPath, "Uploads", "EducationalPrograms");
+        _epUploadPath = Path.Combine(epBaseDir, "Pending");
+        _epImportedPath = Path.Combine(epBaseDir, "Imported");
+        _epErrorsPath = Path.Combine(epBaseDir, "Errors");
+
+        Directory.CreateDirectory(_epUploadPath);
+        Directory.CreateDirectory(_epImportedPath);
+        Directory.CreateDirectory(_epErrorsPath);
+    }
+
+    public async Task<string> ImportEducationalProgramAsync(EducationalProgramImportRequestDto request)
+    {
+        var tempId = Guid.NewGuid().ToString();
+        var tempDir = Path.Combine(_epUploadPath, tempId);
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var wordPath = Path.Combine(tempDir, request.WordFile.FileName);
+            using (var stream = new FileStream(wordPath, FileMode.Create))
+            {
+                await request.WordFile.CopyToAsync(stream);
+            }
+
+            // 1. Extract content from Word
+            var rawContent = await _wordService.ExtractEducationalProgramContentAsync(wordPath);
+
+            // 2. Process with Gemini
+            var geminiResult = await _geminiService.ProcessEducationalProgramAsync(rawContent);
+            if (geminiResult == null) throw new Exception("Gemini failed to process the document.");
+
+            // 3. Save files and database records
+            var pdfFileName = $"{Guid.NewGuid()}_{request.PdfFile.FileName}";
+            var finalPdfPath = Path.Combine(_epImportedPath, pdfFileName);
+            using (var stream = new FileStream(finalPdfPath, FileMode.Create))
+            {
+                await request.PdfFile.CopyToAsync(stream);
+            }
+
+            // Lookup Degree
+            var degree = await _context.EducationalDegrees
+                .FirstOrDefaultAsync(d => d.NameEducationalDegree.Contains(geminiResult.Degree ?? ""));
+            
+            // Lookup Speciality
+            var speciality = await _context.Specialities
+                .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Speciality ?? "") || (geminiResult.Speciality != null && geminiResult.Speciality.Contains(s.Code)));
+
+            // Lookup Specialization (optional)
+            var specialization = await _context.Specializations
+                .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Specialization ?? "") || (geminiResult.Specialization != null && geminiResult.Specialization.Contains(s.Code)));
+
+            // Lookup StudyForm
+            var studyForm = await _context.StudyForms
+                .FirstOrDefaultAsync(sf => sf.NameStudyForm.Contains(geminiResult.StudyForm ?? ""));
+
+            var ep = new EducationalProgram
+            {
+                IdEducationalProgram = Guid.NewGuid(),
+                NameEducationalProgram = geminiResult.NameEducationalProgram ?? "Unknown",
+                DegreeId = degree?.IdEducationalDegree ?? Guid.Empty,
+                SpecialityId = speciality?.IdSpeciality ?? Guid.Empty,
+                SpecializationId = specialization?.IdSpecialization ?? Guid.Empty,
+                StudyFormId = studyForm?.IdStudyForm,
+                CatalogId = request.CatalogYearMainId,
+                IsAccelerated = request.IsAccelerated,
+                Goals = geminiResult.Goals ?? "",
+                Subject = geminiResult.Subject ?? "",
+                NameDock = pdfFileName,
+                SelectiveDisciplineBySemestr = geminiResult.SelectiveDisciplineBySemestr ?? new List<int>(),
+                MinUniSelectiveDisciplineBySemestr = new List<int>(), // Default
+                Accreditation = 0,
+                AccreditationType = "Unknown",
+                TheoreticalContent = "",
+                Methodics = "",
+                Instrument = ""
+            };
+
+            _context.EducationalPrograms.Add(ep);
+
+            foreach (var md in geminiResult.MainDisciplines)
+            {
+                if (!int.TryParse(md.Semester, out var sem)) continue;
+                if (!double.TryParse(md.Loans?.Replace(",", "."), out var loans)) loans = 0;
+
+                _context.MainDisciplines.Add(new MainDiscipline
+                {
+                    IdMainDisciplines = Guid.NewGuid(),
+                    CodeMainDisciplines = md.Code,
+                    NameMainDisciplines = md.Name ?? "Unknown",
+                    Semestr = sem,
+                    Loans = (int)loans, // Database might be int
+                    Control = md.Control ?? "",
+                    EducationalProgramId = ep.IdEducationalProgram,
+                    CatalogYearId = request.CatalogYearMainId
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return $"Educational Program '{ep.NameEducationalProgram}' imported successfully.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error importing Educational Program");
+            throw;
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
     }
 
     public async Task<string> ImportSelectiveDisciplinesAsync(SelectiveDisciplineImportRequestDto request)

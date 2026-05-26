@@ -5,4 +5,5 @@ namespace OlimpBack.Application.Services;
 public interface IGeminiService
 {
     Task<List<GeminiSelectiveDisciplineDto>> ProcessSelectiveDisciplinesAsync(List<SelectiveDisciplineWordContentDto> batch);
+    Task<GeminiEducationalProgramDto?> ProcessEducationalProgramAsync(EducationalProgramWordContentDto content);
 }

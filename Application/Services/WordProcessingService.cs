@@ -90,6 +90,111 @@ public class WordProcessingService : IWordProcessingService
         return text.ToString().Trim();
     }
 
+    public async Task<EducationalProgramWordContentDto> ExtractEducationalProgramContentAsync(string filePath)
+    {
+        var content = new EducationalProgramWordContentDto();
+
+        try
+        {
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
+            {
+                var body = wordDoc.MainDocumentPart?.Document.Body;
+                if (body == null) return content;
+
+                var tables = body.Descendants<Table>().ToList();
+                if (tables.Count == 0) return content;
+
+                // 1. Process main information (usually first tables)
+                foreach (var table in tables)
+                {
+                    foreach (var row in table.Descendants<TableRow>())
+                    {
+                        var cells = row.Descendants<TableCell>().ToList();
+                        if (cells.Count >= 2)
+                        {
+                            string key = GetCellText(cells[0]);
+                            string value = GetCellText(cells[1]);
+
+                            if (key.Contains("Офіційна назва", StringComparison.OrdinalIgnoreCase)) content.NameEducationalProgram = value;
+                            else if (key.Contains("Ступінь вищої освіти", StringComparison.OrdinalIgnoreCase)) content.Degree = value;
+                            else if (key.Contains("Форми навчання", StringComparison.OrdinalIgnoreCase)) content.StudyForm = value;
+                            else if (key.Contains("Мета освітньої програми", StringComparison.OrdinalIgnoreCase)) content.Goals = value;
+                            else if (key.Contains("Кваліфікація в дипломі", StringComparison.OrdinalIgnoreCase)) content.SpecialityAndSpecializationWithDetails = value;
+                            else if (key.Contains("Основний фокус", StringComparison.OrdinalIgnoreCase)) content.Subject = value;
+                        }
+                    }
+                }
+
+                // 2. Process disciplines table
+                // Find table after "2 Перелік компонентів" or "Перелік компонентів ОП"
+                Table? componentsTable = null;
+                bool foundHeader = false;
+
+                foreach (var element in body.Elements())
+                {
+                    if (element is Paragraph p)
+                    {
+                        var text = p.InnerText;
+                        if (text.Contains("Перелік компонентів", StringComparison.OrdinalIgnoreCase))
+                        {
+                            foundHeader = true;
+                        }
+                    }
+                    else if (element is Table t && foundHeader)
+                    {
+                        componentsTable = t;
+                        break;
+                    }
+                }
+
+                if (componentsTable != null)
+                {
+                    bool isMandatory = true;
+                    foreach (var row in componentsTable.Descendants<TableRow>())
+                    {
+                        var cells = row.Descendants<TableCell>().ToList();
+                        var rowText = string.Join(" ", cells.Select(GetCellText));
+
+                        if (rowText.Contains("Вибіркові компоненти", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isMandatory = false;
+                            continue;
+                        }
+                        if (rowText.Contains("Обов'язкові компоненти", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isMandatory = true;
+                            continue;
+                        }
+
+                        if (cells.Count >= 5)
+                        {
+                            var discipline = new DisciplineRowDto
+                            {
+                                Code = GetCellText(cells[0]),
+                                Name = GetCellText(cells[1]),
+                                Loans = GetCellText(cells[2]),
+                                Control = GetCellText(cells[3]),
+                                Semester = GetCellText(cells[4])
+                            };
+
+                            if (string.IsNullOrWhiteSpace(discipline.Name) || discipline.Name.Contains("Освітній компонент", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            if (isMandatory) content.MainDisciplines.Add(discipline);
+                            else content.SelectiveDisciplines.Add(discipline);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Log error
+        }
+
+        return content;
+    }
+
     // Если темы не в таблице, а просто текстом после заголовка
     private string? ExtractTopicsAfterTable(Body body)
     {

@@ -73,7 +73,7 @@ You are a data normalization engine for university curriculum systems. Your goal
 ### LOGIC FOR 'needFix' FIELD:
 - Evaluate the 'recommendedForFields' raw input:
   - Set ""needFix"": true if the field contains any specific restrictions (e.g., branches, specialties, specific codes like ""014.04"", or faculty names).
-  - Set ""needFix"": false if the field is empty, null, or contains only general phrases like ""для усіх"", ""усім"", ""без обмежень"", ""для всіх спеціальностей"", ""для всіх бажаючих"".
+  - Set ""needFix"": false if the field is empty, null, or contains only general phrases like ""пїЅпїЅпїЅ пїЅпїЅпїЅ"", ""пїЅпїЅпїЅ"", ""пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"", ""пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"", ""пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"".
 
 ### HANDLING EMPTY FIELDS:
 - If a field is missing, null, or empty in the input, return `null` for single values (strings/integers) and an empty array `[]` for lists. Do not invent data.
@@ -85,9 +85,9 @@ You are a data normalization engine for university curriculum systems. Your goal
    - **Branches**: Array of strings starting with a Latin letter (A, B, C...) + title.
    - **Specialitys**: Array of strings with codes of 2-3 digits + title.
    - **EducationalPrograms**: Array of strings with codes containing dots (e.g., ""014.04"").
-3. **Department**: Return only the Department's name, capitalized. Remove prefixes like ""Кафедра"".
-4. **Teachers**: Return an array of strings. Keep the FULL NAME (Last, First, Middle). Remove academic titles (проф., доц., к.т.н., PhD, etc.).
-5. **DegreeLevelId**: Map input: ""Бакалавр"" -> 1, ""Магістр"" -> 2, ""Аспірант"" -> 3. Otherwise `null`.
+3. **Department**: Return only the Department's name, capitalized. Remove prefixes like ""пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"".
+4. **Teachers**: Return an array of strings. Keep the FULL NAME (Last, First, Middle). Remove academic titles (пїЅпїЅпїЅпїЅ., пїЅпїЅпїЅ., пїЅ.пїЅ.пїЅ., PhD, etc.).
+5. **DegreeLevelId**: Map input: ""пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"" -> 1, ""пїЅпїЅпїЅпїЅпїЅпїЅ"" -> 2, ""пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"" -> 3. Otherwise `null`.
 6. **Courses**: Array of integers (e.g., [1, 2, 3]).
 7. **IsEven**: If only even semesters mentioned -> 1; only odd -> 0; both or unspecified -> null.
 8. **DisciplineTopics**: Convert the text list into a clean array of strings (one per topic).
@@ -98,6 +98,56 @@ You are a data normalization engine for university curriculum systems. Your goal
 Return ONLY a valid JSON array of objects. No markdown, no conversational filler, no explanations.
 ";
 
+    private const string EducationalProgramSystemPrompt = @"
+You are a university curriculum expert. Your task is to process raw data from an Educational Program (OP) document and normalize it into a structured JSON format.
+
+### Input Data Format:
+{
+  ""nameEducationalProgram"": ""..."",
+  ""degree"": ""..."",
+  ""studyForm"": ""..."",
+  ""goals"": ""..."",
+  ""specialityAndSpecializationWithDetails"": ""..."",
+  ""subject"": ""..."",
+  ""mainDisciplines"": [ { ""code"": ""..."", ""name"": ""..."", ""loans"": ""..."", ""control"": ""..."", ""semester"": ""..."" } ],
+  ""selectiveDisciplines"": [ { ""code"": ""..."", ""name"": ""..."", ""loans"": ""..."", ""control"": ""..."", ""semester"": ""..."" } ]
+}
+
+### Output MUST be a valid JSON object with the following structure:
+{
+  ""NameEducationalProgram"": ""string"",
+  ""Degree"": ""string"",
+  ""StudyForm"": ""string"",
+  ""Subject"": ""string"",
+  ""Speciality"": ""string (code + title, e.g., '122 РљРѕРјРї'СЋС‚РµСЂРЅС– РЅР°СѓРєРё')"",
+  ""Specialization"": ""string or null"",
+  ""Goals"": ""string"",
+  ""MainDisciplines"": [
+    {
+      ""Code"": ""string"",
+      ""Name"": ""string (normalized, clean title)"",
+      ""Loans"": ""string (number as string)"",
+      ""Control"": ""string"",
+      ""Semester"": ""string (single semester number)""
+    }
+  ],
+  ""SelectiveDisciplineBySemestr"": [int] (array representing discipline count per semester, e.g., [0,0,1,2,2])
+}
+
+### NORMALIZATION RULES:
+1. **Name/Title**: Ensure all text is cleaned of line breaks (\n) and redundant whitespace.
+2. **MainDisciplines splitting**: If a discipline has multiple semesters (e.g., ""1, 2, 4""), create a separate record for each semester with the same Code, Name, Loans, and Control.
+3. **SelectiveDisciplineBySemestr calculation**:
+   - Count the number of selective disciplines for each semester based on the 'selectiveDisciplines' input.
+   - The array index corresponds to (Semester - 1).
+   - If semesters are missing, fill with 0.
+   - The length should cover the maximum semester mentioned (e.g., if max is 8, array length is 8).
+4. **Speciality/Specialization**: Extract these from 'specialityAndSpecializationWithDetails'.
+5. **Text Cleaning**: For all text fields, fix broken words and ensure professional prose.
+
+Return ONLY valid JSON.
+";
+
     public GeminiService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
@@ -105,6 +155,62 @@ Return ONLY a valid JSON array of objects. No markdown, no conversational filler
         _configuration = configuration;
         _apiKey = _configuration["Gemini:ApiKey"] ?? "";
         _apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
+    }
+
+    public async Task<GeminiEducationalProgramDto?> ProcessEducationalProgramAsync(EducationalProgramWordContentDto content)
+    {
+        var inputJson = JsonSerializer.Serialize(content);
+        var prompt = $"{EducationalProgramSystemPrompt}\n\nInput Data:\n{inputJson}";
+
+        var requestBody = new
+        {
+            contents = new[]
+            {
+                new
+                {
+                    parts = new[]
+                    {
+                        new { text = prompt }
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                response_mime_type = "application/json"
+            }
+        };
+
+        var response = await _httpClient.PostAsJsonAsync(_apiUrl, requestBody);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Gemini API error: {response.StatusCode} - {errorContent}");
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
+        var jsonResponse = result?.Candidates?[0]?.Content?.Parts?[0]?.Text;
+
+        if (string.IsNullOrWhiteSpace(jsonResponse))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<GeminiEducationalProgramDto>(jsonResponse, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+        catch (JsonException)
+        {
+            var cleanedJson = CleanJson(jsonResponse);
+            return JsonSerializer.Deserialize<GeminiEducationalProgramDto>(cleanedJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
     }
 
     public async Task<List<GeminiSelectiveDisciplineDto>> ProcessSelectiveDisciplinesAsync(List<SelectiveDisciplineWordContentDto> batch)
