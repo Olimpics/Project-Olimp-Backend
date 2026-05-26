@@ -116,6 +116,29 @@ public class DisciplineTabService : IDisciplineTabService
     {
         var context = await DisciplineAvailabilityService.BuildAvailabilityContext(dto.StudentId, _context);
         if (context == null) return (null, $"Student not found {dto.StudentId}");
+
+        // Check for open DisciplineChoicePeriod
+        var now = DateOnly.FromDateTime(DateTime.UtcNow);
+        var studentDeptId = context.Student.Group.EducationalProgram.Speciality.DepartmentId;
+        var studentDegreeId = context.Student.Group.EducationalProgram.DegreeId;
+        var studentIsShort = context.Student.Group.EducationalProgram.IsAccelerated;
+        var studentSpecialityId = context.Student.Group.EducationalProgram.SpecialityId;
+
+        var activePeriods = await _context.DisciplineChoicePeriods
+            .Where(p => !p.IsClose && 
+                        p.StartDate <= now && 
+                        p.EndDate >= now &&
+                        p.DepartmentId == studentDeptId &&
+                        p.DegreeLevelId == studentDegreeId &&
+                        p.IsShort == studentIsShort)
+            .ToListAsync();
+
+        var period = activePeriods.FirstOrDefault(p => p.SpecialityId == studentSpecialityId) 
+                     ?? activePeriods.FirstOrDefault(p => p.SpecialityId == null);
+
+        if (period == null)
+            return (null, "No active choice period found for your program and department.");
+
         if (dto.Semestr != 0 && dto.Semestr != 1) return (null, "Semestr must be 0 or 1");
 
         int targetCourse = context.CurrentCourse + 1;

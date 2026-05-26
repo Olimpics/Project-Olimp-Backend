@@ -13,5 +13,7 @@ public partial class Normative
 
     public Guid IdNormative { get; set; }
 
+    public Guid CatalogId { get; set; }
+
     public virtual EducationalDegree DegreeLevel { get; set; } = null!;
 }

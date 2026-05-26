@@ -12,6 +12,9 @@ namespace OlimpBack.Application.DTO
         public bool IsClose { get; set; }
         public Guid? FacultyId { get; set; }
         public Guid? DepartmentId { get; set; }
+        public Guid? SpecialityId { get; set; }
+        public Guid CatalogYearId { get; set; }
+        public bool IsForBothSemester { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime? EndOfCheckPeriod { get; set; }
@@ -22,9 +25,11 @@ namespace OlimpBack.Application.DTO
         public sbyte PeriodType { get; set; }
         public sbyte PeriodCourse { get; set; }
         public Guid DegreeLevelId { get; set; }
-        public bool isShort { get; set; }
-        public Guid? FacultyId { get; set; }
+        public bool IsShort { get; set; }
         public Guid? DepartmentId { get; set; }
+        public Guid? SpecialityId { get; set; }
+        public Guid CatalogYearId { get; set; }
+        public bool IsForBothSemester { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime? EndOfCheckPeriod { get; set; }
@@ -37,6 +42,9 @@ namespace OlimpBack.Application.DTO
         public sbyte PeriodCourse { get; set; }
         public Guid DegreeLevelId { get; set; }
         public bool isShort { get; set; }
+        public Guid? SpecialityId { get; set; }
+        public Guid CatalogYearId { get; set; }
+        public bool IsForBothSemester { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime? EndOfCheckPeriod { get; set; }

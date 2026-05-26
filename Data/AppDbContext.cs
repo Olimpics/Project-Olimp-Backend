@@ -782,6 +782,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdDisciplineChoicePeriod)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idDisciplineChoicePeriod");
+            entity.Property(e => e.CatalogYearId).HasColumnName("catalog_year_id");
             entity.Property(e => e.DegreeLevelId).HasColumnName("degreeLevel_id");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
             entity.Property(e => e.EndDate).HasColumnName("endDate");
@@ -789,14 +790,23 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsClose)
                 .HasDefaultValue(false)
                 .HasColumnName("is_close");
-            entity.Property(e => e.IsForOnSemestr)
+            entity.Property(e => e.IsForBothSemester)
                 .HasDefaultValue(true)
-                .HasColumnName("isForOnSemestr");
+                .HasColumnName("isForBothSemestr");
+            entity.Property(e => e.IsShort)
+                .HasDefaultValue(false)
+                .HasColumnName("is_short");
             entity.Property(e => e.PeriodCourse).HasColumnName("periodCourse");
             entity.Property(e => e.PeriodType)
                 .HasColumnType("bit(1)")
                 .HasColumnName("periodType");
+            entity.Property(e => e.SpecialityId).HasColumnName("speciality_id");
             entity.Property(e => e.StartDate).HasColumnName("startDate");
+
+            entity.HasOne(d => d.CatalogYear).WithMany(p => p.DisciplineChoicePeriods)
+                .HasForeignKey(d => d.CatalogYearId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("disciplinechoiceperiod_catalogyear_fk");
 
             entity.HasOne(d => d.DegreeLevel).WithMany(p => p.DisciplineChoicePeriods)
                 .HasForeignKey(d => d.DegreeLevelId)
@@ -1153,6 +1163,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdNormative)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idNormative");
+            entity.Property(e => e.CatalogId).HasColumnName("catalog_id");
             entity.Property(e => e.Count).HasColumnName("count");
             entity.Property(e => e.IsFaculty)
                 .HasDefaultValue(false)
@@ -1508,7 +1519,6 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("need_fix");
             entity.Property(e => e.RecommendedEp).HasColumnName("recommended_ep");
-            entity.Property(e => e.SimilarId).HasColumnName("similar_id");
             entity.Property(e => e.TypeId).HasColumnName("type_id");
             entity.Property(e => e.TypeOfControlId).HasColumnName("type_of_control_id");
 
@@ -1629,6 +1639,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Avail)
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
+            entity.Property(e => e.DocumentedGroupId).HasColumnName("documented_group_id");
             entity.Property(e => e.EdboCode)
                 .HasColumnType("character varying")
                 .HasColumnName("edboCode");
@@ -1700,7 +1711,10 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.EducationalProgram).WithMany(p => p.StudentGroups)
                 .HasForeignKey(d => d.EducationalProgramId)
                 .HasConstraintName("studentgroup_educationalprogram_fk");
-       
+
+            entity.HasOne(d => d.StudyForm).WithMany(p => p.StudentGroups)
+                .HasForeignKey(d => d.StudyFormId)
+                .HasConstraintName("studentgroup_studyform_fk");
         });
 
         modelBuilder.Entity<StudyForm>(entity =>

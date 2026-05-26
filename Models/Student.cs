@@ -40,6 +40,8 @@ public partial class Student
 
     public string? ThirdName { get; set; }
 
+    public Guid DocumentedGroupId { get; set; }
+
     public virtual ICollection<AccountingJournal> AccountingJournals { get; set; } = new List<AccountingJournal>();
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();

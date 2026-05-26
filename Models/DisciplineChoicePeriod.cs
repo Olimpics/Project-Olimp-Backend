@@ -24,7 +24,15 @@ public partial class DisciplineChoicePeriod
 
     public Guid DegreeLevelId { get; set; }
 
-    public bool IsForOnSemestr { get; set; }
+    public bool IsForBothSemester { get; set; }
+
+    public Guid? SpecialityId { get; set; }
+
+    public bool IsShort { get; set; }
+
+    public Guid CatalogYearId { get; set; }
+
+    public virtual CatalogYear CatalogYear { get; set; } = null!;
 
     public virtual EducationalDegree DegreeLevel { get; set; } = null!;
 
