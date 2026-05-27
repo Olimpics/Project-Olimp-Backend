@@ -156,6 +156,25 @@ namespace OlimpBack.Controllers
             }
         }
 
+        [HttpPost("departments")]
+        [Consumes("multipart/form-data")]
+        //[RequirePermission(RbacPermissions.DepartmentsCreate)]
+        public async Task<IActionResult> UploadDepartments(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            try
+            {
+                var result = await _importService.ImportDepartmentsAsync(file);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Import failed", error = ex.Message });
+            }
+        }
+
         [HttpGet("selective-disciplines/file/{fileName}")]
         [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<IActionResult> GetSelectiveDisciplineFile(string fileName)

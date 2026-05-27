@@ -115,6 +115,64 @@ public class ExcelProcessingService : IExcelProcessingService
         return rows;
     }
 
+    public async Task<List<DepartmentExcelRowDto>> ExtractDepartmentsAsync(IFormFile file)
+    {
+        var rows = new List<DepartmentExcelRowDto>();
+
+        using (var stream = file.OpenReadStream())
+        {
+            using (var spreadsheetDocument = SpreadsheetDocument.Open(stream, false))
+            {
+                var workbookPart = spreadsheetDocument.WorkbookPart;
+                if (workbookPart == null) return rows;
+
+                var worksheetPart = workbookPart.WorksheetParts.FirstOrDefault();
+                if (worksheetPart == null) return rows;
+
+                var sheetData = worksheetPart.Worksheet.Elements<SheetData>().FirstOrDefault();
+                if (sheetData == null) return rows;
+
+                var sharedStringTablePart = workbookPart.SharedStringTablePart;
+
+                string? currentFaculty = null;
+                var excelRows = sheetData.Elements<Row>();
+
+                foreach (var row in excelRows)
+                {
+                    var cells = row.Elements<Cell>().ToList();
+                    if (cells.Count < 2) continue;
+
+                    var col1 = GetCellValue(cells[0], sharedStringTablePart);
+                    var col2 = GetCellValue(cells[1], sharedStringTablePart);
+
+                    if (string.IsNullOrWhiteSpace(col1) && string.IsNullOrWhiteSpace(col2))
+                        continue;
+
+                    if (col1?.Length == 1 && !string.IsNullOrWhiteSpace(col2))
+                    {
+                        // Faculty row
+                        currentFaculty = col2.Trim();
+                    }
+                    else if (col1?.Length == 3 && !string.IsNullOrWhiteSpace(col2))
+                    {
+                        // Department row
+                        if (currentFaculty != null)
+                        {
+                            rows.Add(new DepartmentExcelRowDto
+                            {
+                                FacultyName = currentFaculty,
+                                DepartmentName = col2.Trim(),
+                                Abbreviation = col1.Trim()
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        return rows;
+    }
+
     private string? GetCellValue(Cell cell, SharedStringTablePart? sharedStringTablePart)
     {
         if (cell == null) return null;

@@ -8,6 +8,7 @@ public interface IExcelProcessingService
 {
     Task<List<GroupExcelRowDto>> ExtractGroupsAsync(IFormFile file);
     Task<List<StudentExcelRowDto>> ExtractStudentsAsync(IFormFile file);
+    Task<List<DepartmentExcelRowDto>> ExtractDepartmentsAsync(IFormFile file);
 }
 
 public class GroupExcelRowDto
@@ -34,4 +35,11 @@ public class StudentExcelRowDto
     public string? IsFunded { get; set; } // Budget/Contract
     public string? Email { get; set; }
     public string? ReportCard { get; set; }
+}
+
+public class DepartmentExcelRowDto
+{
+    public string? FacultyName { get; set; }
+    public string? DepartmentName { get; set; }
+    public string? Abbreviation { get; set; }
 }

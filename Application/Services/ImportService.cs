@@ -718,6 +718,62 @@ public class ImportService : IImportService
         return $"User creation finished. Created: {createdCount}, Errors: {errorCount}";
     }
 
+    public async Task<string> ImportDepartmentsAsync(IFormFile file)
+    {
+        var excelRows = await _excelService.ExtractDepartmentsAsync(file);
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        foreach (var row in excelRows)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(row.FacultyName) || string.IsNullOrWhiteSpace(row.DepartmentName))
+                    continue;
+
+                // 1. Lookup Faculty
+                var faculty = await _context.Faculties
+                    .FirstOrDefaultAsync(f => f.NameFaculty.ToLower() == row.FacultyName.ToLower());
+
+                if (faculty == null)
+                    throw new Exception($"Faculty '{row.FacultyName}' not found");
+
+                // 2. Check for existing Department
+                var existingDept = await _context.Departments
+                    .FirstOrDefaultAsync(d => d.NameDepartment.ToLower() == row.DepartmentName.ToLower() && d.FacultyId == faculty.IdFaculty);
+
+                if (existingDept != null)
+                {
+                    existingDept.Abbreviation = row.Abbreviation ?? existingDept.Abbreviation;
+                    existingDept.Avail = true;
+                }
+                else
+                {
+                    var department = new Department
+                    {
+                        IdDepartment = Guid.NewGuid(),
+                        NameDepartment = row.DepartmentName,
+                        Abbreviation = row.Abbreviation ?? "",
+                        FacultyId = faculty.IdFaculty,
+                        Avail = true
+                    };
+                    _context.Departments.Add(department);
+                }
+
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error importing department {row.DepartmentName}");
+                errorCount++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return $"Department import finished. Success: {successCount}, Errors: {errorCount}";
+    }
+
     private async Task SaveToDatabaseAsync(GeminiSelectiveDisciplineDto dto, Guid catalogId, bool isFaculty, string originalFilePath)
     {
         // Generate unique name
