@@ -29,7 +29,7 @@ public partial class EducationalProgram
 
     public Guid DegreeId { get; set; }
 
-    public Guid SpecializationId { get; set; }
+    public Guid? SpecializationId { get; set; }
 
     public bool NeedFix { get; set; }
 
@@ -55,9 +55,9 @@ public partial class EducationalProgram
 
     public virtual Speciality Speciality { get; set; } = null!;
 
-    public virtual Specialization Specialization { get; set; } = null!;
+    public virtual Specialization? Specialization { get; set; }
 
     public virtual ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
 
-    public virtual StudyForm? StudyForm { get; set; }
+    public virtual StudyForm StudyForm { get; set; } = null!;
 }

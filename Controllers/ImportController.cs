@@ -158,7 +158,7 @@ namespace OlimpBack.Controllers
 
         [HttpPost("departments")]
         [Consumes("multipart/form-data")]
-        //[RequirePermission(RbacPermissions.DepartmentsCreate)]
+        [RequirePermission(RbacPermissions.DepartmentsCreate)]
         public async Task<IActionResult> UploadDepartments(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -167,6 +167,44 @@ namespace OlimpBack.Controllers
             try
             {
                 var result = await _importService.ImportDepartmentsAsync(file);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Import failed", error = ex.Message });
+            }
+        }
+
+        [HttpPost("branches")]
+        [Consumes("multipart/form-data")]
+        //[RequirePermission(RbacPermissions.BranchesCreate)] // Check if this permission exists or use a generic one
+        public async Task<IActionResult> UploadBranches(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            try
+            {
+                var result = await _importService.ImportBranchesAsync(file);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Import failed", error = ex.Message });
+            }
+        }
+
+        [HttpPost("specialities")]
+        [Consumes("multipart/form-data")]
+        //[RequirePermission(RbacPermissions.SpecialitiesCreate)]
+        public async Task<IActionResult> UploadSpecialities(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty");
+
+            try
+            {
+                var result = await _importService.ImportSpecialitiesAsync(file);
                 return Ok(new { message = result });
             }
             catch (Exception ex)

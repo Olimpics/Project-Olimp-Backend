@@ -25,7 +25,7 @@ public partial class Speciality
 
     public Guid IdSpeciality { get; set; }
 
-    public virtual Branch Branch { get; set; } = null!;
+    public virtual Branch? Branch { get; set; }
 
     public virtual Department Department { get; set; } = null!;
 

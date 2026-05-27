@@ -774,6 +774,140 @@ public class ImportService : IImportService
         return $"Department import finished. Success: {successCount}, Errors: {errorCount}";
     }
 
+    public async Task<string> ImportBranchesAsync(IFormFile file)
+    {
+        var excelRows = await _excelService.ExtractBranchesAsync(file);
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        foreach (var row in excelRows)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(row.Name)) continue;
+
+                var existingBranch = await _context.Branches
+                    .FirstOrDefaultAsync(b => b.Name.ToLower() == row.Name.ToLower());
+
+                if (existingBranch == null)
+                {
+                    _context.Branches.Add(new Branch
+                    {
+                        IdBranch = Guid.NewGuid(),
+                        Code = row.Code,
+                        Name = row.Name,
+                        Avail = true
+                    });
+                    successCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error importing branch {row.Name}");
+                errorCount++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return $"Branch import finished. Success: {successCount}, Errors: {errorCount}";
+    }
+
+    public async Task<string> ImportSpecialitiesAsync(IFormFile file)
+    {
+        var excelRows = await _excelService.ExtractSpecialitiesAsync(file);
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        foreach (var row in excelRows)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(row.SpecialityRaw)) continue;
+
+                // 1. Process Branch
+                Guid branchId = Guid.Empty;
+                if (!string.IsNullOrWhiteSpace(row.BranchRaw))
+                {
+                    var branchParts = row.BranchRaw.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                    string? bName = branchParts.Length == 2 ? branchParts[1] : branchParts[0];
+
+                    var branch = await _context.Branches
+                        .FirstOrDefaultAsync(b => b.Name.ToLower() == bName.ToLower());
+                    branchId = branch?.IdBranch ?? Guid.Empty;
+                }
+
+                // 2. Process Specialty
+                var specParts = row.SpecialityRaw.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                if (specParts.Length < 2) continue;
+
+                string sCode = specParts[0];
+                string sName = specParts[1];
+
+                var existingSpec = await _context.Specialities
+                    .FirstOrDefaultAsync(s => s.Name.ToLower() == sName.ToLower());
+
+                Guid specialityId;
+                if (existingSpec == null)
+                {
+                    specialityId = Guid.NewGuid();
+                    _context.Specialities.Add(new Speciality
+                    {
+                        IdSpeciality = specialityId,
+                        Code = sCode,
+                        Name = sName,
+                        BranchId = branchId,
+                        DepartmentId = Guid.Empty, // Requires manual assignment or logic
+                        Avail = true
+                    });
+                }
+                else
+                {
+                    specialityId = existingSpec.IdSpeciality;
+                    existingSpec.Code = sCode;
+                    existingSpec.BranchId = branchId;
+                    existingSpec.Avail = true;
+                }
+
+                // 3. Process Specialization
+                if (!string.IsNullOrWhiteSpace(row.SpecializationRaw))
+                {
+                    var szParts = row.SpecializationRaw.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                    if (szParts.Length == 2)
+                    {
+                        string szCode = szParts[0];
+                        string szName = szParts[1];
+
+                        var existingSz = await _context.Specializations
+                            .FirstOrDefaultAsync(sz => sz.Name.ToLower() == szName.ToLower());
+
+                        if (existingSz == null)
+                        {
+                            _context.Specializations.Add(new Specialization
+                            {
+                                IdSpecialization = Guid.NewGuid(),
+                                Code = szCode,
+                                Name = szName,
+                                Avail = true
+                            });
+                        }
+                    }
+                }
+
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error importing speciality row: {row.SpecialityRaw}");
+                errorCount++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return $"Speciality import finished. Success: {successCount}, Errors: {errorCount}";
+    }
+
     private async Task SaveToDatabaseAsync(GeminiSelectiveDisciplineDto dto, Guid catalogId, bool isFaculty, string originalFilePath)
     {
         // Generate unique name

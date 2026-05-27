@@ -11,13 +11,13 @@ public partial class UserRole
 
     public Guid RoleId { get; set; }
 
-    public Guid FacultyId { get; set; }
+    public Guid? FacultyId { get; set; }
 
-    public Guid DepartmentId { get; set; }
+    public Guid? DepartmentId { get; set; }
 
-    public virtual Department Department { get; set; } = null!;
+    public virtual Department? Department { get; set; }
 
-    public virtual Faculty Faculty { get; set; } = null!;
+    public virtual Faculty? Faculty { get; set; }
 
     public virtual Role Role { get; set; } = null!;
 
