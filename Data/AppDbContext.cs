@@ -792,7 +792,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("is_close");
             entity.Property(e => e.IsForBothSemester)
                 .HasDefaultValue(true)
-                .HasColumnName("isForBothSemestr");
+                .HasColumnName("isForBothSemester");
             entity.Property(e => e.IsShort)
                 .HasDefaultValue(false)
                 .HasColumnName("is_short");

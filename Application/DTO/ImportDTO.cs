@@ -99,6 +99,8 @@ namespace OlimpBack.Application.DTO
         public Guid CatalogYearMainId { get; set; }
         [Required]
         public bool IsAccelerated { get; set; }
+        [Required]
+        public int StudyTurm { get; set; }
     }
 
     public class EducationalProgramWordContentDto
@@ -110,6 +112,7 @@ namespace OlimpBack.Application.DTO
         public string? SpecialityAndSpecializationWithDetails { get; set; }
         public string? Subject { get; set; }
         public List<DisciplineRowDto> MainDisciplines { get; set; } = new();
+        public List<string> MainDisciplinesNeedFix { get; set; } = new();
         public List<DisciplineRowDto> SelectiveDisciplines { get; set; } = new();
     }
 
@@ -132,15 +135,16 @@ namespace OlimpBack.Application.DTO
         public string? Specialization { get; set; }
         public string? Goals { get; set; }
         public List<GeminiMainDisciplineDto> MainDisciplines { get; set; } = new();
+        public List<GeminiMainDisciplineDto> SelectiveDisciplines { get; set; } = new();
         public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
     }
 
     public class GeminiMainDisciplineDto
     {
-        public string? Code { get; set; }
+        public string Code { get; set; }
         public string? Name { get; set; }
-        public string? Loans { get; set; }
+        public int? Loans { get; set; }
         public string? Control { get; set; }
-        public string? Semester { get; set; }
+        public int? Semester { get; set; }
     }
 }

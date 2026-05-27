@@ -60,7 +60,7 @@ namespace OlimpBack.Controllers
 
         [HttpPost("educational-programs")]
         [Consumes("multipart/form-data")]
-        [RequirePermission(RbacPermissions.EducationalProgramsCreate)]
+        //[RequirePermission(RbacPermissions.EducationalProgramsCreate)]
         public async Task<IActionResult> UploadEducationalPrograms([FromForm] EducationalProgramImportRequestDto dto)
         {
             if (dto.WordFile == null || dto.WordFile.Length == 0)

@@ -119,41 +119,46 @@ public class ImportService : IImportService
             {
                 IdEducationalProgram = Guid.NewGuid(),
                 NameEducationalProgram = geminiResult.NameEducationalProgram ?? "Unknown",
-                DegreeId = degree?.IdEducationalDegree ?? Guid.Empty,
+                DegreeId = degree?.Ideducationaldegree ?? Guid.Empty,
                 SpecialityId = speciality?.IdSpeciality ?? Guid.Empty,
                 SpecializationId = specialization?.IdSpecialization ?? Guid.Empty,
-                StudyFormId = studyForm?.IdStudyForm,
+                StudyFormId = studyForm.IdStudyForm,
                 CatalogId = request.CatalogYearMainId,
                 IsAccelerated = request.IsAccelerated,
+                StudyTurm = request.StudyTurm.ToString(),
                 Goals = geminiResult.Goals ?? "",
                 Subject = geminiResult.Subject ?? "",
                 NameDock = pdfFileName,
                 SelectiveDisciplineBySemestr = geminiResult.SelectiveDisciplineBySemestr ?? new List<int>(),
                 MinUniSelectiveDisciplineBySemestr = new List<int>(), // Default
                 Accreditation = 0,
-                AccreditationType = "Unknown",
-                TheoreticalContent = "",
-                Methodics = "",
-                Instrument = ""
+                AccreditationType = "Unknown"
             };
 
             _context.EducationalPrograms.Add(ep);
 
             foreach (var md in geminiResult.MainDisciplines)
             {
-                if (!int.TryParse(md.Semester, out var sem)) continue;
-                if (!double.TryParse(md.Loans?.Replace(",", "."), out var loans)) loans = 0;
-
+                if (md.Semester == null) continue;
+                int sem = md.Semester.Value;
+                int loans = md.Loans ?? 0;
+                
+                Guid TypeOfControl = Guid.Empty;
+                if (!string.IsNullOrEmpty(md.Control))
+                {
+                    var dept = await _context.TypeOfControls
+                        .FirstOrDefaultAsync(d => d.Type!= null && d.Type.Contains(md.Control));
+                    TypeOfControl = dept?.IdTypeOfControl ?? Guid.Empty;
+                }
                 _context.MainDisciplines.Add(new MainDiscipline
                 {
                     IdMainDisciplines = Guid.NewGuid(),
                     CodeMainDisciplines = md.Code,
                     NameMainDisciplines = md.Name ?? "Unknown",
                     Semestr = sem,
-                    Loans = (int)loans, // Database might be int
-                    Control = md.Control ?? "",
-                    EducationalProgramId = ep.IdEducationalProgram,
-                    CatalogYearId = request.CatalogYearMainId
+                    Loans = loans,
+                    TypeOfControl = TypeOfControl,
+                    EducationalProgramId = ep.IdEducationalProgram
                 });
             }
 

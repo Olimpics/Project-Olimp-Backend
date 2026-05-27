@@ -110,14 +110,15 @@ You are a university curriculum expert. Your task is to process raw data from an
   ""specialityAndSpecializationWithDetails"": ""..."",
   ""subject"": ""..."",
   ""mainDisciplines"": [ { ""code"": ""..."", ""name"": ""..."", ""loans"": ""..."", ""control"": ""..."", ""semester"": ""..."" } ],
+  ""mainDisciplinesNeedFix"": [ ""string1 | string2 | ..."", ""..."" ],
   ""selectiveDisciplines"": [ { ""code"": ""..."", ""name"": ""..."", ""loans"": ""..."", ""control"": ""..."", ""semester"": ""..."" } ]
 }
 
 ### Output MUST be a valid JSON object with the following structure:
 {
   ""NameEducationalProgram"": ""string"",
-  ""Degree"": ""string"",
-  ""StudyForm"": ""string"",
+  ""Degree"": ""string (single word: 'Бакалавр', 'Магістр', or 'Аспірант')"",
+  ""StudyForm"": ""string (MUST be one of: 'Денна', 'Заочна', 'Дистанційна', 'Вечірня', 'Дуальна')"",
   ""Subject"": ""string"",
   ""Speciality"": ""string (code + title, e.g., '122 Комп'ютерні науки')"",
   ""Specialization"": ""string or null"",
@@ -126,24 +127,48 @@ You are a university curriculum expert. Your task is to process raw data from an
     {
       ""Code"": ""string"",
       ""Name"": ""string (normalized, clean title)"",
-      ""Loans"": ""string (number as string)"",
+      ""Loans"": int or null,
       ""Control"": ""string"",
-      ""Semester"": ""string (single semester number)""
+      ""Semester"": int or null
     }
   ],
-  ""SelectiveDisciplineBySemestr"": [int] (array representing discipline count per semester, e.g., [0,0,1,2,2])
+  ""SelectiveDisciplines"": [
+    {
+      ""Code"": ""string"",
+      ""Name"": ""string (normalized, clean title)"",
+      ""Loans"": int or null,
+      ""Control"": ""string"",
+      ""Semester"": int or null
+    }
+  ],
+  ""SelectiveDisciplineBySemestr"": [int] (array representing elective discipline count per semester)
 }
 
 ### NORMALIZATION RULES:
-1. **Name/Title**: Ensure all text is cleaned of line breaks (\n) and redundant whitespace.
-2. **MainDisciplines splitting**: If a discipline has multiple semesters (e.g., ""1, 2, 4""), create a separate record for each semester with the same Code, Name, Loans, and Control.
-3. **SelectiveDisciplineBySemestr calculation**:
+1. **Name/Title Cleaning**: 
+   - **Educational Program Name**: Extract ONLY the specific name of the program. Remove boilerplate prefixes like ""Освітньо-професійна програма"", ""Освітньо-наукова програма"", or quotes if they wrap the entire name. 
+     - *Example*: ""Освітньо-професійна програма «Технології медичної діагностики та лікування»"" -> ""Технології медичної діагностики та лікування"".
+   - **Discipline Names**: Clean redundant spaces, line breaks, and ensure only the course title remains.
+2. **MainDisciplinesNeedFix Processing**: 
+   - These are raw strings from rows where column alignment failed (e.g., the Name bled into the Loans field). The fields are separated by "" | "". 
+   - You MUST intelligently parse these strings to restore the correct Code, Name, Loans, Control, and Semester.
+   - After fixing, include them in the `MainDisciplines` output array.
+3. **Disciplines splitting (Main and Selective)**: 
+   - If a discipline (main or selective) has multiple semesters (e.g., ""1, 2, 4""), create a separate record for each semester with the same Code, Name, and Loans.
+   - **Assessment (Control) Splitting**: If multiple assessment types are listed (e.g., ""екзамен, залік"") corresponding to multiple semesters, you MUST pair them correctly. 
+     - *Example*: Name: ""Math"", Semester: ""1, 2"", Control: ""екзамен залік"" -> Record 1: Semester: 1, Control: ""екзамен""; Record 2: Semester: 2, Control: ""залік"".
+     - If only one assessment type is listed for multiple semesters, use it for all of them.
+4. **SelectiveDisciplineBySemestr calculation**:
    - Count the number of selective disciplines for each semester based on the 'selectiveDisciplines' input.
    - The array index corresponds to (Semester - 1).
-   - If semesters are missing, fill with 0.
-   - The length should cover the maximum semester mentioned (e.g., if max is 8, array length is 8).
-4. **Speciality/Specialization**: Extract these from 'specialityAndSpecializationWithDetails'.
-5. **Text Cleaning**: For all text fields, fix broken words and ensure professional prose.
+   - The length of this array MUST be exactly equal to the MAXIMUM semester number found in the final processed 'MainDisciplines'.
+   - If a semester has no elective courses, fill with 0.
+   - Example: If max semester in 'MainDisciplines' is 3, and there are 5 elective courses in semester 2, the array should be [0, 5, 0].
+5. **Speciality/Specialization**: Extract these from 'specialityAndSpecializationWithDetails'.
+6. **Text Cleaning**: For all text fields, fix broken words (e.g., ""лабора- торних"" -> ""лабораторних"") and ensure professional prose.
+7. **Degree**: Return a single word. If the text mentions a master (магістр), return ""Магістр"". If bachelor (бакалавр) -> ""Бакалавр"". If postgraduate (аспірант) -> ""Аспірант"".
+8. **Numeric Fields**: 'Loans' and 'Semester' MUST be returned as integers. Convert strings like ""3,0"" or ""3.0"" to the integer 3.
+9. **Column Separation (CRITICAL)**: Treat each field in the output objects as atomic. Ensure that `SelectiveDisciplines` are processed with the exact same rigor as `MainDisciplines`.
 
 Return ONLY valid JSON.
 ";
