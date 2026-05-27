@@ -79,6 +79,27 @@ namespace OlimpBack.Controllers
             }
         }
 
+        [HttpPost("educational-programs/batch")]
+        [Consumes("multipart/form-data")]
+        //[RequirePermission(RbacPermissions.EducationalProgramsCreate)]
+        public async Task<IActionResult> UploadEducationalProgramsBatch([FromForm] EducationalProgramBatchImportRequestDto dto)
+        {
+            if (dto.Archive == null || dto.Archive.Length == 0)
+                return BadRequest("Archive is empty");
+
+            try
+            {
+                // Note: This process may take a long time due to 5-minute pauses between batches.
+                // In a production environment, this should be handled by a background task.
+                var result = await _importService.ImportEducationalProgramBatchAsync(dto);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Batch import failed", error = ex.Message });
+            }
+        }
+
         [HttpPost("groups")]
         [Consumes("multipart/form-data")]
         [RequirePermission(RbacPermissions.GroupsCreate)]

@@ -177,6 +177,182 @@ public class ImportService : IImportService
         }
     }
 
+    public async Task<string> ImportEducationalProgramBatchAsync(EducationalProgramBatchImportRequestDto request)
+    {
+        var tempUnzipPath = Path.Combine(_epUploadPath, Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempUnzipPath);
+
+        try
+        {
+            // 1. Unzip
+            using (var stream = request.Archive.OpenReadStream())
+            using (var archive = new ZipArchive(stream))
+            {
+                archive.ExtractToDirectory(tempUnzipPath);
+            }
+
+            // Archive structure: each folder is an EP with .docx and .pdf
+            var folders = Directory.GetDirectories(tempUnzipPath, "*", SearchOption.AllDirectories);
+            var epData = new List<(string folderPath, string wordFile, string pdfFile)>();
+
+            foreach (var folder in folders)
+            {
+                var wordFile = Directory.GetFiles(folder, "*.docx").FirstOrDefault();
+                var pdfFile = Directory.GetFiles(folder, "*.pdf").FirstOrDefault();
+
+                if (wordFile != null && pdfFile != null)
+                {
+                    epData.Add((folder, wordFile, pdfFile));
+                }
+            }
+
+            var batches = epData.Chunk(5);
+            int totalProcessed = 0;
+            int totalErrors = 0;
+
+            foreach (var batch in batches)
+            {
+                var wordContents = new List<(string folderPath, string wordFile, string pdfFile, EducationalProgramWordContentDto content)>();
+
+                foreach (var ep in batch)
+                {
+                    try
+                    {
+                        var content = await _wordService.ExtractEducationalProgramContentAsync(ep.wordFile);
+                        wordContents.Add((ep.folderPath, ep.wordFile, ep.pdfFile, content));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error extracting Word content for {ep.wordFile}");
+                        totalErrors++;
+                    }
+                }
+
+                if (wordContents.Any())
+                {
+                    try
+                    {
+                        var geminiResults = await _geminiService.ProcessEducationalProgramsAsync(wordContents.Select(x => x.content).ToList());
+
+                        for (int i = 0; i < geminiResults.Count; i++)
+                        {
+                            var result = geminiResults[i];
+                            var originalData = wordContents[i];
+
+                            try
+                            {
+                                await SaveEducationalProgramToDatabaseAsync(result, originalData.pdfFile, request);
+                                totalProcessed++;
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"Error saving Educational Program {result.NameEducationalProgram}");
+                                totalErrors++;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error processing Educational Program batch with Gemini");
+                        totalErrors += wordContents.Count;
+                    }
+                }
+
+                // Pause 5 minutes between batches if there are more
+                if (totalProcessed + totalErrors < epData.Count)
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(5));
+                }
+            }
+
+            return $"Batch import finished. Success: {totalProcessed}, Errors: {totalErrors}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in Batch Educational Program Import");
+            throw;
+        }
+        finally
+        {
+            if (Directory.Exists(tempUnzipPath))
+            {
+                Directory.Delete(tempUnzipPath, true);
+            }
+        }
+    }
+
+    private async Task SaveEducationalProgramToDatabaseAsync(GeminiEducationalProgramDto geminiResult, string pdfPath, dynamic request)
+    {
+        var pdfFileName = $"{Guid.NewGuid()}_{Path.GetFileName(pdfPath)}";
+        var finalPdfPath = Path.Combine(_epImportedPath, pdfFileName);
+        File.Copy(pdfPath, finalPdfPath, true);
+
+        // Lookup Degree
+        var degree = await _context.EducationalDegrees
+            .FirstOrDefaultAsync(d => d.NameEducationalDegree.Contains(geminiResult.Degree ?? ""));
+
+        // Lookup Speciality
+        var speciality = await _context.Specialities
+            .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Speciality ?? "") || (geminiResult.Speciality != null && geminiResult.Speciality.Contains(s.Code)));
+
+        // Lookup Specialization (optional)
+        var specialization = await _context.Specializations
+            .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Specialization ?? "") || (geminiResult.Specialization != null && geminiResult.Specialization.Contains(s.Code)));
+
+        // Lookup StudyForm
+        var studyForm = await _context.StudyForms
+            .FirstOrDefaultAsync(sf => sf.NameStudyForm.Contains(geminiResult.StudyForm ?? ""));
+
+        var ep = new EducationalProgram
+        {
+            IdEducationalProgram = Guid.NewGuid(),
+            NameEducationalProgram = geminiResult.NameEducationalProgram ?? "Unknown",
+            DegreeId = degree?.Ideducationaldegree ?? Guid.Empty,
+            SpecialityId = speciality?.IdSpeciality ?? Guid.Empty,
+            SpecializationId = specialization?.IdSpecialization ?? Guid.Empty,
+            StudyFormId = studyForm?.IdStudyForm ?? Guid.Empty,
+            CatalogId = request.CatalogYearMainId,
+            IsAccelerated = request.IsAccelerated,
+            StudyTurm = request.StudyTurm.ToString(),
+            Goals = geminiResult.Goals ?? "",
+            Subject = geminiResult.Subject ?? "",
+            NameDock = pdfFileName,
+            SelectiveDisciplineBySemestr = geminiResult.SelectiveDisciplineBySemestr ?? new List<int>(),
+            MinUniSelectiveDisciplineBySemestr = new List<int>(), // Default
+            Accreditation = 0,
+            AccreditationType = "Unknown"
+        };
+
+        _context.EducationalPrograms.Add(ep);
+
+        foreach (var md in geminiResult.MainDisciplines)
+        {
+            if (md.Semester == null) continue;
+            int sem = md.Semester.Value;
+            int loans = md.Loans ?? 0;
+
+            Guid TypeOfControl = Guid.Empty;
+            if (!string.IsNullOrEmpty(md.Control))
+            {
+                var dept = await _context.TypeOfControls
+                    .FirstOrDefaultAsync(d => d.Type != null && d.Type.Contains(md.Control));
+                TypeOfControl = dept?.IdTypeOfControl ?? Guid.Empty;
+            }
+            _context.MainDisciplines.Add(new MainDiscipline
+            {
+                IdMainDisciplines = Guid.NewGuid(),
+                CodeMainDisciplines = md.Code,
+                NameMainDisciplines = md.Name ?? "Unknown",
+                Semestr = sem,
+                Loans = loans,
+                TypeOfControl = TypeOfControl,
+                EducationalProgramId = ep.IdEducationalProgram
+            });
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<string> ImportSelectiveDisciplinesAsync(SelectiveDisciplineImportRequestDto request)
     {
         var tempUnzipPath = Path.Combine(_uploadPath, Guid.NewGuid().ToString());

@@ -89,6 +89,18 @@ namespace OlimpBack.Application.DTO
         public bool IsFaculty { get; set; }
     }
 
+    public class EducationalProgramBatchImportRequestDto
+    {
+        [Required]
+        public IFormFile Archive { get; set; } = null!;
+        [Required]
+        public Guid CatalogYearMainId { get; set; }
+        [Required]
+        public bool IsAccelerated { get; set; }
+        [Required]
+        public int StudyTurm { get; set; }
+    }
+
     public class EducationalProgramImportRequestDto
     {
         [Required]

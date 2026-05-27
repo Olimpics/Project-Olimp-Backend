@@ -295,6 +295,62 @@ Return ONLY valid JSON.
         }
     }
 
+    public async Task<List<GeminiEducationalProgramDto>> ProcessEducationalProgramsAsync(List<EducationalProgramWordContentDto> batch)
+    {
+        var inputJson = JsonSerializer.Serialize(batch);
+        var prompt = $"{EducationalProgramSystemPrompt}\n\nInput Data:\n{inputJson}\n\nReturn a JSON array of objects.";
+
+        var requestBody = new
+        {
+            contents = new[]
+            {
+                new
+                {
+                    parts = new[]
+                    {
+                        new { text = prompt }
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                response_mime_type = "application/json"
+            }
+        };
+
+        var response = await _httpClient.PostAsJsonAsync(_apiUrl, requestBody);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Gemini API error: {response.StatusCode} - {errorContent}");
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
+        var jsonResponse = result?.Candidates?[0]?.Content?.Parts?[0]?.Text;
+
+        if (string.IsNullOrWhiteSpace(jsonResponse))
+        {
+            return new List<GeminiEducationalProgramDto>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<GeminiEducationalProgramDto>>(jsonResponse, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new List<GeminiEducationalProgramDto>();
+        }
+        catch (JsonException)
+        {
+            var cleanedJson = CleanJson(jsonResponse);
+            return JsonSerializer.Deserialize<List<GeminiEducationalProgramDto>>(cleanedJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new List<GeminiEducationalProgramDto>();
+        }
+    }
+
     private string CleanJson(string json)
     {
         if (json.StartsWith("```json"))
