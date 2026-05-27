@@ -245,6 +245,8 @@ builder.Services.AddAuthentication(options =>
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
+builder.Services.AddScoped<IRoleKindService, RoleKindService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 // TEMPORARY: Redis is disabled for local development until Redis is available.
 // builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 // {

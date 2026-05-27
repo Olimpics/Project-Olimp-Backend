@@ -15,6 +15,12 @@ public partial class Role
 
     public bool IsSystem { get; set; }
 
+    /// <summary>Student role — outside staff hierarchy.</summary>
+    public bool IsStudent { get; set; }
+
+    /// <summary>System administrator — may manage all staff roles and assign student role.</summary>
+    public bool IsAdmin { get; set; }
+
     public virtual ICollection<Approval> Approvals { get; set; } = new List<Approval>();
 
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();

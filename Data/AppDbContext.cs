@@ -1370,6 +1370,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsSystem)
                 .HasDefaultValue(true)
                 .HasColumnName("is_system");
+            entity.Property(e => e.IsStudent)
+                .HasDefaultValue(false)
+                .HasColumnName("is_student");
+            entity.Property(e => e.IsAdmin)
+                .HasDefaultValue(false)
+                .HasColumnName("is_admin");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.ParentRoleId).HasColumnName("parentRoleId");
             entity.Property(e => e.PermissionsMask)
