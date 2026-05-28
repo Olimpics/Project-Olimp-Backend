@@ -13,5 +13,7 @@ public interface IImportService
     Task<string> ImportStudentsAsync(IFormFile file);
     Task<string> CreateStudentUsersAsync(IFormFile file);
     Task<string> ImportDepartmentsAsync(IFormFile file);
+    Task<string> ImportBranchesAsync(IFormFile file);
+    Task<string> ImportSpecialitiesAsync(IFormFile file);
     Task<(byte[] content, string fileName)> GetSelectiveDisciplineFileAsync(string fileName);
 }

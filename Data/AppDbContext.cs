@@ -576,7 +576,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Avail)
                 .HasDefaultValue(false)
                 .HasColumnName("avail");
-            entity.Property(e => e.Code).HasColumnName("code");
+            entity.Property(e => e.Code)
+                .HasColumnType("character varying")
+                .HasColumnName("code");
             entity.Property(e => e.Name)
                 .HasColumnType("character varying")
                 .HasColumnName("name");
@@ -907,11 +909,11 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Specialization).WithMany(p => p.EducationalPrograms)
                 .HasForeignKey(d => d.SpecializationId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("educationalprogram_specialization_fk");
 
             entity.HasOne(d => d.StudyForm).WithMany(p => p.EducationalPrograms)
                 .HasForeignKey(d => d.StudyFormId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("educationalprogram_studyform_fk");
         });
 
@@ -1367,6 +1369,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdRole)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idRole");
+            entity.Property(e => e.IsStudent)
+                .HasDefaultValue(false)
+                .HasColumnName("is_student");
             entity.Property(e => e.IsSystem)
                 .HasDefaultValue(true)
                 .HasColumnName("is_system");
@@ -1590,7 +1595,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Specialities)
                 .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("speciality_branch_fk");
 
             entity.HasOne(d => d.Department).WithMany(p => p.Specialities)
@@ -1847,10 +1851,12 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Department).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("userroles_department_fk");
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("userroles_faculties_fk");
 
             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)

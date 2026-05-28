@@ -173,6 +173,92 @@ public class ExcelProcessingService : IExcelProcessingService
         return rows;
     }
 
+    public async Task<List<BranchExcelRowDto>> ExtractBranchesAsync(IFormFile file)
+    {
+        var rows = new List<BranchExcelRowDto>();
+
+        using (var stream = file.OpenReadStream())
+        {
+            using (var spreadsheetDocument = SpreadsheetDocument.Open(stream, false))
+            {
+                var workbookPart = spreadsheetDocument.WorkbookPart;
+                if (workbookPart == null) return rows;
+
+                var worksheetPart = workbookPart.WorksheetParts.FirstOrDefault();
+                if (worksheetPart == null) return rows;
+
+                var sheetData = worksheetPart.Worksheet.Elements<SheetData>().FirstOrDefault();
+                if (sheetData == null) return rows;
+
+                var sharedStringTablePart = workbookPart.SharedStringTablePart;
+
+                var excelRows = sheetData.Elements<Row>();
+
+                foreach (var row in excelRows)
+                {
+                    var cells = row.Elements<Cell>().ToList();
+                    if (cells.Count == 0) continue;
+
+                    var cellValue = GetCellValue(cells[0], sharedStringTablePart)?.Trim();
+                    if (string.IsNullOrWhiteSpace(cellValue)) continue;
+
+                    // First one or two letters are the code, then space, then name
+                    var parts = cellValue.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length == 2)
+                    {
+                        rows.Add(new BranchExcelRowDto
+                        {
+                            Code = parts[0],
+                            Name = parts[1]
+                        });
+                    }
+                }
+            }
+        }
+
+        return rows;
+    }
+
+    public async Task<List<SpecialityExcelRowDto>> ExtractSpecialitiesAsync(IFormFile file)
+    {
+        var rows = new List<SpecialityExcelRowDto>();
+
+        using (var stream = file.OpenReadStream())
+        {
+            using (var spreadsheetDocument = SpreadsheetDocument.Open(stream, false))
+            {
+                var workbookPart = spreadsheetDocument.WorkbookPart;
+                if (workbookPart == null) return rows;
+
+                var worksheetPart = workbookPart.WorksheetParts.FirstOrDefault();
+                if (worksheetPart == null) return rows;
+
+                var sheetData = worksheetPart.Worksheet.Elements<SheetData>().FirstOrDefault();
+                if (sheetData == null) return rows;
+
+                var sharedStringTablePart = workbookPart.SharedStringTablePart;
+
+                // Skip header row
+                var excelRows = sheetData.Elements<Row>().Skip(1);
+
+                foreach (var row in excelRows)
+                {
+                    var cells = row.Elements<Cell>().ToList();
+                    if (cells.Count < 2) continue;
+
+                    rows.Add(new SpecialityExcelRowDto
+                    {
+                        BranchRaw = GetCellValue(cells[0], sharedStringTablePart)?.Trim(),
+                        SpecialityRaw = GetCellValue(cells[1], sharedStringTablePart)?.Trim(),
+                        SpecializationRaw = cells.Count >= 3 ? GetCellValue(cells[2], sharedStringTablePart)?.Trim() : null
+                    });
+                }
+            }
+        }
+
+        return rows;
+    }
+
     private string? GetCellValue(Cell cell, SharedStringTablePart? sharedStringTablePart)
     {
         if (cell == null) return null;
