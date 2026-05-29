@@ -1,11 +1,6 @@
-using Microsoft.Extensions.Logging;
 using OlimpBack.Infrastructure.Repositories;
 using OlimpBack.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace OlimpBack.Application.Services;
 
@@ -76,7 +71,7 @@ public class SimilarityService : ISimilarityService
         foreach (var d in newDisciplines)
         {
             d.Keys = ExtractKeywords(d); // Ensure keys exist
-            
+
             foreach (var group in groups)
             {
                 // Find central discipline for this group
@@ -125,10 +120,10 @@ public class SimilarityService : ISimilarityService
     private List<string> Tokenize(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return new List<string>();
-        
+
         // Remove HTML tags if any
         text = Regex.Replace(text, "<.*?>", string.Empty);
-        
+
         var words = Regex.Matches(text.ToLower(), @"\w{4,}") // Words with at least 4 chars
             .Select(m => m.Value)
             .Where(w => !StopWords.Contains(w))
@@ -158,8 +153,8 @@ public class SimilarityService : ISimilarityService
         return (nameOverlap + keyOverlap) > 1;
     }
 
-    private static readonly HashSet<string> StopWords = new() 
-    { 
+    private static readonly HashSet<string> StopWords = new()
+    {
         "також", "його", "який", "яка", "яке", "які", "цього", "тому", "через", "після", "перед", "вона", "воно", "вони",
         "буде", "було", "були", "мати", "може", "можуть", "свою", "свої", "свого", "яких", "яким", "якою", "якої", "цьому", "цієї"
         // Add more common Ukrainian stop words as needed

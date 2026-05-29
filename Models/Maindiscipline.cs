@@ -9,7 +9,7 @@ public partial class MainDiscipline
 
     public string NameMainDisciplines { get; set; } = null!;
 
-    public int? Loans { get; set; }
+    public double? Loans { get; set; }
 
     public int Semestr { get; set; }
 

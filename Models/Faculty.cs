@@ -13,6 +13,8 @@ public partial class Faculty
 
     public Guid IdFaculty { get; set; }
 
+    public string? NameInDock { get; set; }
+
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();

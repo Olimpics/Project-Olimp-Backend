@@ -16,7 +16,7 @@ namespace OlimpBack.Application.DTO
         public Guid idMainDisciplines { get; set; }
         public string nameMainDisciplines { get; set; } = null!;
         public int? Semestr { get; set; }
-        public int? Loans { get; set; }
+        public double? Loans { get; set; }
         public int? Hours { get; set; }
     }
 

@@ -9,7 +9,7 @@ public class ProgramMainDisciplineDto
     public string Code { get; set; } = null!;
     public string Name { get; set; } = null!;
     public Guid? TypeOfControl { get; set; }
-    public int Loans { get; set; }
+    public double Loans { get; set; }
     public int Hours { get; set; }
 }
 

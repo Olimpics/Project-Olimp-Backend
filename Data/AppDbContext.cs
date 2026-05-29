@@ -717,6 +717,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameDepartment)
                 .HasColumnType("character varying")
                 .HasColumnName("nameDepartment");
+            entity.Property(e => e.NameInDock)
+                .HasColumnType("character varying")
+                .HasColumnName("name_in_dock");
 
             entity.HasOne(d => d.Faculty).WithMany(p => p.Departments)
                 .HasForeignKey(d => d.FacultyId)
@@ -969,6 +972,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameFaculty)
                 .HasColumnType("character varying")
                 .HasColumnName("nameFaculty");
+            entity.Property(e => e.NameInDock)
+                .HasColumnType("character varying")
+                .HasColumnName("name_in_dock");
         });
 
         modelBuilder.Entity<GroupSimilarEducationalProgram>(entity =>
@@ -1375,12 +1381,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsSystem)
                 .HasDefaultValue(true)
                 .HasColumnName("is_system");
-            entity.Property(e => e.IsStudent)
-                .HasDefaultValue(false)
-                .HasColumnName("is_student");
-            entity.Property(e => e.IsAdmin)
-                .HasDefaultValue(false)
-                .HasColumnName("is_admin");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.ParentRoleId).HasColumnName("parentRoleId");
             entity.Property(e => e.PermissionsMask)
@@ -1491,6 +1491,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodeSelectiveDisciplines)
                 .HasColumnType("character varying")
                 .HasColumnName("codeSelectiveDisciplines");
+            entity.Property(e => e.CountOfBinds)
+                .HasDefaultValue(0)
+                .HasColumnName("count_of_binds");
             entity.Property(e => e.Courses).HasColumnName("courses");
             entity.Property(e => e.DegreeLevelId).HasColumnName("degree_level_id");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
@@ -1595,6 +1598,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Specialities)
                 .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("speciality_branch_fk");
 
             entity.HasOne(d => d.Department).WithMany(p => p.Specialities)
@@ -1758,6 +1762,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdTypeOfControl)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id_type_of_control");
+            entity.Property(e => e.NameInDock)
+                .HasColumnType("character varying")
+                .HasColumnName("name_in_dock");
             entity.Property(e => e.Type)
                 .HasColumnType("character varying")
                 .HasColumnName("type");

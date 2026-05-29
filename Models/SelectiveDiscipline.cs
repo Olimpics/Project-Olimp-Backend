@@ -45,6 +45,8 @@ public partial class SelectiveDiscipline
 
     public Guid TypeId { get; set; }
 
+    public int CountOfBinds { get; set; }
+
     public virtual Approval ApprovalStatus { get; set; } = null!;
 
     public virtual ICollection<BindLoansMain> BindLoansMains { get; set; } = new List<BindLoansMain>();

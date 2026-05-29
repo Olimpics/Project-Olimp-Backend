@@ -15,6 +15,8 @@ public partial class Department
 
     public Guid IdDepartment { get; set; }
 
+    public string? NameInDock { get; set; }
+
     public virtual ICollection<AdminsPersonal> AdminsPersonals { get; set; } = new List<AdminsPersonal>();
 
     public virtual ICollection<DisciplineChoicePeriod> DisciplineChoicePeriods { get; set; } = new List<DisciplineChoicePeriod>();

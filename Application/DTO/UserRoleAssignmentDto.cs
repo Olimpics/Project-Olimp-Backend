@@ -12,9 +12,9 @@ public class UserRoleAssignmentDto
 
     public string RoleName { get; set; } = null!;
 
-    public Guid FacultyId { get; set; }
+    public Guid? FacultyId { get; set; }
 
-    public Guid DepartmentId { get; set; }
+    public Guid? DepartmentId { get; set; }
 }
 
 public class CreateUserRoleAssignmentDto
