@@ -14,7 +14,7 @@ public partial class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
-    }   
+    }
 
     public virtual DbSet<AcademicDegree> AcademicDegrees { get; set; }
 
@@ -35,6 +35,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<BindMainDiscipline> BindMainDisciplines { get; set; }
 
     public virtual DbSet<BindRating> BindRatings { get; set; }
+
+    public virtual DbSet<BindRoleSystemEvent> BindRoleSystemEvents { get; set; }
 
     public virtual DbSet<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; }
 
@@ -139,6 +141,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<StudyForm> StudyForms { get; set; }
 
     public virtual DbSet<SubDivisionsSg> SubDivisionsSgs { get; set; }
+
+    public virtual DbSet<SystemEvent> SystemEvents { get; set; }
 
     public virtual DbSet<TypeOfControl> TypeOfControls { get; set; }
 
@@ -414,6 +418,29 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("bindrating_student_fk");
+        });
+
+        modelBuilder.Entity<BindRoleSystemEvent>(entity =>
+        {
+            entity.HasKey(e => e.IdBind).HasName("bind_role_system_event_pk");
+
+            entity.ToTable("bind_role_system_event");
+
+            entity.Property(e => e.IdBind)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id_bind");
+            entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.SystemEventId).HasColumnName("system_event_id");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.BindRoleSystemEvents)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("bind_role_system_event_roles_fk");
+
+            entity.HasOne(d => d.SystemEvent).WithMany(p => p.BindRoleSystemEvents)
+                .HasForeignKey(d => d.SystemEventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("bind_role_system_event_system_event_fk");
         });
 
         modelBuilder.Entity<BindSelectiveDiscipline>(entity =>
@@ -801,12 +828,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsClose)
                 .HasDefaultValue(false)
                 .HasColumnName("is_close");
+            entity.Property(e => e.IsConfirm)
+                .HasDefaultValue(false)
+                .HasColumnName("is_confirm");
             entity.Property(e => e.IsForBothSemester)
                 .HasDefaultValue(true)
                 .HasColumnName("isForBothSemester");
             entity.Property(e => e.IsShort)
                 .HasDefaultValue(false)
                 .HasColumnName("is_short");
+            entity.Property(e => e.ParentId).HasColumnName("parent_id");
             entity.Property(e => e.PeriodCourse).HasColumnName("periodCourse");
             entity.Property(e => e.PeriodType)
                 .HasColumnType("bit(1)")
@@ -828,6 +859,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("disciplinechoiceperiod_department_fk");
+
+            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
+                .HasForeignKey(d => d.ParentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("disciplinechoiceperiod_disciplinechoiceperiod_fk");
         });
 
         modelBuilder.Entity<EducationStatus>(entity =>
@@ -1836,6 +1872,23 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameDivision)
                 .HasColumnType("character varying")
                 .HasColumnName("nameDivision");
+        });
+
+        modelBuilder.Entity<SystemEvent>(entity =>
+        {
+            entity.HasKey(e => e.IdSystemEvent).HasName("system_event_pk");
+
+            entity.ToTable("system_event");
+
+            entity.Property(e => e.IdSystemEvent)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id_system_event");
+            entity.Property(e => e.MessegeSystemEvent)
+                .HasColumnType("character varying")
+                .HasColumnName("messege_system_event");
+            entity.Property(e => e.NameSystemEvent)
+                .HasColumnType("character varying")
+                .HasColumnName("name_system_event");
         });
 
         modelBuilder.Entity<TypeOfControl>(entity =>

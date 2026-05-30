@@ -17,12 +17,14 @@ public class DisciplineTabService : IDisciplineTabService
     private readonly IDisciplineTabRepository _repository;
     private readonly IMapper _mapper;
     private readonly AppDbContext _context;
+    private readonly IStudentChoiceCacheService _cacheService;
 
-    public DisciplineTabService(IDisciplineTabRepository repository, IMapper mapper, AppDbContext context)
+    public DisciplineTabService(IDisciplineTabRepository repository, IMapper mapper, AppDbContext context, IStudentChoiceCacheService cacheService)
     {
         _repository = repository;
         _mapper = mapper;
         _context = context;
+        _cacheService = cacheService;
     }
 
     public async Task<PaginatedResponseDto<FullDisciplineDto>?> GetAllDisciplinesWithAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto queryDto)
@@ -141,6 +143,15 @@ public class DisciplineTabService : IDisciplineTabService
 
         if (dto.Semestr != 0 && dto.Semestr != 1) return (null, "Semestr must be 0 or 1");
 
+        bool isSpring = dto.Semestr == 0; // Assuming 0 is even/spring based on targetSemester calculation below
+        var limits = await _cacheService.GetLimitsAsync(dto.StudentId);
+        int currentLimit = isSpring ? limits[1] : limits[0];
+
+        if (currentLimit <= 0)
+        {
+            return (null, $"you have already selected all disciplines of the {(isSpring ? "spring" : "fall")} semester");
+        }
+
         int targetCourse = context.CurrentCourse + 1;
         int targetSemester = targetCourse * 2 - dto.Semestr;
 
@@ -159,11 +170,15 @@ public class DisciplineTabService : IDisciplineTabService
             SelectiveDisciplineId = dto.DisciplineId,
             Semestr = targetSemester,
             InProcess = true,
-            Loans = dto.Loans
+            Loans = dto.Loans,
+            YearId = period.CatalogYearId
         };
 
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
+
+        // Update cache
+        await _cacheService.UpdateLimitAsync(dto.StudentId, isSpring, -1);
 
         return (bind.IdBindSelectiveDisciplines, null);
     }

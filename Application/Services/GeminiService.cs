@@ -104,6 +104,7 @@ You are a university curriculum expert. Your task is to process raw data from an
 ### Input Data Format:
 {
   ""nameEducationalProgram"": ""..."",
+  ""institutionAndStructuralProgram"": ""..."",
   ""degree"": ""..."",
   ""studyForm"": ""..."",
   ""goals"": ""..."",
@@ -117,6 +118,8 @@ You are a university curriculum expert. Your task is to process raw data from an
 ### Output MUST be a valid JSON object with the following structure:
 {
   ""NameEducationalProgram"": ""string"",
+  ""DepartmentNames"": [""string""],
+  ""FacultyName"": ""string or null"",
   ""Degree"": ""string (single word: 'Бакалавр', 'Магістр', or 'Аспірант')"",
   ""StudyForm"": ""string (MUST be one of: 'Денна', 'Заочна', 'Дистанційна', 'Вечірня', 'Дуальна')"",
   ""Subject"": ""string"",
@@ -149,7 +152,11 @@ You are a university curriculum expert. Your task is to process raw data from an
    - **Educational Program Name**: Extract ONLY the specific name of the program. Remove boilerplate prefixes like ""Освітньо-професійна програма"", ""Освітньо-наукова програма"", or quotes if they wrap the entire name. 
      - *Example*: ""Освітньо-професійна програма «Технології медичної діагностики та лікування»"" -> ""Технології медичної діагностики та лікування"".
    - **Discipline Names**: Clean redundant spaces, line breaks, and ensure only the course title remains.
-2. **MainDisciplinesNeedFix Processing**: 
+2. **Department and Faculty Extraction**:
+   - Extract `DepartmentNames` and `FacultyName` from the `institutionAndStructuralProgram` field.
+   - **DepartmentNames**: Return a list of department names. CRITICAL: Remove the word ""Кафедра"" (Department) and its variants from the names. If multiple departments are mentioned, list them all.
+   - **FacultyName**: Extract the name of the faculty or institute.
+3. **MainDisciplinesNeedFix Processing**: 
    - These are raw strings from rows where column alignment failed (e.g., the Name bled into the Loans field). The fields are separated by "" | "". 
    - You MUST intelligently parse these strings to restore the correct Code, Name, Loans, Control, and Semester.
    - After fixing, include them in the `MainDisciplines` output array.

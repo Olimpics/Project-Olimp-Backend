@@ -12,13 +12,16 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 {
     private readonly IDisciplineTabAdminRepository _repository;
     private readonly IAdminDisciplineStudentListRepository _studentListRepository;
+    private readonly IStudentChoiceCacheService _cacheService;
 
     public DisciplineTabAdminService(
         IDisciplineTabAdminRepository repository,
-        IAdminDisciplineStudentListRepository studentListRepository)
+        IAdminDisciplineStudentListRepository studentListRepository,
+        IStudentChoiceCacheService cacheService)
     {
         _repository = repository;
         _studentListRepository = studentListRepository;
+        _cacheService = cacheService;
     }
 
     public async Task<PaginatedResponseDto<FullDisciplineDto>> GetAllDisciplinesAsync(GetAllDisciplinesAdminQueryDto queryDto)
@@ -300,7 +303,26 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         if (dto.Semestr < 1 || dto.Semestr > 8) return (null, "Semestr must be between 1 and 8");
         if (await _repository.ExistsBindAsync(dto.StudentId, dto.DisciplineId)) return (null, "This student is already bound to this discipline");
         if (!await _repository.ExistsStudentAsync(dto.StudentId)) return (null, "Student not found");
-        if (!await _repository.ExistsDisciplineAsync(dto.DisciplineId)) return (null, "Discipline not found");
+        
+        var discipline = await _repository.GetDisciplineEntityAsync(dto.DisciplineId);
+        if (discipline == null) return (null, "Discipline not found");
+
+        bool isSpring = dto.Semestr % 2 == 0;
+        var limits = await _cacheService.GetLimitsAsync(dto.StudentId);
+        int currentLimit = isSpring ? limits[1] : limits[0];
+
+        if (currentLimit <= 0)
+        {
+            return (null, $"you have already selected all disciplines of the {(isSpring ? "spring" : "fall")} semester");
+        }
+
+        // Find CatalogYear that matches the discipline's catalog years
+        // SelectiveDiscipline links to CatalogYearsSelective, but BindSelectiveDiscipline links to CatalogYear
+        // We assume there's a CatalogYear with the same YearStart.
+        var catalogYearsSelective = await _context.CatalogYearsSelectives.FindAsync(discipline.CatalogId);
+        var catalogYear = await _context.CatalogYears.FirstOrDefaultAsync(cy => cy.YearStart == catalogYearsSelective.YearStart);
+
+        if (catalogYear == null) return (null, "Catalog year not found");
 
         var bind = new BindSelectiveDiscipline
         {
@@ -308,10 +330,13 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             SelectiveDisciplineId = dto.DisciplineId,
             Semestr = dto.Semestr,
             Loans = dto.Loans,
-            InProcess = true
+            InProcess = true,
+            YearId = catalogYear.IdCatalog
         };
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
+
+        await _cacheService.UpdateLimitAsync(dto.StudentId, isSpring, -1);
 
         return (bind.IdBindSelectiveDisciplines, null);
     }
@@ -323,6 +348,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         if (bind == null)
             return (false, "Choice bind not found for this student and discipline.");
 
+        bool isSpring = bind.Semestr % 2 == 0;
         var userId = bind.Student?.UserId;
         if (userId == null)
             return (false, "Student has no valid UserId for notification.");
@@ -342,10 +368,23 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         _repository.AddNotification(notification);
         await _repository.SaveChangesAsync();
 
+        await _cacheService.UpdateLimitAsync(studentId, isSpring, 1);
+
         return (true, null);
     }
-    public async Task<bool> DeleteBindAsync(Guid id) =>
-        await _repository.DeleteBindAsync(id) > 0;
+    public async Task<bool> DeleteBindAsync(Guid id)
+    {
+        var bind = await _repository.GetBindDtoAsync(id);
+        if (bind == null) return false;
+
+        bool isSpring = bind.Semestr % 2 == 0;
+        bool deleted = await _repository.DeleteBindAsync(id) > 0;
+        if (deleted)
+        {
+            await _cacheService.UpdateLimitAsync(bind.StudentId, isSpring, 1);
+        }
+        return deleted;
+    }
 
     public async Task<PaginatedResponseDto<AdminStudentBySelectiveDisciplineDto>> GetStudentsBySelectiveDisciplineAsync(GetStudentsBySelectiveDisciplineQueryDto query)
     {

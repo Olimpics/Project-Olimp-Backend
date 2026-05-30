@@ -8,9 +8,11 @@ using OlimpBack.Infrastructure.Database;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.MappingProfiles;
 using OlimpBack.Utils;
-// TEMPORARY: Redis is disabled for local development until Redis is available.
-// using OlimpBack.Infrastructure.Redis;
-// using StackExchange.Redis;
+// Redis configuration
+using OlimpBack.Infrastructure.Redis;
+using StackExchange.Redis;
+
+// ... (rest of imports)
 using System.Configuration;
 using System.Diagnostics;
 using System.Text;
@@ -251,13 +253,16 @@ builder.Services.AddScoped<IPermissionDelegationService, PermissionDelegationSer
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserHierarchyAssignmentService, UserHierarchyAssignmentService>();
 builder.Services.AddScoped<IDelegationOptionsService, DelegationOptionsService>();
-// TEMPORARY: Redis is disabled for local development until Redis is available.
-// builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
-// {
-//     var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
-//     return ConnectionMultiplexer.Connect(redisConnection);
-// });
-// builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
+
+// Redis and Caching
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
+    return ConnectionMultiplexer.Connect(redisConnection);
+});
+builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
+builder.Services.AddScoped<IStudentChoiceCacheService, StudentChoiceCacheService>();
+builder.Services.AddScoped<ISystemEventService, SystemEventService>();
 // ==========================================
 // РЕПОЗИТОРІЇ ТА СЕРВІСИ (Domain Modules)
 // ==========================================

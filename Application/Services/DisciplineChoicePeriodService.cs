@@ -14,17 +14,29 @@ public interface IDisciplineChoicePeriodService
     Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateDisciplineChoicePeriodDto dto);
     Task<(bool success, int statusCode, string? errorMessage)> UpdateAfterStartAsync(Guid id, UpdateDisciplineChoicePeriodAfterStartDto dto);
     Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(Guid id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto);
+    Task<(bool success, int statusCode, string? errorMessage)> ApproveAsync(Guid id);
 }
 
 public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
 {
     private readonly IDisciplineChoicePeriodRepository _repository;
     private readonly IMapper _mapper;
+    private readonly ISystemEventService _systemEventService;
+    private readonly IStudentChoiceCacheService _cacheService;
+    private readonly Data.AppDbContext _context;
 
-    public DisciplineChoicePeriodService(IDisciplineChoicePeriodRepository repository, IMapper mapper)
+    public DisciplineChoicePeriodService(
+        IDisciplineChoicePeriodRepository repository, 
+        IMapper mapper, 
+        ISystemEventService systemEventService,
+        IStudentChoiceCacheService cacheService,
+        Data.AppDbContext context)
     {
         _repository = repository;
         _mapper = mapper;
+        _systemEventService = systemEventService;
+        _cacheService = cacheService;
+        _context = context;
     }
 
     public async Task<List<DisciplineChoicePeriodDto>> GetAllAsync(GetDisciplineChoicePeriodsQueryDto queryDto)
@@ -38,11 +50,85 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
             throw new ArgumentException("EndOfCheckPeriod cannot be less than EndDate");
 
         var period = _mapper.Map<DisciplineChoicePeriod>(dto);
+        period.IsConfirm = false;
 
         await _repository.AddAsync(period);
         await _repository.SaveChangesAsync();
 
+        // Create copies for all departments
+        var departments = await _context.Departments.Where(d => d.Avail).ToListAsync();
+        foreach (var dept in departments)
+        {
+            if (dept.IdDepartment == period.DepartmentId) continue;
+
+            var copy = new DisciplineChoicePeriod
+            {
+                DepartmentId = dept.IdDepartment,
+                PeriodType = period.PeriodType,
+                PeriodCourse = period.PeriodCourse,
+                StartDate = period.StartDate,
+                EndDate = period.EndDate,
+                EndOfCheckPeriod = period.EndOfCheckPeriod,
+                CatalogYearId = period.CatalogYearId,
+                DegreeLevelId = period.DegreeLevelId,
+                IsForBothSemester = period.IsForBothSemester,
+                SpecialityId = period.SpecialityId,
+                IsShort = period.IsShort,
+                ParentId = period.IdDisciplineChoicePeriod,
+                IsConfirm = false,
+                IsClose = period.IsClose
+            };
+            _context.DisciplineChoicePeriods.Add(copy);
+        }
+        await _context.SaveChangesAsync();
+
+        await _systemEventService.DispatchEventAsync("Creation of a selection period");
+
         return _mapper.Map<DisciplineChoicePeriodDto>(period);
+    }
+
+    public async Task<(bool success, int statusCode, string? errorMessage)> ApproveAsync(Guid id)
+    {
+        var period = await _context.DisciplineChoicePeriods
+            .Include(p => p.CatalogYear)
+            .FirstOrDefaultAsync(p => p.IdDisciplineChoicePeriod == id);
+
+        if (period == null) return (false, StatusCodes.Status404NotFound, "Period not found");
+        if (period.IsConfirm) return (false, StatusCodes.Status400BadRequest, "Period already confirmed");
+
+        period.IsConfirm = true;
+        await _context.SaveChangesAsync();
+
+        // Process students and load to cache
+        var students = await _context.Students
+            .Include(s => s.Group)
+                .ThenInclude(g => g.EducationalProgram)
+                    .ThenInclude(ep => ep.Speciality)
+            .Where(s => s.Avail && 
+                        s.Group.EducationalProgram.Speciality.DepartmentId == period.DepartmentId &&
+                        s.Group.EducationalProgram.DegreeId == period.DegreeLevelId &&
+                        s.Group.EducationalProgram.IsAccelerated == period.IsShort)
+            .ToListAsync();
+
+        if (period.SpecialityId.HasValue)
+        {
+            students = students.Where(s => s.Group.EducationalProgram.SpecialityId == period.SpecialityId.Value).ToList();
+        }
+
+        foreach (var student in students)
+        {
+            if (student.Group.AdmissionYear == null) continue;
+            
+            int admissionYear = student.Group.AdmissionYear.Value.Year;
+            int course = period.CatalogYear.YearStart - admissionYear + 1;
+
+            if (period.PeriodCourse > 0 && period.PeriodCourse != course) continue;
+
+            // Load to cache
+            await _cacheService.GetLimitsAsync(student.IdStudent);
+        }
+
+        return (true, StatusCodes.Status200OK, null);
     }
 
     public async Task<(bool success, int statusCode, string? errorMessage)> UpdateAsync(Guid id, UpdateDisciplineChoicePeriodDto dto)

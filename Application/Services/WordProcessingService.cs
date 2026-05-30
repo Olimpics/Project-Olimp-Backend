@@ -120,6 +120,11 @@ public class WordProcessingService : IWordProcessingService
                                 if (string.IsNullOrEmpty(content.NameEducationalProgram))
                                     content.NameEducationalProgram = cells.Count >= 2 ? GetCellText(cells[1]) : "";
                             }
+                            else if (key.Contains("Повна назва вищого навчального закладу", StringComparison.OrdinalIgnoreCase) || 
+                                     key.Contains("Повна назва ВНЗ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                content.InstitutionAndStructuralProgram = cells.Count >= 2 ? GetCellText(cells[1]) : "";
+                            }
                             else if (key.Contains("Ступінь вищої освіти", StringComparison.OrdinalIgnoreCase)) content.Degree = GetCellText(cells.Count >= 2 ? cells[1] : cells[0]);
                             else if (key.Contains("Форми навчання", StringComparison.OrdinalIgnoreCase)) content.StudyForm = GetCellText(cells.Count >= 2 ? cells[1] : cells[0]);
                             else if (key.Contains("Мета освітньої програми", StringComparison.OrdinalIgnoreCase))

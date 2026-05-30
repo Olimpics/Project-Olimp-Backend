@@ -26,17 +26,27 @@ public class DisciplineChoicePeriodCleanupService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            var now = DateTime.UtcNow;
+            var nextRun = now.Date.AddDays(1); // Next midnight
+            var delay = nextRun - now;
+
+            _logger.LogInformation($"Next cleanup run at {nextRun} (in {delay})");
+
             try
             {
+                await Task.Delay(delay, stoppingToken);
                 await ProcessPeriodsAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while processing discipline choice periods.");
+                // Wait a bit before retrying if it failed
+                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
-
-            // Run once an hour
-            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
         }
     }
 

@@ -61,5 +61,15 @@ namespace OlimpBack.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("Approve/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineChoicePeriodsUpdate)]
+        public async Task<ActionResult> Approve(Guid id)
+        {
+            var (success, statusCode, errorMessage) = await _service.ApproveAsync(id);
+            if (!success) return StatusCode(statusCode, errorMessage);
+
+            return Ok();
+        }
     }
 }

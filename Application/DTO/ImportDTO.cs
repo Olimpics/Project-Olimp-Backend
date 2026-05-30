@@ -118,6 +118,7 @@ namespace OlimpBack.Application.DTO
     public class EducationalProgramWordContentDto
     {
         public string? NameEducationalProgram { get; set; }
+        public string? InstitutionAndStructuralProgram { get; set; }
         public string? Degree { get; set; }
         public string? StudyForm { get; set; }
         public string? Goals { get; set; }
@@ -140,6 +141,8 @@ namespace OlimpBack.Application.DTO
     public class GeminiEducationalProgramDto
     {
         public string? NameEducationalProgram { get; set; }
+        public List<string> DepartmentNames { get; set; } = new();
+        public string? FacultyName { get; set; }
         public string? Degree { get; set; }
         public string? StudyForm { get; set; }
         public string? Subject { get; set; }

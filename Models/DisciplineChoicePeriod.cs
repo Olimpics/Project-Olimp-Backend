@@ -32,9 +32,17 @@ public partial class DisciplineChoicePeriod
 
     public Guid CatalogYearId { get; set; }
 
+    public Guid ParentId { get; set; }
+
+    public bool IsConfirm { get; set; }
+
     public virtual CatalogYear CatalogYear { get; set; } = null!;
 
     public virtual EducationalDegree DegreeLevel { get; set; } = null!;
 
     public virtual Department Department { get; set; } = null!;
+
+    public virtual ICollection<DisciplineChoicePeriod> InverseParent { get; set; } = new List<DisciplineChoicePeriod>();
+
+    public virtual DisciplineChoicePeriod Parent { get; set; } = null!;
 }

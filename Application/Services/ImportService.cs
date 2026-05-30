@@ -91,41 +91,84 @@ public class ImportService : IImportService
             var geminiResult = await _geminiService.ProcessEducationalProgramAsync(rawContent);
             if (geminiResult == null) throw new Exception("Gemini failed to process the document.");
 
-            // 3. Save files and database records
-            var pdfFileName = $"{Guid.NewGuid()}_{request.PdfFile.FileName}";
-            var finalPdfPath = Path.Combine(_epImportedPath, pdfFileName);
-            using (var stream = new FileStream(finalPdfPath, FileMode.Create))
+            // 3. Process with PDF and Database
+            var pdfPath = Path.Combine(tempDir, request.PdfFile.FileName);
+            using (var stream = new FileStream(pdfPath, FileMode.Create))
             {
                 await request.PdfFile.CopyToAsync(stream);
             }
 
-            // Lookup Degree
-            var degree = await _context.EducationalDegrees
-                .FirstOrDefaultAsync(d => d.NameEducationalDegree.Contains(geminiResult.Degree ?? ""));
-            
-            // Lookup Speciality
+            int count = await ProcessAndSaveGeminiResultAsync(geminiResult, pdfPath, request.CatalogYearMainId, request.IsAccelerated, request.StudyTurm);
+
+            return $"Educational Program '{geminiResult.NameEducationalProgram}' imported successfully ({count} instances created).";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error importing Educational Program");
+            throw;
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    private async Task<int> ProcessAndSaveGeminiResultAsync(GeminiEducationalProgramDto geminiResult, string pdfPath, Guid catalogId, bool isAccelerated, int studyTurm)
+    {
+        int createdCount = 0;
+        var pdfFileName = $"{Guid.NewGuid()}_{Path.GetFileName(pdfPath)}";
+        var finalPdfPath = Path.Combine(_epImportedPath, pdfFileName);
+        File.Copy(pdfPath, finalPdfPath, true);
+
+        // Lookup Degree
+        var degree = await _context.EducationalDegrees
+            .FirstOrDefaultAsync(d => d.NameEducationalDegree.Contains(geminiResult.Degree ?? ""));
+        
+        // Lookup StudyForm
+        var studyForm = await _context.StudyForms
+            .FirstOrDefaultAsync(sf => sf.NameStudyForm.Contains(geminiResult.StudyForm ?? ""));
+
+        // Lookup Specialization (optional)
+        var specialization = await _context.Specializations
+            .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Specialization ?? "") || (geminiResult.Specialization != null && geminiResult.Specialization.Contains(s.Code)));
+
+        var departments = geminiResult.DepartmentNames?.Any() == true 
+            ? geminiResult.DepartmentNames 
+            : new List<string> { "Unknown" };
+
+        foreach (var deptName in departments)
+        {
+            var dbDept = await _context.Departments
+                .FirstOrDefaultAsync(d => d.NameDepartment.Contains(deptName));
+
+            if (dbDept == null)
+            {
+                _logger.LogWarning($"Department '{deptName}' not found in database.");
+                continue;
+            }
+
+            // Find specialty for THIS department
             var speciality = await _context.Specialities
-                .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Speciality ?? "") || (geminiResult.Speciality != null && geminiResult.Speciality.Contains(s.Code)));
+                .FirstOrDefaultAsync(s => s.DepartmentId == dbDept.IdDepartment && 
+                    (s.Name.Contains(geminiResult.Speciality ?? "") || (geminiResult.Speciality != null && geminiResult.Speciality.Contains(s.Code))));
 
-            // Lookup Specialization (optional)
-            var specialization = await _context.Specializations
-                .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Specialization ?? "") || (geminiResult.Specialization != null && geminiResult.Specialization.Contains(s.Code)));
-
-            // Lookup StudyForm
-            var studyForm = await _context.StudyForms
-                .FirstOrDefaultAsync(sf => sf.NameStudyForm.Contains(geminiResult.StudyForm ?? ""));
+            if (speciality == null)
+            {
+                _logger.LogWarning($"Speciality '{geminiResult.Speciality}' not found for department '{deptName}'.");
+                continue;
+            }
 
             var ep = new EducationalProgram
             {
                 IdEducationalProgram = Guid.NewGuid(),
                 NameEducationalProgram = geminiResult.NameEducationalProgram ?? "Unknown",
                 DegreeId = degree?.Ideducationaldegree ?? Guid.Empty,
-                SpecialityId = speciality?.IdSpeciality ?? Guid.Empty,
+                SpecialityId = speciality.IdSpeciality,
                 SpecializationId = specialization?.IdSpecialization ?? Guid.Empty,
-                StudyFormId = studyForm.IdStudyForm,
-                CatalogId = request.CatalogYearMainId,
-                IsAccelerated = request.IsAccelerated,
-                StudyTurm = request.StudyTurm.ToString(),
+                StudyFormId = studyForm?.IdStudyForm ?? Guid.Empty,
+                CatalogId = catalogId,
+                IsAccelerated = isAccelerated,
+                StudyTurm = studyTurm.ToString(),
                 Goals = geminiResult.Goals ?? "",
                 Subject = geminiResult.Subject ?? "",
                 NameDock = pdfFileName,
@@ -146,9 +189,9 @@ public class ImportService : IImportService
                 Guid TypeOfControl = Guid.Empty;
                 if (!string.IsNullOrEmpty(md.Control))
                 {
-                    var dept = await _context.TypeOfControls
-                        .FirstOrDefaultAsync(d => d.Type!= null && d.Type.Contains(md.Control));
-                    TypeOfControl = dept?.IdTypeOfControl ?? Guid.Empty;
+                    var control = await _context.TypeOfControls
+                        .FirstOrDefaultAsync(d => d.Type != null && d.Type.Contains(md.Control));
+                    TypeOfControl = control?.IdTypeOfControl ?? Guid.Empty;
                 }
                 _context.MainDisciplines.Add(new MainDiscipline
                 {
@@ -161,20 +204,19 @@ public class ImportService : IImportService
                     EducationalProgramId = ep.IdEducationalProgram
                 });
             }
+            createdCount++;
+        }
 
+        if (createdCount > 0)
+        {
             await _context.SaveChangesAsync();
+        }
+        else
+        {
+            _logger.LogError($"Failed to create any instances for EP '{geminiResult.NameEducationalProgram}'. Departments: {string.Join(", ", departments)}");
+        }
 
-            return $"Educational Program '{ep.NameEducationalProgram}' imported successfully.";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error importing Educational Program");
-            throw;
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
-        }
+        return createdCount;
     }
 
     public async Task<string> ImportEducationalProgramBatchAsync(EducationalProgramBatchImportRequestDto request)
@@ -241,8 +283,9 @@ public class ImportService : IImportService
 
                             try
                             {
-                                await SaveEducationalProgramToDatabaseAsync(result, originalData.pdfFile, request);
-                                totalProcessed++;
+                                int created = await ProcessAndSaveGeminiResultAsync(result, originalData.pdfFile, request.CatalogYearMainId, request.IsAccelerated, request.StudyTurm);
+                                if (created > 0) totalProcessed++;
+                                else totalErrors++;
                             }
                             catch (Exception ex)
                             {
@@ -258,10 +301,10 @@ public class ImportService : IImportService
                     }
                 }
 
-                // Pause 5 minutes between batches if there are more
+                // Pause 1 minute between batches if there are more (reduced from 5 to be faster, but keep some rate limiting)
                 if (totalProcessed + totalErrors < epData.Count)
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(5));
+                    await Task.Delay(TimeSpan.FromMinutes(1));
                 }
             }
 
@@ -283,74 +326,8 @@ public class ImportService : IImportService
 
     private async Task SaveEducationalProgramToDatabaseAsync(GeminiEducationalProgramDto geminiResult, string pdfPath, dynamic request)
     {
-        var pdfFileName = $"{Guid.NewGuid()}_{Path.GetFileName(pdfPath)}";
-        var finalPdfPath = Path.Combine(_epImportedPath, pdfFileName);
-        File.Copy(pdfPath, finalPdfPath, true);
-
-        // Lookup Degree
-        var degree = await _context.EducationalDegrees
-            .FirstOrDefaultAsync(d => d.NameEducationalDegree.Contains(geminiResult.Degree ?? ""));
-
-        // Lookup Speciality
-        var speciality = await _context.Specialities
-            .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Speciality ?? "") || (geminiResult.Speciality != null && geminiResult.Speciality.Contains(s.Code)));
-
-        // Lookup Specialization (optional)
-        var specialization = await _context.Specializations
-            .FirstOrDefaultAsync(s => s.Name.Contains(geminiResult.Specialization ?? "") || (geminiResult.Specialization != null && geminiResult.Specialization.Contains(s.Code)));
-
-        // Lookup StudyForm
-        var studyForm = await _context.StudyForms
-            .FirstOrDefaultAsync(sf => sf.NameStudyForm.Contains(geminiResult.StudyForm ?? ""));
-
-        var ep = new EducationalProgram
-        {
-            IdEducationalProgram = Guid.NewGuid(),
-            NameEducationalProgram = geminiResult.NameEducationalProgram ?? "Unknown",
-            DegreeId = degree?.Ideducationaldegree ?? Guid.Empty,
-            SpecialityId = speciality?.IdSpeciality ?? Guid.Empty,
-            SpecializationId = specialization?.IdSpecialization ?? Guid.Empty,
-            StudyFormId = studyForm?.IdStudyForm ?? Guid.Empty,
-            CatalogId = request.CatalogYearMainId,
-            IsAccelerated = request.IsAccelerated,
-            StudyTurm = request.StudyTurm.ToString(),
-            Goals = geminiResult.Goals ?? "",
-            Subject = geminiResult.Subject ?? "",
-            NameDock = pdfFileName,
-            SelectiveDisciplineBySemestr = geminiResult.SelectiveDisciplineBySemestr ?? new List<int>(),
-            MinUniSelectiveDisciplineBySemestr = new List<int>(), // Default
-            Accreditation = 0,
-            AccreditationType = "Unknown"
-        };
-
-        _context.EducationalPrograms.Add(ep);
-
-        foreach (var md in geminiResult.MainDisciplines)
-        {
-            if (md.Semester == null) continue;
-            int sem = md.Semester.Value;
-            int loans = md.Loans ?? 0;
-
-            Guid TypeOfControl = Guid.Empty;
-            if (!string.IsNullOrEmpty(md.Control))
-            {
-                var dept = await _context.TypeOfControls
-                    .FirstOrDefaultAsync(d => d.Type != null && d.Type.Contains(md.Control));
-                TypeOfControl = dept?.IdTypeOfControl ?? Guid.Empty;
-            }
-            _context.MainDisciplines.Add(new MainDiscipline
-            {
-                IdMainDisciplines = Guid.NewGuid(),
-                CodeMainDisciplines = md.Code,
-                NameMainDisciplines = md.Name ?? "Unknown",
-                Semestr = sem,
-                Loans = loans,
-                TypeOfControl = TypeOfControl,
-                EducationalProgramId = ep.IdEducationalProgram
-            });
-        }
-
-        await _context.SaveChangesAsync();
+        // This method is now replaced by ProcessAndSaveGeminiResultAsync
+        await ProcessAndSaveGeminiResultAsync(geminiResult, pdfPath, request.CatalogYearMainId, request.IsAccelerated, request.StudyTurm);
     }
 
     public async Task<string> ImportSelectiveDisciplinesAsync(SelectiveDisciplineImportRequestDto request)

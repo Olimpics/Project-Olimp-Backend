@@ -27,6 +27,8 @@ public partial class Role
 
     public virtual ICollection<Approval> Approvals { get; set; } = new List<Approval>();
 
+    public virtual ICollection<BindRoleSystemEvent> BindRoleSystemEvents { get; set; } = new List<BindRoleSystemEvent>();
+
     public virtual User? CreatedByUser { get; set; }
 
     public virtual Department? CreatedInDepartment { get; set; }
