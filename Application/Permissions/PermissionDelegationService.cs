@@ -9,35 +9,37 @@ public class PermissionDelegationService : IPermissionDelegationService
 {
     private readonly AppDbContext _context;
     private readonly IRoleMaskService _roleMaskService;
-    private readonly IRoleKindService _roleKind;
+    private readonly IHierarchyAuthorizationService _hierarchyAuthorization;
 
     public PermissionDelegationService(
         AppDbContext context,
         IRoleMaskService roleMaskService,
-        IRoleKindService roleKind)
+        IHierarchyAuthorizationService hierarchyAuthorization)
     {
         _context = context;
         _roleMaskService = roleMaskService;
-        _roleKind = roleKind;
+        _hierarchyAuthorization = hierarchyAuthorization;
     }
 
     public async Task<int> GetUserHierarchyLevelAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var roles = await _roleKind.GetUserRoleSnapshotsAsync(userId, cancellationToken);
-        return RoleHierarchyCatalog.GetEffectiveGranterLevel(roles);
+        return await _hierarchyAuthorization.GetUserMaxManagementWeightAsync(userId, cancellationToken);
     }
 
     public async Task<int> GetRoleHierarchyLevelAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
-        var roleName = await _context.Roles
+        var role = await _context.Roles
             .AsNoTracking()
             .Where(r => r.IdRole == roleId)
-            .Select(r => r.Name)
+            .Select(r => new { r.Name, r.IsSystem, r.IsStudent })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return roleName == null
+        return role == null
             ? int.MinValue
-            : RoleHierarchyCatalog.ResolveLevel(roleName);
+            : RoleHierarchyCatalog.GetEffectiveGranterLevel(new[]
+            {
+                new RoleKindSnapshot(role.IsStudent, role.IsSystem, role.Name)
+            });
     }
 
     public async Task<bool> CanGrantAsync(
@@ -46,13 +48,26 @@ public class PermissionDelegationService : IPermissionDelegationService
         Guid permissionId,
         CancellationToken cancellationToken = default)
     {
-        var granterRoles = await _roleKind.GetUserRoleSnapshotsAsync(granterUserId, cancellationToken);
-        var targetRole = await _roleKind.GetRoleSnapshotAsync(targetRoleId, cancellationToken);
+        var targetRole = await _context.Roles
+            .AsNoTracking()
+            .Where(role => role.IdRole == targetRoleId)
+            .Select(role => new
+            {
+                role.CreatedInFacultyId,
+                role.CreatedInDepartmentId,
+                role.CreatedInGroupId
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (targetRole == null)
             return false;
 
-        if (!RoleHierarchyCatalog.CanManageRolePermissions(granterRoles, targetRole.Value))
+        if (!await _hierarchyAuthorization.CanManageScopeAsync(
+                granterUserId,
+                targetRole.CreatedInFacultyId,
+                targetRole.CreatedInDepartmentId,
+                targetRole.CreatedInGroupId,
+                cancellationToken))
             return false;
 
         var permission = await _context.Permissions
@@ -62,7 +77,7 @@ public class PermissionDelegationService : IPermissionDelegationService
         if (permission == null)
             return false;
 
-        if (!RbacPermissionCatalog.All.Any(definition => definition.BitIndex == permission.BitIndex))
+        if (!await _hierarchyAuthorization.CanGrantPermissionAsync(granterUserId, permission.IdPermission, cancellationToken))
             return false;
 
         var granterMask = await _roleMaskService.GetUserPermissionsMaskAsync(granterUserId, cancellationToken);
@@ -99,7 +114,7 @@ public class PermissionDelegationService : IPermissionDelegationService
                 PermissionId = permission.IdPermission,
                 Code = permission.Code,
                 BitIndex = permission.BitIndex,
-                MinGrantLevel = 0,
+                MinGrantLevel = permission.RequiredWeight,
                 TypePermission = GetPermissionAction(permission.Code),
                 TableName = GetPermissionResource(permission.Code)
             });

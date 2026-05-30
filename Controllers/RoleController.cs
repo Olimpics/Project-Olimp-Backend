@@ -17,11 +17,16 @@ namespace OlimpBack.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHierarchyAuthorizationService _hierarchyAuthorization;
 
-        public RoleController(AppDbContext context, IMapper mapper)
+        public RoleController(
+            AppDbContext context,
+            IMapper mapper,
+            IHierarchyAuthorizationService hierarchyAuthorization)
         {
             _context = context;
             _mapper = mapper;
+            _hierarchyAuthorization = hierarchyAuthorization;
         }
 
         // GET: api/Role
@@ -53,22 +58,24 @@ namespace OlimpBack.Controllers
         [RequirePermission(RbacPermissions.RolesCreate)]
         public async Task<ActionResult<RoleDto>> CreateRole(RoleDto roleDto)
         {
-            await _context.Database.ExecuteSqlInterpolatedAsync($@"
-                INSERT INTO ""Roles"" (name, ""parentRoleId"", ""permissionsMask"")
-                VALUES ({roleDto.NameRole}, NULL, 0)");
+            var granterUserId = User.GetUserId();
+            if (!granterUserId.HasValue)
+                return Unauthorized();
 
-            var role = await _context.Roles
-                .FromSqlInterpolated($@"
-                    SELECT
-                        r.""idRole"" AS id_role,
-                        r.name,
-                        r.""parentRoleId"" AS parent_role_id,
-                        r.""permissionsMask"" AS permissions_mask
-                    FROM ""Roles"" r
-                    WHERE r.name = {roleDto.NameRole}
-                    ORDER BY r.""idRole"" DESC")
-                .AsNoTracking()
-                .FirstAsync();
+            if (!await CanCreateOrManageRoleAsync(granterUserId.Value, roleDto))
+                return Forbid();
+
+            if (!await IsValidParentRoleAsync(roleDto.ParentRoleId))
+                return BadRequest("Parent role not found");
+
+            var role = _mapper.Map<Role>(roleDto);
+            role.IdRole = role.IdRole == Guid.Empty ? Guid.NewGuid() : role.IdRole;
+            role.PermissionsMask = 0;
+            role.CreatedByUserId = granterUserId.Value;
+
+            _context.Roles.Add(role);
+            await _context.SaveChangesAsync();
+
             var resultDto = _mapper.Map<RoleDto>(role);
             return CreatedAtAction(nameof(GetRole), new { id = role.IdRole }, resultDto);
         }
@@ -85,10 +92,29 @@ namespace OlimpBack.Controllers
             if (role == null)
                 return NotFound();
 
-            await _context.Database.ExecuteSqlInterpolatedAsync($@"
-                UPDATE ""Roles""
-                SET name = {roleDto.NameRole}
-                WHERE ""idRole"" = {id}");
+            var granterUserId = User.GetUserId();
+            if (!granterUserId.HasValue)
+                return Unauthorized();
+
+            if (!await CanCreateOrManageRoleAsync(granterUserId.Value, roleDto))
+                return Forbid();
+
+            if (roleDto.ParentRoleId == id)
+                return BadRequest("Role cannot be parent of itself");
+
+            if (!await IsValidParentRoleAsync(roleDto.ParentRoleId))
+                return BadRequest("Parent role not found");
+
+            role.Name = roleDto.NameRole;
+            role.ParentRoleId = roleDto.ParentRoleId;
+            role.IsSystem = roleDto.IsSystem;
+            role.IsStudent = roleDto.IsStudent;
+            role.CreatedInFacultyId = roleDto.CreatedInFacultyId;
+            role.CreatedInDepartmentId = roleDto.CreatedInDepartmentId;
+            role.CreatedInGroupId = roleDto.CreatedInGroupId;
+
+            _context.Roles.Update(role);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -102,9 +128,15 @@ namespace OlimpBack.Controllers
             if (role == null)
                 return NotFound();
 
-            await _context.Database.ExecuteSqlInterpolatedAsync($@"
-                DELETE FROM ""Roles""
-                WHERE ""idRole"" = {id}");
+            var granterUserId = User.GetUserId();
+            if (!granterUserId.HasValue)
+                return Unauthorized();
+
+            if (!await CanManageExistingRoleAsync(granterUserId.Value, role))
+                return Forbid();
+
+            _context.Roles.Remove(role);
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -112,29 +144,53 @@ namespace OlimpBack.Controllers
         private IQueryable<Role> GetRolesQuery()
         {
             return _context.Roles
-                .FromSqlRaw(@"
-                    SELECT
-                        r.""idRole"" AS id_role,
-                        r.name,
-                        r.""parentRoleId"" AS parent_role_id,
-                        r.""permissionsMask"" AS permissions_mask
-                    FROM ""Roles"" r")
                 .AsNoTracking();
         }
 
         private async Task<Role?> GetRoleEntityAsync(Guid id)
         {
             return await _context.Roles
-                .FromSqlInterpolated($@"
-                    SELECT
-                        r.""idRole"" AS id_role,
-                        r.name,
-                        r.""parentRoleId"" AS parent_role_id,
-                        r.""permissionsMask"" AS permissions_mask
-                    FROM ""Roles"" r
-                    WHERE r.""idRole"" = {id}")
-                .AsNoTracking()
+                .AsTracking()
+                .Where(role => role.IdRole == id)
                 .FirstOrDefaultAsync();
+        }
+
+        private async Task<bool> CanCreateOrManageRoleAsync(Guid granterUserId, RoleDto roleDto)
+        {
+            var granterWeight = await _hierarchyAuthorization.GetUserMaxManagementWeightAsync(granterUserId);
+            if (roleDto.IsSystem && !roleDto.IsStudent && granterWeight < 100)
+                return false;
+
+            if (granterWeight < 90)
+                return false;
+
+            return await _hierarchyAuthorization.CanManageScopeAsync(
+                granterUserId,
+                roleDto.CreatedInFacultyId,
+                roleDto.CreatedInDepartmentId,
+                roleDto.CreatedInGroupId);
+        }
+
+        private async Task<bool> IsValidParentRoleAsync(Guid? parentRoleId)
+        {
+            return !parentRoleId.HasValue ||
+                   await _context.Roles.AsNoTracking().AnyAsync(role => role.IdRole == parentRoleId.Value);
+        }
+
+        private async Task<bool> CanManageExistingRoleAsync(Guid granterUserId, Role role)
+        {
+            var granterWeight = await _hierarchyAuthorization.GetUserMaxManagementWeightAsync(granterUserId);
+            if (role.IsSystem && !role.IsStudent && granterWeight < 100)
+                return false;
+
+            if (granterWeight < 90)
+                return false;
+
+            return await _hierarchyAuthorization.CanManageScopeAsync(
+                granterUserId,
+                role.CreatedInFacultyId,
+                role.CreatedInDepartmentId,
+                role.CreatedInGroupId);
         }
     }
 

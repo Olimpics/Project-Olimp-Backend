@@ -39,7 +39,11 @@ public class BindRolePermissionController : ControllerBase
     [RequirePermission(RbacPermissions.RolePermissionsCreate)]
     public async Task<ActionResult<BindRolePermissionDto>> CreateBindRolePermission(CreateBindRolePermissionDto dto)
     {
-        var (resultDto, statusCode, errorMessage) = await _service.CreateAsync(dto);
+        var granterUserId = User.GetUserId();
+        if (!granterUserId.HasValue)
+            return Unauthorized();
+
+        var (resultDto, statusCode, errorMessage) = await _service.CreateAsync(granterUserId.Value, dto);
 
         if (statusCode.HasValue)
             return StatusCode(statusCode.Value, errorMessage);
@@ -53,7 +57,11 @@ public class BindRolePermissionController : ControllerBase
     [RequirePermission(RbacPermissions.RolePermissionsUpdate)]
     public async Task<IActionResult> UpdateBindRolePermission(Guid roleId, Guid permissionId, UpdateBindRolePermissionDto dto)
     {
-        var (success, statusCode, errorMessage) = await _service.UpdateAsync(roleId, permissionId, dto);
+        var granterUserId = User.GetUserId();
+        if (!granterUserId.HasValue)
+            return Unauthorized();
+
+        var (success, statusCode, errorMessage) = await _service.UpdateAsync(granterUserId.Value, roleId, permissionId, dto);
 
         if (!success)
             return StatusCode(statusCode, errorMessage);
@@ -61,11 +69,15 @@ public class BindRolePermissionController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{roleId:int}/{permissionId:int}")]
+    [HttpDelete("{roleId:guid}/{permissionId:guid}")]
     [RequirePermission(RbacPermissions.RolePermissionsDelete)]
     public async Task<IActionResult> DeleteBindRolePermission(Guid roleId, Guid permissionId)
     {
-        var (success, statusCode, errorMessage) = await _service.DeleteAsync(roleId, permissionId);
+        var granterUserId = User.GetUserId();
+        if (!granterUserId.HasValue)
+            return Unauthorized();
+
+        var (success, statusCode, errorMessage) = await _service.DeleteAsync(granterUserId.Value, roleId, permissionId);
 
         if (!success)
             return StatusCode(statusCode, errorMessage);

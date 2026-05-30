@@ -14,7 +14,7 @@ public partial class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
-    }
+    }   
 
     public virtual DbSet<AcademicDegree> AcademicDegrees { get; set; }
 
@@ -82,6 +82,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<GroupSimilarSelective> GroupSimilarSelectives { get; set; }
 
+    public virtual DbSet<HierarchyNode> HierarchyNodes { get; set; }
+
+    public virtual DbSet<HierarchyTree> HierarchyTrees { get; set; }
+
     public virtual DbSet<InventorySg> InventorySgs { get; set; }
 
     public virtual DbSet<MainDiscipline> MainDisciplines { get; set; }
@@ -143,6 +147,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserDevice> UserDevices { get; set; }
+
+    public virtual DbSet<UserHierarchyAssignment> UserHierarchyAssignments { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
@@ -1010,6 +1016,58 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("groupsimilarselective_selectivedisciplines_fk");
         });
 
+        modelBuilder.Entity<HierarchyNode>(entity =>
+        {
+            entity.HasKey(e => e.IdNode).HasName("HierarchyNodes_pkey");
+
+            entity.HasIndex(e => new { e.TreeId, e.Code }, "hierarchynodes_tree_code_unique").IsUnique();
+
+            entity.HasIndex(e => new { e.TreeId, e.ParentId }, "ix_hierarchynodes_tree_parent");
+
+            entity.HasIndex(e => e.ManagementWeight, "ix_hierarchynodes_weight");
+
+            entity.Property(e => e.IdNode)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id_node");
+            entity.Property(e => e.Code)
+                .HasColumnType("character varying")
+                .HasColumnName("code");
+            entity.Property(e => e.ManagementWeight)
+                .HasDefaultValue(0)
+                .HasColumnName("management_weight");
+            entity.Property(e => e.Name)
+                .HasColumnType("character varying")
+                .HasColumnName("name");
+            entity.Property(e => e.ParentId).HasColumnName("parent_id");
+            entity.Property(e => e.TreeId).HasColumnName("tree_id");
+
+            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
+                .HasForeignKey(d => d.ParentId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("hierarchynodes_parent_fk");
+
+            entity.HasOne(d => d.Tree).WithMany(p => p.HierarchyNodes)
+                .HasForeignKey(d => d.TreeId)
+                .HasConstraintName("hierarchynodes_tree_fk");
+        });
+
+        modelBuilder.Entity<HierarchyTree>(entity =>
+        {
+            entity.HasKey(e => e.IdTree).HasName("HierarchyTrees_pkey");
+
+            entity.HasIndex(e => e.Code, "HierarchyTrees_code_key").IsUnique();
+
+            entity.Property(e => e.IdTree)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id_tree");
+            entity.Property(e => e.Code)
+                .HasColumnType("character varying")
+                .HasColumnName("code");
+            entity.Property(e => e.Name)
+                .HasColumnType("character varying")
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<InventorySg>(entity =>
         {
             entity.HasKey(e => e.IdInventoroy).HasName("inventorysg_pk");
@@ -1244,6 +1302,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("idPermission");
             entity.Property(e => e.BitIndex).HasColumnName("bitIndex");
             entity.Property(e => e.Code).HasColumnName("code");
+            entity.Property(e => e.RequiredWeight)
+                .HasDefaultValue(0)
+                .HasColumnName("required_weight");
         });
 
         modelBuilder.Entity<PreKey>(entity =>
@@ -1375,6 +1436,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdRole)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idRole");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedInDepartmentId).HasColumnName("created_in_department_id");
+            entity.Property(e => e.CreatedInFacultyId).HasColumnName("created_in_faculty_id");
+            entity.Property(e => e.CreatedInGroupId).HasColumnName("created_in_group_id");
             entity.Property(e => e.IsStudent)
                 .HasDefaultValue(false)
                 .HasColumnName("is_student");
@@ -1386,6 +1451,26 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.PermissionsMask)
                 .HasDefaultValue(0L)
                 .HasColumnName("permissionsMask");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.Roles)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("roles_created_by_user_fk");
+
+            entity.HasOne(d => d.CreatedInDepartment).WithMany(p => p.Roles)
+                .HasForeignKey(d => d.CreatedInDepartmentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("roles_created_in_department_fk");
+
+            entity.HasOne(d => d.CreatedInFaculty).WithMany(p => p.Roles)
+                .HasForeignKey(d => d.CreatedInFacultyId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("roles_created_in_faculty_fk");
+
+            entity.HasOne(d => d.CreatedInGroup).WithMany(p => p.Roles)
+                .HasForeignKey(d => d.CreatedInGroupId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("roles_created_in_group_fk");
         });
 
         modelBuilder.Entity<RoleInEvent>(entity =>
@@ -1801,6 +1886,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Email)
                 .HasColumnType("character varying")
                 .HasColumnName("email");
+            entity.Property(e => e.IsAdmin)
+                .HasDefaultValue(false)
+                .HasColumnName("is_admin");
             entity.Property(e => e.IsFirstLogin)
                 .HasDefaultValue(true)
                 .HasColumnName("isFirstLogin");
@@ -1844,6 +1932,52 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("user_devices_user_id_fkey");
+        });
+
+        modelBuilder.Entity<UserHierarchyAssignment>(entity =>
+        {
+            entity.HasKey(e => e.IdAssignment).HasName("UserHierarchyAssignments_pkey");
+
+            entity.HasIndex(e => e.HierarchyNodeId, "ix_userhierarchyassignments_node");
+
+            entity.HasIndex(e => e.UserId, "ix_userhierarchyassignments_user");
+
+            entity.Property(e => e.IdAssignment)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id_assignment");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+            entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
+            entity.Property(e => e.HierarchyNodeId).HasColumnName("hierarchy_node_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.UserHierarchyAssignments)
+                .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("userhierarchyassignments_department_fk");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.UserHierarchyAssignments)
+                .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("userhierarchyassignments_faculty_fk");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.UserHierarchyAssignments)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("userhierarchyassignments_group_fk");
+
+            entity.HasOne(d => d.HierarchyNode).WithMany(p => p.UserHierarchyAssignments)
+                .HasForeignKey(d => d.HierarchyNodeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("userhierarchyassignments_node_fk");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserHierarchyAssignments)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("userhierarchyassignments_user_fk");
         });
 
         modelBuilder.Entity<UserRole>(entity =>

@@ -174,7 +174,10 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.IdRole, opt => opt.MapFrom(src => src.IdRole))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameRole))
                 .ForMember(dest => dest.PermissionsMask, opt => opt.Ignore())
-                .ForMember(dest => dest.ParentRoleId, opt => opt.Ignore());
+                .ForMember(dest => dest.CreatedByUser, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedInFaculty, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedInDepartment, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedInGroup, opt => opt.Ignore());
 
             //StudyForm
             CreateMap<StudyForm, StudyFormDto>().ReverseMap();

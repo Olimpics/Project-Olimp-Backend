@@ -2,7 +2,7 @@ namespace OlimpBack.Application.Permissions;
 
 /// <summary>
 /// Role hierarchy for delegation.
-/// Prefer DB flags is_student / is_admin; role name is fallback until migration is applied.
+/// Prefer DB flags is_student / is_system; role name is fallback.
 /// </summary>
 public static class RoleHierarchyLevels
 {
@@ -43,10 +43,10 @@ public static class RoleHierarchyCatalog
     }
 
     public static bool IsStudentRole(RoleKindSnapshot role) =>
-        role.IsStudent || (!role.IsAdmin && ResolveLevel(role.Name) == RoleHierarchyLevels.Student);
+        role.IsStudent || (!role.IsSystem && ResolveLevel(role.Name) == RoleHierarchyLevels.Student);
 
     public static bool IsAdminRole(RoleKindSnapshot role) =>
-        role.IsAdmin || ResolveLevel(role.Name) >= RoleHierarchyLevels.SystemAdmin;
+        (role.IsSystem && !role.IsStudent) || ResolveLevel(role.Name) >= RoleHierarchyLevels.SystemAdmin;
 
     public static bool IsStaffRole(RoleKindSnapshot role) =>
         !IsStudentRole(role) || IsAdminRole(role);

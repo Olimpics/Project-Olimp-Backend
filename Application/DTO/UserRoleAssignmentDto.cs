@@ -23,16 +23,16 @@ public class CreateUserRoleAssignmentDto
 
     public Guid RoleId { get; set; }
 
-    public Guid FacultyId { get; set; }
+    public Guid? FacultyId { get; set; }
 
-    public Guid DepartmentId { get; set; }
+    public Guid? DepartmentId { get; set; }
 }
 
 public class UpdateUserRoleAssignmentDto
 {
     public Guid RoleId { get; set; }
 
-    public Guid FacultyId { get; set; }
+    public Guid? FacultyId { get; set; }
 
-    public Guid DepartmentId { get; set; }
+    public Guid? DepartmentId { get; set; }
 }

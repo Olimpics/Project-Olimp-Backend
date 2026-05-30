@@ -16,6 +16,16 @@ public interface IAuthAppService
           int? statusCode,
           object? errorPayload)> AuthorizeWithDatabaseAsync(LoginDto model);
 
+    Task<(List<UserProfileDto>? profiles,
+          int? statusCode,
+          object? errorPayload)> GetProfilesByEmailAsync(string email);
+
+    Task<(UserLoginResponseDto? response,
+          List<PermissionDto>? permissions,
+          string? roleName,
+          int? statusCode,
+          object? errorPayload)> AuthorizeByProfileAsync(AuthorizationByProfileDto model);
+
     Task<(object? response,
           List<PermissionDto>? permissions,
           int? statusCode,

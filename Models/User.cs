@@ -23,6 +23,8 @@ public partial class User
 
     public bool Avail { get; set; }
 
+    public bool IsAdmin { get; set; }
+
     public virtual AdminsPersonal? AdminsPersonal { get; set; }
 
     public virtual ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>();
@@ -39,9 +41,13 @@ public partial class User
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
+    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+
     public virtual Student? Student { get; set; }
 
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
+
+    public virtual ICollection<UserHierarchyAssignment> UserHierarchyAssignments { get; set; } = new List<UserHierarchyAssignment>();
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

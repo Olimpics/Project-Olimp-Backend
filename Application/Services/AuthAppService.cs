@@ -42,31 +42,55 @@ public class AuthAppService : IAuthAppService
         if (user == null)
             return (null, null, null, StatusCodes.Status404NotFound, "This user doesn't exist");
 
+        var (passwordStatus, passwordError) = CheckPassword(user, model.Password);
+        if (passwordStatus.HasValue)
+            return (null, null, null, passwordStatus, passwordError);
+
+        return await BuildLoginResultAsync(user, forceIsAdmin: null);
+    }
+
+    public async Task<(List<UserProfileDto>? profiles, int? statusCode, object? errorPayload)> GetProfilesByEmailAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return (null, StatusCodes.Status400BadRequest, "Email is required.");
+
+        var profiles = await _repository.GetProfilesByEmailAsync(email);
+        if (profiles.Count == 0)
+            return (null, StatusCodes.Status404NotFound, "No profiles found for this email.");
+
+        return (profiles, null, null);
+    }
+
+    public async Task<(UserLoginResponseDto? response, List<PermissionDto>? permissions, string? roleName, int? statusCode, object? errorPayload)> AuthorizeByProfileAsync(AuthorizationByProfileDto model)
+    {
+        var user = await _repository.GetUserByIdTrackedAsync(model.UserId);
+
+        if (user == null)
+            return (null, null, null, StatusCodes.Status404NotFound, "This profile doesn't exist");
+
+        var (passwordStatus, passwordError) = CheckPassword(user, model.Password);
+        if (passwordStatus.HasValue)
+            return (null, null, null, passwordStatus, passwordError);
+
+        var forceIsAdmin = model.IsAdmin ?? await _repository.HasAdminProfileAsync(user.IdUser);
+        return await BuildLoginResultAsync(user, forceIsAdmin);
+    }
+
+    private async Task<(UserLoginResponseDto?, List<PermissionDto>?, string?, int?, object?)> BuildLoginResultAsync(
+        User user, bool? forceIsAdmin)
+    {
         var roles = GetOrderedRoles(await _repository.GetUserRolesAsync(user.IdUser));
         var primaryRole = roles.FirstOrDefault();
         if (primaryRole == null)
             return (null, null, null, StatusCodes.Status404NotFound, "User has no role assigned.");
 
-        if (user.PasswordHash == null || user.PasswordHash.Length == 0 ||
-            user.PasswordSalt == null || user.PasswordSalt.Length == 0)
-        {
-            return (null, null, null, StatusCodes.Status400BadRequest, "User has no password set. Please reset password.");
-        }
-
-        if (!PasswordHelper.VerifyPassword(model.Password, user.PasswordHash, user.PasswordSalt))
-            return (null, null, null, StatusCodes.Status400BadRequest, "Incorrect password");
-
-        if (IsFirstLogin(user))
-        {
-            return (null, null, null, StatusCodes.Status403Forbidden,
-                new { Message = "Password change required", RequirePasswordChange = true });
-        }
-
         var permissionsDb = await GetUserPermissionsAsync(roles);
         var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUser);
 
+        var isAdmin = forceIsAdmin ?? IsAdminRole(primaryRole);
+
         UserLoginResponseDto dbResponse;
-        if (IsAdminRole(primaryRole))
+        if (isAdmin)
         {
             var admin = await _repository.GetAdminProfileAsync(user.IdUser);
             if (admin == null)
@@ -88,9 +112,30 @@ public class AuthAppService : IAuthAppService
 
         dbResponse.UserId = user.IdUser;
         dbResponse.RoleId = primaryRole.IdRole;
+        dbResponse.Email = user.Email;
         dbResponse.PermissionsMask = permissionsMask;
 
         return (dbResponse, permissionsDb, primaryRole.Name, null, null);
+    }
+
+    private static (int? statusCode, object? errorPayload) CheckPassword(User user, string password)
+    {
+        if (user.PasswordHash == null || user.PasswordHash.Length == 0 ||
+            user.PasswordSalt == null || user.PasswordSalt.Length == 0)
+        {
+            return (StatusCodes.Status400BadRequest, "User has no password set. Please reset password.");
+        }
+
+        if (!PasswordHelper.VerifyPassword(password, user.PasswordHash, user.PasswordSalt))
+            return (StatusCodes.Status400BadRequest, "Incorrect password");
+
+        if (IsFirstLogin(user))
+        {
+            return (StatusCodes.Status403Forbidden,
+                new { Message = "Password change required", RequirePasswordChange = true });
+        }
+
+        return (null, null);
     }
 
     public async Task<(object? response, List<PermissionDto>? permissions, int? statusCode, string? errorPayload)> GetCurrentUserAsync(Guid userId)

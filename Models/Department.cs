@@ -23,9 +23,13 @@ public partial class Department
 
     public virtual Faculty Faculty { get; set; } = null!;
 
+    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 
     public virtual ICollection<Speciality> Specialities { get; set; } = new List<Speciality>();
+
+    public virtual ICollection<UserHierarchyAssignment> UserHierarchyAssignments { get; set; } = new List<UserHierarchyAssignment>();
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

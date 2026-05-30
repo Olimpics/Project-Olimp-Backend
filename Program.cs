@@ -246,7 +246,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IRoleMaskService, RoleMaskService>();
 builder.Services.AddScoped<IRoleKindService, RoleKindService>();
+builder.Services.AddScoped<IHierarchyAuthorizationService, HierarchyAuthorizationService>();
+builder.Services.AddScoped<IPermissionDelegationService, PermissionDelegationService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IUserHierarchyAssignmentService, UserHierarchyAssignmentService>();
+builder.Services.AddScoped<IDelegationOptionsService, DelegationOptionsService>();
 // TEMPORARY: Redis is disabled for local development until Redis is available.
 // builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 // {

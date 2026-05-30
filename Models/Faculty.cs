@@ -19,5 +19,9 @@ public partial class Faculty
 
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
 
+    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+
+    public virtual ICollection<UserHierarchyAssignment> UserHierarchyAssignments { get; set; } = new List<UserHierarchyAssignment>();
+
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -27,7 +27,11 @@ public partial class StudentGroup
 
     public virtual EducationalProgram EducationalProgram { get; set; } = null!;
 
+    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 
     public virtual StudyForm StudyForm { get; set; } = null!;
+
+    public virtual ICollection<UserHierarchyAssignment> UserHierarchyAssignments { get; set; } = new List<UserHierarchyAssignment>();
 }

@@ -11,5 +11,7 @@ public partial class Permission
 
     public Guid IdPermission { get; set; }
 
+    public int RequiredWeight { get; set; }
+
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 }

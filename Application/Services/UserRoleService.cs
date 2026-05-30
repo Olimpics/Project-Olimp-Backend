@@ -19,13 +19,15 @@ public interface IUserRoleService
 
 public class UserRoleService : IUserRoleService
 {
-    private readonly AppDbContext _context;
-    private readonly IRoleKindService _roleKind;
+    private const int RoleAssignmentRequiredWeight = 90;
 
-    public UserRoleService(AppDbContext context, IRoleKindService roleKind)
+    private readonly AppDbContext _context;
+    private readonly IHierarchyAuthorizationService _hierarchyAuthorization;
+
+    public UserRoleService(AppDbContext context, IHierarchyAuthorizationService hierarchyAuthorization)
     {
         _context = context;
-        _roleKind = roleKind;
+        _hierarchyAuthorization = hierarchyAuthorization;
     }
 
     public async Task<IReadOnlyList<UserRoleAssignmentDto>> GetByUserIdAsync(Guid userId)
@@ -71,10 +73,10 @@ public class UserRoleService : IUserRoleService
         if (validation != null)
             return (null, validation.Value.statusCode, validation.Value.errorMessage);
 
-        if (!await CanAssignRoleAsync(granterUserId, dto.RoleId))
+        if (!await CanAssignRoleAsync(granterUserId, dto.RoleId, dto.FacultyId, dto.DepartmentId))
         {
             return (null, StatusCodes.Status403Forbidden,
-                "You cannot assign this role. Target role must be lower than your hierarchy level.");
+                "You cannot assign this role in the selected scope.");
         }
 
         if (await AssignmentExistsAsync(dto.UserId, dto.RoleId, dto.FacultyId, dto.DepartmentId))
@@ -109,10 +111,10 @@ public class UserRoleService : IUserRoleService
         if (validation != null)
             return (false, validation.Value.statusCode, validation.Value.errorMessage);
 
-        if (!await CanAssignRoleAsync(granterUserId, dto.RoleId))
+        if (!await CanAssignRoleAsync(granterUserId, dto.RoleId, dto.FacultyId, dto.DepartmentId))
         {
             return (false, StatusCodes.Status403Forbidden,
-                "You cannot assign this role. Target role must be lower than your hierarchy level.");
+                "You cannot assign this role in the selected scope.");
         }
 
         if (await AssignmentExistsAsync(entity.UserId, dto.RoleId, dto.FacultyId, dto.DepartmentId, idUserRole))
@@ -130,7 +132,7 @@ public class UserRoleService : IUserRoleService
     }
 
     private async Task<(int statusCode, string errorMessage)?> ValidateReferencesAsync(
-        Guid userId, Guid roleId, Guid facultyId, Guid departmentId)
+        Guid userId, Guid roleId, Guid? facultyId, Guid? departmentId)
     {
         if (!await _context.Users.AsNoTracking().AnyAsync(u => u.IdUser == userId))
             return (StatusCodes.Status400BadRequest, "User not found");
@@ -138,19 +140,25 @@ public class UserRoleService : IUserRoleService
         if (!await _context.Roles.AsNoTracking().AnyAsync(r => r.IdRole == roleId))
             return (StatusCodes.Status400BadRequest, "Role not found");
 
-        if (!await _context.Faculties.AsNoTracking().AnyAsync(f => f.IdFaculty == facultyId))
+        if (facultyId.HasValue &&
+            !await _context.Faculties.AsNoTracking().AnyAsync(f => f.IdFaculty == facultyId.Value))
+        {
             return (StatusCodes.Status400BadRequest, "Faculty not found");
+        }
+
+        if (!departmentId.HasValue)
+            return null;
 
         var department = await _context.Departments
             .AsNoTracking()
-            .Where(d => d.IdDepartment == departmentId)
+            .Where(d => d.IdDepartment == departmentId.Value)
             .Select(d => new { d.FacultyId })
             .FirstOrDefaultAsync();
 
         if (department == null)
             return (StatusCodes.Status400BadRequest, "Department not found");
 
-        if (department.FacultyId != facultyId)
+        if (facultyId.HasValue && department.FacultyId != facultyId.Value)
             return (StatusCodes.Status400BadRequest, "Department does not belong to the selected faculty");
 
         return null;
@@ -159,8 +167,8 @@ public class UserRoleService : IUserRoleService
     private async Task<bool> AssignmentExistsAsync(
         Guid userId,
         Guid roleId,
-        Guid facultyId,
-        Guid departmentId,
+        Guid? facultyId,
+        Guid? departmentId,
         Guid? excludeIdUserRole = null)
     {
         var query = _context.UserRoles.AsNoTracking()
@@ -176,14 +184,32 @@ public class UserRoleService : IUserRoleService
         return await query.AnyAsync();
     }
 
-    private async Task<bool> CanAssignRoleAsync(Guid granterUserId, Guid targetRoleId)
+    private async Task<bool> CanAssignRoleAsync(
+        Guid granterUserId,
+        Guid targetRoleId,
+        Guid? facultyId,
+        Guid? departmentId)
     {
-        var granterRoles = await _roleKind.GetUserRoleSnapshotsAsync(granterUserId);
-        var targetRole = await _roleKind.GetRoleSnapshotAsync(targetRoleId);
+        var granterWeight = await _hierarchyAuthorization.GetUserMaxManagementWeightAsync(granterUserId);
+        var targetRole = await _context.Roles
+            .AsNoTracking()
+            .Where(role => role.IdRole == targetRoleId)
+            .Select(role => new { role.IsSystem, role.IsStudent })
+            .FirstOrDefaultAsync();
 
         if (targetRole == null)
             return false;
 
-        return RoleHierarchyCatalog.CanAssignUserRole(granterRoles, targetRole.Value);
+        if (targetRole.IsSystem && !targetRole.IsStudent && granterWeight < 100)
+            return false;
+
+        if (granterWeight < RoleAssignmentRequiredWeight)
+            return false;
+
+        return await _hierarchyAuthorization.CanManageScopeAsync(
+            granterUserId,
+            facultyId,
+            departmentId,
+            groupId: null);
     }
 }

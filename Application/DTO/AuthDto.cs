@@ -7,6 +7,27 @@ public class LoginDto
     public required string Email { get; set; }
     public required string Password { get; set; }
 }
+
+public class ProfileLookupDto
+{
+    public required string Email { get; set; }
+}
+
+public class UserProfileDto
+{
+    public string Email { get; set; } = null!;
+    public Guid UserId { get; set; }
+    public string Name { get; set; } = null!;
+    public bool IsAdmin { get; set; }
+    public string? Group { get; set; }
+}
+
+public class AuthorizationByProfileDto
+{
+    public Guid UserId { get; set; }
+    public required string Password { get; set; }
+    public bool? IsAdmin { get; set; }
+}
 public class ChangePasswordDto
 {
     public required string Email { get; set; }
@@ -30,6 +51,7 @@ public class UserLoginResponseDto
 
     public Guid UserId { get; set; }
     public Guid RoleId { get; set; }
+    public string? Email { get; set; }
     public long PermissionsMask { get; set; }
     public string Token { get; set; } = null!;
 

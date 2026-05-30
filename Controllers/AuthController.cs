@@ -38,6 +38,20 @@ public class AuthController : ControllerBase
         return Ok(groupedPermissions);
     }
 
+    [HttpPost("profiles")]
+    public async Task<ActionResult<List<UserProfileDto>>> GetProfiles([FromBody] ProfileLookupDto model)
+    {
+        _logger.LogInformation("Profile lookup for email: {Email}", model.Email);
+
+        var (profiles, statusCode, errorPayload) =
+            await _authAppService.GetProfilesByEmailAsync(model.Email);
+
+        if (statusCode.HasValue)
+            return StatusCode(statusCode.Value, errorPayload);
+
+        return Ok(profiles);
+    }
+
     [HttpPost("authorization")]
     public async Task<ActionResult<UserLoginResponseDto>> Authorization(LoginDto model)
     {
@@ -46,21 +60,43 @@ public class AuthController : ControllerBase
         var (dbResponse, permissionsDb, roleName, statusCode, errorPayload) =
             await _authAppService.AuthorizeWithDatabaseAsync(model);
 
+        return BuildAuthResponse(dbResponse, permissionsDb, roleName, statusCode, errorPayload, model.Email);
+    }
+
+    [HttpPost("authorization-by-profile")]
+    public async Task<ActionResult<UserLoginResponseDto>> AuthorizationByProfile(AuthorizationByProfileDto model)
+    {
+        _logger.LogInformation("Login attempt for profile (userId): {UserId}", model.UserId);
+
+        var (dbResponse, permissionsDb, roleName, statusCode, errorPayload) =
+            await _authAppService.AuthorizeByProfileAsync(model);
+
+        return BuildAuthResponse(dbResponse, permissionsDb, roleName, statusCode, errorPayload, dbResponse?.Email);
+    }
+
+    private ActionResult<UserLoginResponseDto> BuildAuthResponse(
+        UserLoginResponseDto? dbResponse,
+        List<PermissionDto>? permissionsDb,
+        string? roleName,
+        int? statusCode,
+        object? errorPayload,
+        string? email)
+    {
         if (statusCode.HasValue)
         {
-            _logger.LogWarning("Authorization failed for {Email} with status {StatusCode}", model.Email, statusCode);
+            _logger.LogWarning("Authorization failed with status {StatusCode}", statusCode);
             return StatusCode(statusCode.Value, errorPayload);
         }
 
         if (dbResponse is null || permissionsDb is null || string.IsNullOrEmpty(roleName))
         {
-            _logger.LogError("Authorization service returned an unexpected null result for {Email}", model.Email);
+            _logger.LogError("Authorization service returned an unexpected null result");
             return StatusCode(StatusCodes.Status500InternalServerError, "Authorization failed.");
         }
 
         var jwt = _jwtService.GenerateToken(
             dbResponse.UserId.ToString() ?? string.Empty,
-            model.Email,
+            email ?? string.Empty,
             roleName,
             dbResponse.PermissionsMask
         );

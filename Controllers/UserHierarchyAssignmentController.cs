@@ -7,18 +7,18 @@ namespace OlimpBack.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UserRoleController : ControllerBase
+public class UserHierarchyAssignmentController : ControllerBase
 {
-    private readonly IUserRoleService _service;
+    private readonly IUserHierarchyAssignmentService _service;
 
-    public UserRoleController(IUserRoleService service)
+    public UserHierarchyAssignmentController(IUserHierarchyAssignmentService service)
     {
         _service = service;
     }
 
     [HttpGet("by-user/{userId:guid}")]
     [RequirePermission(RbacPermissions.UsersRead)]
-    public async Task<ActionResult<IReadOnlyList<UserRoleAssignmentDto>>> GetByUser(Guid userId)
+    public async Task<ActionResult<IReadOnlyList<UserHierarchyAssignmentDto>>> GetByUser(Guid userId)
     {
         var assignments = await _service.GetByUserIdAsync(userId);
         return Ok(assignments);
@@ -26,7 +26,7 @@ public class UserRoleController : ControllerBase
 
     [HttpGet("{id:guid}")]
     [RequirePermission(RbacPermissions.UsersRead)]
-    public async Task<ActionResult<UserRoleAssignmentDto>> GetById(Guid id)
+    public async Task<ActionResult<UserHierarchyAssignmentDto>> GetById(Guid id)
     {
         var assignment = await _service.GetByIdAsync(id);
         if (assignment == null)
@@ -37,14 +37,7 @@ public class UserRoleController : ControllerBase
 
     [HttpPost]
     [RequirePermission(RbacPermissions.UsersUpdate)]
-    public async Task<ActionResult<UserRoleAssignmentDto>> Create(CreateUserRoleAssignmentDto dto)
-    {
-        return await Assign(dto);
-    }
-
-    [HttpPost("assign")]
-    [RequirePermission(RbacPermissions.UsersUpdate)]
-    public async Task<ActionResult<UserRoleAssignmentDto>> Assign(CreateUserRoleAssignmentDto dto)
+    public async Task<ActionResult<UserHierarchyAssignmentDto>> Create(CreateUserHierarchyAssignmentDto dto)
     {
         var granterUserId = User.GetUserId();
         if (!granterUserId.HasValue)
@@ -55,18 +48,34 @@ public class UserRoleController : ControllerBase
         if (statusCode.HasValue)
             return StatusCode(statusCode.Value, errorMessage);
 
-        return CreatedAtAction(nameof(GetById), new { id = result!.IdUserRole }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result!.IdAssignment }, result);
     }
 
     [HttpPut("{id:guid}")]
     [RequirePermission(RbacPermissions.UsersUpdate)]
-    public async Task<IActionResult> Update(Guid id, UpdateUserRoleAssignmentDto dto)
+    public async Task<IActionResult> Update(Guid id, UpdateUserHierarchyAssignmentDto dto)
     {
         var granterUserId = User.GetUserId();
         if (!granterUserId.HasValue)
             return Unauthorized();
 
         var (success, statusCode, errorMessage) = await _service.UpdateAsync(granterUserId.Value, id, dto);
+
+        if (!success)
+            return StatusCode(statusCode, errorMessage);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    [RequirePermission(RbacPermissions.UsersUpdate)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var granterUserId = User.GetUserId();
+        if (!granterUserId.HasValue)
+            return Unauthorized();
+
+        var (success, statusCode, errorMessage) = await _service.DeleteAsync(granterUserId.Value, id);
 
         if (!success)
             return StatusCode(statusCode, errorMessage);

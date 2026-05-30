@@ -25,7 +25,7 @@ public class RoleKindService : IRoleKindService
         return await _context.UserRoles
             .AsNoTracking()
             .Where(ur => ur.UserId == userId)
-            .AnyAsync(ur => ur.Role.IsAdmin, cancellationToken);
+            .AnyAsync(ur => ur.Role.IsSystem && !ur.Role.IsStudent, cancellationToken);
     }
 
     public async Task<bool> IsStaffAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public class RoleKindService : IRoleKindService
         return await _context.UserRoles
             .AsNoTracking()
             .Where(ur => ur.UserId == userId)
-            .Select(ur => new RoleKindSnapshot(ur.Role.IsStudent, ur.Role.IsAdmin, ur.Role.Name))
+            .Select(ur => new RoleKindSnapshot(ur.Role.IsStudent, ur.Role.IsSystem, ur.Role.Name))
             .ToListAsync(cancellationToken);
     }
 
@@ -54,7 +54,7 @@ public class RoleKindService : IRoleKindService
         return await _context.Roles
             .AsNoTracking()
             .Where(r => r.IdRole == roleId)
-            .Select(r => new RoleKindSnapshot(r.IsStudent, r.IsAdmin, r.Name))
+            .Select(r => new RoleKindSnapshot(r.IsStudent, r.IsSystem, r.Name))
             .FirstOrDefaultAsync(cancellationToken);
     }
 }
