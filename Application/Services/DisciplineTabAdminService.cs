@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Data;
 using OlimpBack.Infrastructure.Database.Repositories;
 using OlimpBack.Models;
 using System;
@@ -13,6 +15,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
     private readonly IDisciplineTabAdminRepository _repository;
     private readonly IAdminDisciplineStudentListRepository _studentListRepository;
     private readonly IStudentChoiceCacheService _cacheService;
+    private readonly AppDbContext _context;
 
     public DisciplineTabAdminService(
         IDisciplineTabAdminRepository repository,

@@ -903,6 +903,10 @@ public class ImportService : IImportService
             departmentId = dept?.IdDepartment ?? Guid.Empty;
         }
 
+        // Lookup Degree
+        var degree = await _context.EducationalDegrees
+            .FirstOrDefaultAsync(d => d.NameEducationalDegree.Contains(dto.DegreeLevel ?? ""));
+
         // Recommended and RecommendedEp preparation
         var recommendedEpIds = new List<Guid>();
         var recommendedJson = new Dictionary<string, List<string>>();
@@ -949,10 +953,12 @@ public class ImportService : IImportService
             MinCountPeople = dto.MinCountPeople,
             MaxCountPeople = dto.MaxCountPeople,
             IsEven = dto.IsEven,
-            DegreeLevelId = dto.DegreeLevelId,
+            DegreeLevelId = degree?.Ideducationaldegree ?? Guid.Empty,
             CatalogId = catalogId,
             ApprovalStatusId = (await _context.Approvals.FirstOrDefaultAsync(sf => sf.ApprobalLevel == 1))?.IdApproval ?? Guid.Empty,
-            TypeOfControlId = (await _context.TypeOfControls.FirstOrDefaultAsync(tc => tc.Type.ToLower() == "диференційований залік"))?.IdTypeOfControl ?? Guid.Empty,
+            //TypeOfControlId = (await _context.TypeOfControls.FirstOrDefaultAsync(tc => tc.Type.ToLower() == "диференційований залік"))?.IdTypeOfControl ?? Guid.Empty,
+            TypeOfControlId = Guid.Parse("1eb39bad-0f5e-4d0a-ac0a-f79f7941a430"),
+            TypeId = Guid.Parse("31bc3b17-d7fc-44bb-880e-3e362745e043"),
             DepartmentId = departmentId,
             NameDock = uniqueFileName,
             Courses = dto.Courses,

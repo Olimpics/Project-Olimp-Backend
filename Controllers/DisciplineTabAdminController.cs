@@ -22,7 +22,7 @@ namespace OlimpBack.Controllers
         }
 
         [HttpGet("GetAllDisciplines")]
-        [RequirePermission(RbacPermissions.DisciplineRead)]
+       // [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<PaginatedResponseDto<FullDisciplineDto>>> GetAllDisciplines(
             [FromQuery] GetAllDisciplinesAdminQueryDto query)
         {

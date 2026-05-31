@@ -37,7 +37,7 @@ public partial class SelectiveDiscipline
 
     public bool NeedFix { get; set; }
 
-    public bool IsEven { get; set; }
+    public bool? IsEven { get; set; }
 
     public Guid IdSelectiveDisciplines { get; set; }
 

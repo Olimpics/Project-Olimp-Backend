@@ -52,7 +52,7 @@ Output MUST be a valid JSON array of objects with the following structure:
     ""needFix"": boolean,
     ""Department"": ""string or null"",
     ""Teachers"": [""string""],
-    ""DegreeLevelId"": int or null (1-Bachelor, 2-Master, etc. if identifiable),
+    ""DegreeLevel"": ""string or null (e.g. 'Бакалавр', 'Магістр', 'Аспірант')"",
     ""Courses"": [int] (e.g. [1, 2, 3]),
     ""IsEven"": int or null (1 for even semester, 2 for odd, or 0/1 based on logic),
     ""Language"": ""string or null"",
@@ -73,7 +73,7 @@ You are a data normalization engine for university curriculum systems. Your goal
 ### LOGIC FOR 'needFix' FIELD:
 - Evaluate the 'recommendedForFields' raw input:
   - Set ""needFix"": true if the field contains any specific restrictions (e.g., branches, specialties, specific codes like ""014.04"", or faculty names).
-  - Set ""needFix"": false if the field is empty, null, or contains only general phrases like ""��� ���"", ""���"", ""��� ��������"", ""��� ��� ��������������"", ""��� ��� ��������"".
+  - Set ""needFix"": false if the field is empty, null, or contains only general phrases like ""для всіх"", ""всі"", ""без обмежень"", ""для всіх спеціальностей"", ""для всіх факультетів"".
 
 ### HANDLING EMPTY FIELDS:
 - If a field is missing, null, or empty in the input, return `null` for single values (strings/integers) and an empty array `[]` for lists. Do not invent data.
@@ -85,9 +85,9 @@ You are a data normalization engine for university curriculum systems. Your goal
    - **Branches**: Array of strings starting with a Latin letter (A, B, C...) + title.
    - **Specialitys**: Array of strings with codes of 2-3 digits + title.
    - **EducationalPrograms**: Array of strings with codes containing dots (e.g., ""014.04"").
-3. **Department**: Return only the Department's name, capitalized. Remove prefixes like ""�������"".
-4. **Teachers**: Return an array of strings. Keep the FULL NAME (Last, First, Middle). Remove academic titles (����., ���., �.�.�., PhD, etc.).
-5. **DegreeLevelId**: Map input: ""��������"" -> 1, ""������"" -> 2, ""�������"" -> 3. Otherwise `null`.
+3. **Department**: Return only the Department's name, capitalized. Remove prefixes like ""кафедра"".
+4. **Teachers**: Return an array of strings. Keep the FULL NAME (Last, First, Middle). Remove academic titles (проф., доц., к.т.н., PhD, etc.).
+5. **DegreeLevel**: Map input: ""Бакалавр"", ""Магістр"", ""Аспірант"". Return the name, not ID. Ensure it is a single word.
 6. **Courses**: Array of integers (e.g., [1, 2, 3]).
 7. **IsEven**: If only even semesters mentioned -> 1; only odd -> 0; both or unspecified -> null.
 8. **DisciplineTopics**: Convert the text list into a clean array of strings (one per topic).
