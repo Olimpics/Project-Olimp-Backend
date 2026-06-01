@@ -262,6 +262,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 });
 builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
 builder.Services.AddScoped<IStudentChoiceCacheService, StudentChoiceCacheService>();
+builder.Services.AddScoped<IDisciplineCacheService, DisciplineCacheService>();
 builder.Services.AddScoped<ISystemEventService, SystemEventService>();
 // ==========================================
 // РЕПОЗИТОРІЇ ТА СЕРВІСИ (Domain Modules)

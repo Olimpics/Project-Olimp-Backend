@@ -32,44 +32,33 @@ namespace OlimpBack.Utils
                 .Select(id => id!)
                 .ToHashSet();
 
-            var disciplineCounts = await _context.BindSelectiveDisciplines
-                .Where(b => b.InProcess == true && b.SelectiveDisciplineId != null)
-                .GroupBy(b => b.SelectiveDisciplineId!)
-                .Select(g => new { DisciplineId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.DisciplineId, x => x.Count);
-
             return new DisciplineAvailabilityContext
             {
                 Student = student,
                 CurrentCourse = currentCourse,
                 FacultyAbbreviation = student.Group?.EducationalProgram?.Speciality?.Department?.Faculty?.Abbreviation,
-                BoundDisciplineIds = boundDisciplineIds,
-                DisciplineCounts = disciplineCounts
+                BoundDisciplineIds = boundDisciplineIds
             };
         }
-        public static bool IsDisciplineAvailable(SelectiveDiscipline discipline, DisciplineAvailabilityContext context)
+        public static bool IsDisciplineAvailable(SelectiveDiscipline discipline, DisciplineAvailabilityContext context, int currentOccupancy)
         {
             if (context.BoundDisciplineIds.Contains(discipline.IdSelectiveDisciplines))
                 return false;
 
-            if (discipline.DegreeLevelId != null &&
+            if (discipline.DegreeLevelId != Guid.Empty &&
                 discipline.DegreeLevelId != context.Student.Group?.EducationalProgram?.DegreeId)
                 return false;
 
-            if (discipline.Department?.FacultyId != context.Student.Group?.EducationalProgram?.Speciality?.Department?.FacultyId)
+            if (discipline.Department?.FacultyId != null && 
+                discipline.Department?.FacultyId != context.Student.Group?.EducationalProgram?.Speciality?.Department?.FacultyId)
                 return false;
 
             if (discipline.Courses != null && discipline.Courses.Any() && !discipline.Courses.Contains(context.CurrentCourse))
                 return false;
 
-            // Note: MinCountPeople logic might be different from what was here.
-            // Usually availability means students CAN join, so currentCount < MaxCount.
-            // MinCount usually matters AFTER the period to see if the discipline will actually happen.
-            
             if (discipline.MaxCountPeople.HasValue)
             {
-                var currentCount = context.DisciplineCounts.TryGetValue(discipline.IdSelectiveDisciplines, out var count) ? count : 0;
-                if (currentCount >= discipline.MaxCountPeople.Value)
+                if (currentOccupancy >= discipline.MaxCountPeople.Value)
                     return false;
             }
 

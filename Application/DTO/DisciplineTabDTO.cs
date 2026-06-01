@@ -58,7 +58,6 @@ namespace OlimpBack.Application.DTO
         public int CurrentCourse { get; set; }
         public string? FacultyAbbreviation { get; set; }
         public HashSet<Guid> BoundDisciplineIds { get; set; } = new();
-        public Dictionary<Guid, int> DisciplineCounts { get; set; } = new();
     }
     public class GetDisciplinesBySemesterQueryDto
     {

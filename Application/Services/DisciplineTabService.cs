@@ -18,13 +18,20 @@ public class DisciplineTabService : IDisciplineTabService
     private readonly IMapper _mapper;
     private readonly AppDbContext _context;
     private readonly IStudentChoiceCacheService _cacheService;
+    private readonly IDisciplineCacheService _disciplineCacheService;
 
-    public DisciplineTabService(IDisciplineTabRepository repository, IMapper mapper, AppDbContext context, IStudentChoiceCacheService cacheService)
+    public DisciplineTabService(
+        IDisciplineTabRepository repository, 
+        IMapper mapper, 
+        AppDbContext context, 
+        IStudentChoiceCacheService cacheService,
+        IDisciplineCacheService disciplineCacheService)
     {
         _repository = repository;
         _mapper = mapper;
         _context = context;
         _cacheService = cacheService;
+        _disciplineCacheService = disciplineCacheService;
     }
 
     public async Task<PaginatedResponseDto<FullDisciplineDto>?> GetAllDisciplinesWithAvailabilityAsync(GetAllDisciplinesWithAvailabilityQueryDto queryDto)
@@ -34,23 +41,20 @@ public class DisciplineTabService : IDisciplineTabService
 
         var allDisciplines = await _repository.GetDisciplinesForAvailabilityAsync(queryDto);
 
-        var fullList = allDisciplines.Select(discipline =>
+        var fullList = new List<FullDisciplineDto>();
+        foreach (var discipline in allDisciplines)
         {
             var dto = _mapper.Map<FullDisciplineDto>(discipline);
-            if (context.DisciplineCounts.TryGetValue(discipline.IdSelectiveDisciplines, out var c))
-            {
-                dto.CountOfPeople = c;
-            }
-            else
-            {
-                dto.CountOfPeople = 0;
-            }
-            dto.IsAvailable = DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context);
-            return dto;
-        });
+            
+            // Use cache for occupancy
+            dto.CountOfPeople = await _disciplineCacheService.GetOccupancyAsync(discipline.IdSelectiveDisciplines);
+            
+            dto.IsAvailable = DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context, dto.CountOfPeople);
+            fullList.Add(dto);
+        }
 
         if (queryDto.OnlyAvailable)
-            fullList = fullList.Where(d => d.IsAvailable);
+            fullList = fullList.Where(d => d.IsAvailable).ToList();
 
         var sortedList = queryDto.SortOrder switch
         {
@@ -92,15 +96,20 @@ public class DisciplineTabService : IDisciplineTabService
 
         var disciplines = await _repository.GetDisciplinesBySemesterAsync(queryDto);
 
-        var availableDisciplines = disciplines
-            .Where(d => DisciplineAvailabilityService.IsDisciplineAvailable(d, context))
-            .Select(d => new SimpleDisciplineDto
+        var availableDisciplines = new List<SimpleDisciplineDto>();
+        foreach (var d in disciplines)
+        {
+            int occupancy = await _disciplineCacheService.GetOccupancyAsync(d.IdSelectiveDisciplines);
+            if (DisciplineAvailabilityService.IsDisciplineAvailable(d, context, occupancy))
             {
-                IdSelectiveDisciplines = d.IdSelectiveDisciplines,
-                NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
-                CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? ""
-            })
-            .ToList();
+                availableDisciplines.Add(new SimpleDisciplineDto
+                {
+                    IdSelectiveDisciplines = d.IdSelectiveDisciplines,
+                    NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
+                    CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? ""
+                });
+            }
+        }
 
         return new DisciplineTabResponseDto
         {
@@ -143,7 +152,7 @@ public class DisciplineTabService : IDisciplineTabService
 
         if (dto.Semestr != 0 && dto.Semestr != 1) return (null, "Semestr must be 0 or 1");
 
-        bool isSpring = dto.Semestr == 0; // Assuming 0 is even/spring based on targetSemester calculation below
+        bool isSpring = dto.Semestr == 0; 
         var limits = await _cacheService.GetLimitsAsync(dto.StudentId);
         int currentLimit = isSpring ? limits[1] : limits[0];
 
@@ -159,9 +168,28 @@ public class DisciplineTabService : IDisciplineTabService
         if (targetSemester > 8) return (null, $"Invalid semester: {targetSemester}");
         if (context.BoundDisciplineIds.Contains(dto.DisciplineId)) return (null, "Student is already enrolled");
 
-        var discipline = await _repository.GetDisciplineByIdAsNoTrackingAsync(dto.DisciplineId);
+        var discipline = await _context.SelectiveDisciplines
+            .Include(d => d.Type)
+            .FirstOrDefaultAsync(d => d.IdSelectiveDisciplines == dto.DisciplineId);
+
         if (discipline == null) return (null, "Discipline not found");
-        if (!DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context))
+
+        // Use cache for occupancy check
+        int currentOccupancy = await _disciplineCacheService.GetOccupancyAsync(dto.DisciplineId);
+
+        if (discipline.MaxCountPeople.HasValue && currentOccupancy >= discipline.MaxCountPeople.Value)
+        {
+            // Update status to "Enrolled"
+            var enrolledStatus = await _context.TypeOfDisciplines.FirstOrDefaultAsync(t => t.TypeName == "Enrolled");
+            if (enrolledStatus != null)
+            {
+                discipline.TypeId = enrolledStatus.IdTypeOfDiscipline;
+                await _context.SaveChangesAsync();
+            }
+            return (null, "The maximum number of people has already been reached for this discipline.");
+        }
+
+        if (!DisciplineAvailabilityService.IsDisciplineAvailable(discipline, context, currentOccupancy))
             return (null, "Discipline is not available for this student");
 
         var bind = new BindSelectiveDiscipline
@@ -177,8 +205,9 @@ public class DisciplineTabService : IDisciplineTabService
         await _repository.AddBindAsync(bind);
         await _repository.SaveChangesAsync();
 
-        // Update cache
+        // Update caches
         await _cacheService.UpdateLimitAsync(dto.StudentId, isSpring, -1);
+        await _disciplineCacheService.IncrementOccupancyAsync(dto.DisciplineId);
 
         return (bind.IdBindSelectiveDisciplines, null);
     }

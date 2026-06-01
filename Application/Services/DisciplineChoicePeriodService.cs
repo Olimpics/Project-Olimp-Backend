@@ -23,6 +23,7 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
     private readonly IMapper _mapper;
     private readonly ISystemEventService _systemEventService;
     private readonly IStudentChoiceCacheService _cacheService;
+    private readonly IDisciplineCacheService _disciplineCacheService;
     private readonly Data.AppDbContext _context;
 
     public DisciplineChoicePeriodService(
@@ -30,12 +31,14 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         IMapper mapper, 
         ISystemEventService systemEventService,
         IStudentChoiceCacheService cacheService,
+        IDisciplineCacheService disciplineCacheService,
         Data.AppDbContext context)
     {
         _repository = repository;
         _mapper = mapper;
         _systemEventService = systemEventService;
         _cacheService = cacheService;
+        _disciplineCacheService = disciplineCacheService;
         _context = context;
     }
 
@@ -99,6 +102,22 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         period.IsConfirm = true;
         await _context.SaveChangesAsync();
 
+        // Initialize discipline occupancy cache
+        var disciplinesQuery = _context.SelectiveDisciplines
+            .Include(d => d.Catalog)
+            .Where(d => d.Catalog.YearStart == period.CatalogYear.YearStart);
+
+        if (period.DegreeLevelId != Guid.Empty)
+        {
+            disciplinesQuery = disciplinesQuery.Where(d => d.DegreeLevelId == period.DegreeLevelId);
+        }
+
+        var disciplines = await disciplinesQuery.ToListAsync();
+        foreach (var disc in disciplines)
+        {
+            await _disciplineCacheService.SetOccupancyAsync(disc.IdSelectiveDisciplines, 0);
+        }
+
         // Process students and load to cache
         var students = await _context.Students
             .Include(s => s.Group)
@@ -160,8 +179,18 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
 
     public async Task<(bool success, int statusCode, string? errorMessage)> OpenOrCloseAsync(Guid id, UpdateDisciplineChoicePeriodOpenOrCloseDto dto)
     {
-        // This method is now effectively a no-op for closing, but we'll keep the signature
-        return (true, StatusCodes.Status204NoContent, "Manual closing is disabled");
+        var period = await _context.DisciplineChoicePeriods.FindAsync(id);
+        if (period == null) return (false, StatusCodes.Status404NotFound, "Period not found");
+
+        period.IsClose = dto.IsClose;
+        await _context.SaveChangesAsync();
+
+        if (period.IsClose)
+        {
+            await _cacheService.ClearCacheForStudentsInPeriodAsync(period);
+        }
+
+        return (true, StatusCodes.Status204NoContent, null);
     }
 
 
