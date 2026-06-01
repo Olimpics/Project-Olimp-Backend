@@ -59,6 +59,7 @@ namespace OlimpBack.Application.DTO
     public class UpdateDisciplineChoicePeriodOpenOrCloseDto
     {
         public Guid Id { get; set; }
+        public bool IsClose { get; set; }
     }
 
     /// <summary>
