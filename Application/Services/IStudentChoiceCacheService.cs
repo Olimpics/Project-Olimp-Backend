@@ -9,4 +9,5 @@ public interface IStudentChoiceCacheService
     Task UpdateLimitAsync(Guid studentId, bool isSpring, int delta);
     Task ClearCacheAsync(Guid studentId);
     Task ClearCacheForStudentsInPeriodAsync(DisciplineChoicePeriod period);
+    Task InitializeCacheAsync(Guid? studentId, DisciplineChoicePeriod? period);
 }

@@ -862,7 +862,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
                 .HasForeignKey(d => d.ParentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("disciplinechoiceperiod_disciplinechoiceperiod_fk");
         });
 
@@ -1612,9 +1611,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodeSelectiveDisciplines)
                 .HasColumnType("character varying")
                 .HasColumnName("codeSelectiveDisciplines");
-            entity.Property(e => e.CountOfBinds)
-                .HasDefaultValue(0)
-                .HasColumnName("count_of_binds");
             entity.Property(e => e.Courses).HasColumnName("courses");
             entity.Property(e => e.DegreeLevelId).HasColumnName("degree_level_id");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");

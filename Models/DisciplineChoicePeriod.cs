@@ -32,7 +32,7 @@ public partial class DisciplineChoicePeriod
 
     public Guid CatalogYearId { get; set; }
 
-    public Guid ParentId { get; set; }
+    public Guid? ParentId { get; set; }
 
     public bool IsConfirm { get; set; }
 
@@ -44,5 +44,5 @@ public partial class DisciplineChoicePeriod
 
     public virtual ICollection<DisciplineChoicePeriod> InverseParent { get; set; } = new List<DisciplineChoicePeriod>();
 
-    public virtual DisciplineChoicePeriod Parent { get; set; } = null!;
+    public virtual DisciplineChoicePeriod? Parent { get; set; }
 }

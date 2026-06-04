@@ -257,7 +257,7 @@ builder.Services.AddScoped<IDelegationOptionsService, DelegationOptionsService>(
 // Redis and Caching
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 {
-    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
+    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "redis:6379,abortConnect=false";
     return ConnectionMultiplexer.Connect(redisConnection);
 });
 builder.Services.AddSingleton<IRbacCacheService, RbacCacheService>();
@@ -441,6 +441,8 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+
+Console.WriteLine("CS = " + builder.Configuration.GetConnectionString("DefaultConnection"));
 
 app.UseCors("AllowFrontend");
 

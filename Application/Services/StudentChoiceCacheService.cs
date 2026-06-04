@@ -87,7 +87,73 @@ public class StudentChoiceCacheService : IStudentChoiceCacheService
 
     public async Task ClearCacheForStudentsInPeriodAsync(DisciplineChoicePeriod period)
     {
-        // Find students who fall under this period
+        var students = await GetStudentsForPeriodInternalAsync(period);
+        foreach (var student in students)
+        {
+            await ClearCacheAsync(student.IdStudent);
+        }
+    }
+
+    public async Task InitializeCacheAsync(Guid? studentId, DisciplineChoicePeriod? period)
+    {
+        if (studentId.HasValue)
+        {
+            var limits = await CalculateRemainingLimitsAsync(studentId.Value);
+            string cacheKey = $"{CacheKeyPrefix}{studentId.Value}";
+            await _database.StringSetAsync(cacheKey, JsonSerializer.Serialize(limits), TimeSpan.FromHours(24));
+            return;
+        }
+
+        if (period == null) return;
+
+        var students = await GetStudentsForPeriodInternalAsync(period);
+        if (!students.Any()) return;
+
+        var studentIds = students.Select(s => s.IdStudent).ToList();
+
+        // Batch load choices to calculate remaining limits efficiently
+        var allChoices = await _context.BindSelectiveDisciplines
+            .Where(b => studentIds.Contains(b.StudentId) && b.YearId == period.CatalogYearId)
+            .ToListAsync();
+
+        var choicesByStudent = allChoices.GroupBy(b => b.StudentId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var tasks = students.Select(async student =>
+        {
+            int admissionYear = student.Group.AdmissionYear!.Value.Year;
+            int course = period.CatalogYear!.YearStart - admissionYear + 1;
+            var ep = student.Group.EducationalProgram;
+
+            if (ep.SelectiveDisciplineBySemestr == null || ep.SelectiveDisciplineBySemestr.Count < course * 2)
+                return;
+
+            int totalFall = ep.SelectiveDisciplineBySemestr[(course - 1) * 2];
+            int totalSpring = ep.SelectiveDisciplineBySemestr[(course - 1) * 2 + 1];
+
+            if (!period.IsForBothSemester) totalFall = 0;
+
+            choicesByStudent.TryGetValue(student.IdStudent, out var chosen);
+            int chosenFall = chosen?.Count(b => b.Semestr % 2 != 0) ?? 0;
+            int chosenSpring = chosen?.Count(b => b.Semestr % 2 == 0) ?? 0;
+
+            int[] limits = new[] { Math.Max(0, totalFall - chosenFall), Math.Max(0, totalSpring - chosenSpring) };
+            
+            string cacheKey = $"{CacheKeyPrefix}{student.IdStudent}";
+            await _database.StringSetAsync(cacheKey, JsonSerializer.Serialize(limits), TimeSpan.FromHours(24));
+        });
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task<List<Student>> GetStudentsForPeriodInternalAsync(DisciplineChoicePeriod period)
+    {
+        // Ensure CatalogYear is loaded
+        if (period.CatalogYear == null)
+        {
+            await _context.Entry(period).Reference(p => p.CatalogYear).LoadAsync();
+        }
+
         var students = await _context.Students
             .Include(s => s.Group)
                 .ThenInclude(g => g.EducationalProgram)
@@ -103,25 +169,19 @@ public class StudentChoiceCacheService : IStudentChoiceCacheService
             students = students.Where(s => s.Group.EducationalProgram.SpecialityId == period.SpecialityId.Value).ToList();
         }
 
+        var result = new List<Student>();
         foreach (var student in students)
         {
             if (student.Group.AdmissionYear == null) continue;
             
             int admissionYear = student.Group.AdmissionYear.Value.Year;
-            
-            // We need CatalogYear to check the course. 
-            // If it's not loaded, we might need to load it.
-            if (period.CatalogYear == null)
-            {
-                await _context.Entry(period).Reference(p => p.CatalogYear).LoadAsync();
-            }
-
             int course = period.CatalogYear.YearStart - admissionYear + 1;
 
             if (period.PeriodCourse > 0 && period.PeriodCourse != course) continue;
-
-            await ClearCacheAsync(student.IdStudent);
+            
+            result.Add(student);
         }
+        return result;
     }
 
     private async Task<int[]> CalculateRemainingLimitsAsync(Guid studentId)

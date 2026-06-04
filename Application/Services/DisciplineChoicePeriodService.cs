@@ -119,33 +119,7 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         }
 
         // Process students and load to cache
-        var students = await _context.Students
-            .Include(s => s.Group)
-                .ThenInclude(g => g.EducationalProgram)
-                    .ThenInclude(ep => ep.Speciality)
-            .Where(s => s.Avail && 
-                        s.Group.EducationalProgram.Speciality.DepartmentId == period.DepartmentId &&
-                        s.Group.EducationalProgram.DegreeId == period.DegreeLevelId &&
-                        s.Group.EducationalProgram.IsAccelerated == period.IsShort)
-            .ToListAsync();
-
-        if (period.SpecialityId.HasValue)
-        {
-            students = students.Where(s => s.Group.EducationalProgram.SpecialityId == period.SpecialityId.Value).ToList();
-        }
-
-        foreach (var student in students)
-        {
-            if (student.Group.AdmissionYear == null) continue;
-            
-            int admissionYear = student.Group.AdmissionYear.Value.Year;
-            int course = period.CatalogYear.YearStart - admissionYear + 1;
-
-            if (period.PeriodCourse > 0 && period.PeriodCourse != course) continue;
-
-            // Load to cache
-            await _cacheService.GetLimitsAsync(student.IdStudent);
-        }
+        await _cacheService.InitializeCacheAsync(null, period);
 
         return (true, StatusCodes.Status200OK, null);
     }
@@ -188,6 +162,10 @@ public class DisciplineChoicePeriodService : IDisciplineChoicePeriodService
         if (period.IsClose)
         {
             await _cacheService.ClearCacheForStudentsInPeriodAsync(period);
+        }
+        else
+        {
+            await _cacheService.InitializeCacheAsync(null, period);
         }
 
         return (true, StatusCodes.Status204NoContent, null);
