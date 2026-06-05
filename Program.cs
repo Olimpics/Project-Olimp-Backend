@@ -393,6 +393,8 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 // Similarity Services
 builder.Services.AddScoped<ISimilarityRepository, SimilarityRepository>();
 builder.Services.AddScoped<IEpSimilarityRepository, EpSimilarityRepository>();
+builder.Services.AddScoped<ISgRepository, SgRepository>();
+builder.Services.AddScoped<ISgService, SgService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IEpSimilarityService, EpSimilarityService>();
 

@@ -34,4 +34,6 @@ public partial class StudentGroup
     public virtual StudyForm StudyForm { get; set; } = null!;
 
     public virtual ICollection<UserHierarchyAssignment> UserHierarchyAssignments { get; set; } = new List<UserHierarchyAssignment>();
+
+    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -13,6 +13,8 @@ public partial class BindSubdivisionRoleSg
 
     public Guid IdBindSubdivisionRoleSg { get; set; }
 
+    public bool IsFaculty { get; set; }
+
     public virtual ICollection<MembersOfSg> MembersOfSgs { get; set; } = new List<MembersOfSg>();
 
     public virtual RolesInSg RoleInSg { get; set; } = null!;

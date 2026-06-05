@@ -6,6 +6,7 @@ using System.Text.Json;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
+using OlimpBack.Application.DTO.Sg;
 using OlimpBack.Models;
 
 namespace OlimpBack.MappingProfiles
@@ -15,6 +16,37 @@ namespace OlimpBack.MappingProfiles
     {
         public MappingProfile()
         {
+            // SG Mappings
+            CreateMap<SubDivisionsSg, SubDivisionUserDto>()
+                .ForMember(dest => dest.SubDivisionId, opt => opt.MapFrom(src => src.IdSubDivisions));
+
+            CreateMap<MembersOfSg, SubDivisionUserDto>()
+                .ForMember(dest => dest.SubDivisionId, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSg.SubDivisionId))
+                .ForMember(dest => dest.NameDivision, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSg.SubDivision.NameDivision))
+                .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
+                .ForMember(dest => dest.Abbreviation, opt => opt.MapFrom(src => src.Faculty != null ? src.Faculty.Abbreviation : null));
+
+            CreateMap<Event, EventDto>().ReverseMap();
+            CreateMap<EventCreateUpdateDto, Event>();
+
+            CreateMap<MembersOfSg, StudentSgDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.StudentId))
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Student.Group.GroupCode))
+                .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty != null ? src.Faculty.NameFaculty : src.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
+                .ForMember(dest => dest.RoleInSg, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSg.RoleInSg.NameRole));
+
+            CreateMap<BindEventStudent, BindEventStudentDto>().ReverseMap();
+            CreateMap<BindEventStudentCreateUpdateDto, BindEventStudent>();
+
+            CreateMap<MembersOfSg, MemberSgDto>().ReverseMap();
+            CreateMap<MemberSgCreateUpdateDto, MembersOfSg>();
+
+            CreateMap<InventorySg, InventorySgDto>().ReverseMap();
+            CreateMap<InventorySgCreateUpdateDto, InventorySg>();
+
+            CreateMap<AccountingJournal, AccountingJournalDto>().ReverseMap();
+            CreateMap<AccountingJournalCreateUpdateDto, AccountingJournal>();
+
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>()
                 .ForMember(dest => dest.IdUser, opt => opt.Ignore());

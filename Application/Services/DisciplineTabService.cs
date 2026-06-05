@@ -136,6 +136,7 @@ public class DisciplineTabService : IDisciplineTabService
         var studentSpecialityId = context.Student.Group.EducationalProgram.SpecialityId;
 
         var activePeriods = await _context.DisciplineChoicePeriods
+            .Include(p => p.CatalogYear)
             .Where(p => !p.IsClose && 
                         p.StartDate <= now && 
                         p.EndDate >= now &&
@@ -161,7 +162,7 @@ public class DisciplineTabService : IDisciplineTabService
             return (null, $"you have already selected all disciplines of the {(isSpring ? "spring" : "fall")} semester");
         }
 
-        int targetCourse = context.CurrentCourse + 1;
+        int targetCourse = period.CatalogYear.YearStart - context.Student.Group.AdmissionYear.Value.Year + 1;
         int targetSemester = targetCourse * 2 - dto.Semestr;
 
         if (targetCourse > 4) return (null, "You can't choose disciplines in 5th course");

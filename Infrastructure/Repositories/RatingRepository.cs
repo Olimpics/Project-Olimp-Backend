@@ -83,14 +83,14 @@ public class RatingRepository : IRatingRepository
     public async Task<Dictionary<Guid, int>> GetSgPointsMapAsync(List<Guid> studentIds)
     {
         var members = await _context.MembersOfSgs
-            .Include(m => m.BindsubdivisionRoleSg)
+            .Include(m => m.BindSubdivisionRoleInSg)
             .Where(m => m.StudentId != Guid.Empty && studentIds.Contains(m.StudentId))
             .ToListAsync();
 
         return members
-            .Where(m => m.StudentId != Guid.Empty && m.BindsubdivisionRoleSg != null && m.BindsubdivisionRoleSg.Points != null)
+            .Where(m => m.StudentId != Guid.Empty && m.BindSubdivisionRoleInSg != null)
             .GroupBy(m => m.StudentId)
-            .ToDictionary(g => g.Key, g => g.Sum(m => m.BindsubdivisionRoleSg!.Points!));
+            .ToDictionary(g => g.Key, g => g.Sum(m => m.BindSubdivisionRoleInSg!.Points!));
     }
 
     public async Task AddRatingsAsync(List<BindRating> ratings)

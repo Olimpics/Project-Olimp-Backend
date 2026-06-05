@@ -158,7 +158,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=5432;Database=project_olymp_db;Username=postgres;Password=B25824DCABCB88B5;");
+        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=project_olymp_db;Username=postgres;Password=B25824DCABCB88B5;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -540,6 +540,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdBindSubdivisionRoleSg)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("idBindSubdivisionRoleSG");
+            entity.Property(e => e.IsFaculty).HasColumnName("is_faculty");
             entity.Property(e => e.Points).HasColumnName("points");
             entity.Property(e => e.RoleInSgid).HasColumnName("RoleInSGId");
 
@@ -971,10 +972,13 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Avail)
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
+            entity.Property(e => e.CatalogYearId).HasColumnName("catalog_year_id");
             entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
             entity.Property(e => e.Format)
                 .HasColumnType("character varying")
                 .HasColumnName("format");
+            entity.Property(e => e.IsEven).HasColumnName("is_even");
             entity.Property(e => e.Location)
                 .HasColumnType("character varying")
                 .HasColumnName("location");
@@ -983,10 +987,20 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("nameEvent");
             entity.Property(e => e.SubdivisionSgid).HasColumnName("SubdivisionSGId");
 
+            entity.HasOne(d => d.CatalogYear).WithMany(p => p.Events)
+                .HasForeignKey(d => d.CatalogYearId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("events_catalogyear_fk");
+
             entity.HasOne(d => d.Creator).WithMany(p => p.Events)
                 .HasForeignKey(d => d.CreatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("events_users_fk");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.Events)
+                .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("events_faculties_fk");
 
             entity.HasOne(d => d.Regulation).WithMany(p => p.Events)
                 .HasForeignKey(d => d.RegulationId)
@@ -1105,25 +1119,26 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<InventorySg>(entity =>
         {
-            entity.HasKey(e => e.IdInventoroy).HasName("inventorysg_pk");
+            entity.HasKey(e => e.IdInventory).HasName("inventorysg_pk");
 
             entity.ToTable("InventorySG");
 
-            entity.Property(e => e.IdInventoroy)
+            entity.Property(e => e.IdInventory)
                 .HasDefaultValueSql("gen_random_uuid()")
-                .HasColumnName("idInventoroy");
+                .HasColumnName("id_inventory");
             entity.Property(e => e.Avail)
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
-            entity.Property(e => e.CodeInventory)
+            entity.Property(e => e.InventoryCode)
                 .HasColumnType("character varying")
-                .HasColumnName("codeInventory");
-            entity.Property(e => e.NameInventory)
+                .HasColumnName("inventory_code");
+            entity.Property(e => e.InventoryName)
                 .HasColumnType("character varying")
-                .HasColumnName("nameInventory");
+                .HasColumnName("inventory_name");
+            entity.Property(e => e.WatchmanId).HasColumnName("watchman_id");
 
-            entity.HasOne(d => d.Student).WithMany(p => p.InventorySgs)
-                .HasForeignKey(d => d.StudentId)
+            entity.HasOne(d => d.Watchman).WithMany(p => p.InventorySgs)
+                .HasForeignKey(d => d.WatchmanId)
                 .HasConstraintName("inventorysg_student_fk");
         });
 
@@ -1189,15 +1204,21 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Avail)
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
-            entity.Property(e => e.BindsubdivisionRoleSgid).HasColumnName("BindsubdivisionRoleSGId");
+            entity.Property(e => e.BindSubdivisionRoleInSgId).HasColumnName("bind_subdivision_role_in_sg_id");
+            entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
 
-            entity.HasOne(d => d.BindsubdivisionRoleSg).WithMany(p => p.MembersOfSgs)
-                .HasForeignKey(d => d.BindsubdivisionRoleSgid)
+            entity.HasOne(d => d.BindSubdivisionRoleInSg).WithMany(p => p.MembersOfSgs)
+                .HasForeignKey(d => d.BindSubdivisionRoleInSgId)
                 .HasConstraintName("membersofsg_bindsubdivisionrolesg_fk");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.MembersOfSgCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .HasConstraintName("membersofsg_studentcreator_fk");
+
+            entity.HasOne(d => d.Faculty).WithMany(p => p.MembersOfSgs)
+                .HasForeignKey(d => d.FacultyId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("membersofsg_faculties_fk");
 
             entity.HasOne(d => d.Student).WithMany(p => p.MembersOfSgStudents)
                 .HasForeignKey(d => d.StudentId)
@@ -1551,8 +1572,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NameRole)
                 .HasColumnType("character varying")
                 .HasColumnName("nameRole");
-            entity.Property(e => e.PointsFac).HasColumnName("pointsFac");
-            entity.Property(e => e.PointsUni).HasColumnName("pointsUni");
         });
 
         modelBuilder.Entity<SelectiveDetail>(entity =>
@@ -2038,6 +2057,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("idUserRole");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
             entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
 
             entity.HasOne(d => d.Department).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.DepartmentId)
@@ -2048,6 +2068,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("userroles_faculties_fk");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.UserRoles)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("userroles_studentgroup_fk");
 
             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.RoleId)

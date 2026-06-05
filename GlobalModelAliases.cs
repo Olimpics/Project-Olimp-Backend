@@ -4,7 +4,6 @@ global using SelectiveDetail = OlimpBack.Models.SelectiveDetail;
 global using SelectiveDiscipline = OlimpBack.Models.SelectiveDiscipline;
 global using AdminLog = OlimpBack.Models.AdminLog;
 global using BindSelectiveDiscipline = OlimpBack.Models.BindSelectiveDiscipline;
-global using BindEvent = OlimpBack.Models.BindEvent;
 global using BindExtraActivity = OlimpBack.Models.BindExtraActivity;
 global using BindLoansMain = OlimpBack.Models.BindLoansMain;
 global using CatalogYear_Main = OlimpBack.Models.CatalogYearsMain;

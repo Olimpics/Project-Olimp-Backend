@@ -304,14 +304,14 @@ namespace OlimpBack.Migrations
                     b.Property<int>("Semestr")
                         .HasColumnType("integer");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int>("WatchmanId")
                         .HasColumnType("integer");
 
                     b.HasKey("IdBindSelectiveDisciplines");
 
                     b.HasIndex(new[] { "SelectiveDisciplinesId" }, "Bind_AddCourse_idx");
 
-                    b.HasIndex(new[] { "StudentId" }, "Bind_Student_idx");
+                    b.HasIndex(new[] { "WatchmanId" }, "Bind_Student_idx");
 
                     b.ToTable("BindSelectiveDisciplines");
                 });
@@ -333,14 +333,14 @@ namespace OlimpBack.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("points");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int>("WatchmanId")
                         .HasColumnType("integer");
 
                     b.HasKey("IdBindEvent");
 
                     b.HasIndex(new[] { "EventId" }, "EventID");
 
-                    b.HasIndex(new[] { "StudentId" }, "StudentId");
+                    b.HasIndex(new[] { "WatchmanId" }, "WatchmanId");
 
                     b.ToTable("BindEvents");
                 });
@@ -358,14 +358,14 @@ namespace OlimpBack.Migrations
                     b.Property<int>("RefulationId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int>("WatchmanId")
                         .HasColumnType("integer");
 
                     b.HasKey("IdBindExtraActivity");
 
                     b.HasIndex(new[] { "RefulationId" }, "BindExtraActivity_Regulation_idx");
 
-                    b.HasIndex(new[] { "StudentId" }, "BindExtraActivity_Student");
+                    b.HasIndex(new[] { "WatchmanId" }, "BindExtraActivity_Student");
 
                     b.ToTable("BindExtraActivity", (string)null);
                 });
@@ -888,12 +888,12 @@ namespace OlimpBack.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("MainGradeValue");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int>("WatchmanId")
                         .HasColumnType("integer");
 
                     b.HasKey("IdMainGrade");
 
-                    b.HasIndex(new[] { "StudentId" }, "FK_MainGrade_Student");
+                    b.HasIndex(new[] { "WatchmanId" }, "FK_MainGrade_Student");
 
                     b.HasIndex(new[] { "MainDisciplinesId" }, "MainGrade_MainDisciplines_idx");
 
@@ -913,7 +913,7 @@ namespace OlimpBack.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("RoleInSGID");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int>("WatchmanId")
                         .HasColumnType("integer");
 
                     b.Property<int>("SubDivisionId")
@@ -923,7 +923,7 @@ namespace OlimpBack.Migrations
 
                     b.HasIndex(new[] { "RoleInSgid" }, "RoleInSGID");
 
-                    b.HasIndex(new[] { "StudentId" }, "StudentId")
+                    b.HasIndex(new[] { "WatchmanId" }, "WatchmanId")
                         .HasDatabaseName("StudentId1");
 
                     b.HasIndex(new[] { "SubDivisionId" }, "SubDivisionId");
@@ -1563,7 +1563,7 @@ namespace OlimpBack.Migrations
 
                     b.HasOne("OlimpBack.Models.Student", "Student")
                         .WithMany("BindSelectiveDisciplines")
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("WatchmanId")
                         .IsRequired()
                         .HasConstraintName("Bind_Student");
 
@@ -1582,7 +1582,7 @@ namespace OlimpBack.Migrations
 
                     b.HasOne("OlimpBack.Models.Student", "Student")
                         .WithMany("BindEvents")
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("WatchmanId")
                         .IsRequired()
                         .HasConstraintName("BindEvents_Student");
 
@@ -1601,7 +1601,7 @@ namespace OlimpBack.Migrations
 
                     b.HasOne("OlimpBack.Models.Student", "Student")
                         .WithMany("BindExtraActivities")
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("WatchmanId")
                         .IsRequired()
                         .HasConstraintName("BindExtraActivity_Student");
 
@@ -1824,7 +1824,7 @@ namespace OlimpBack.Migrations
 
                     b.HasOne("OlimpBack.Models.Student", "Student")
                         .WithMany("MainGrades")
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("WatchmanId")
                         .IsRequired()
                         .HasConstraintName("FK_MainGrade_Student");
 
@@ -1843,7 +1843,7 @@ namespace OlimpBack.Migrations
 
                     b.HasOne("OlimpBack.Models.Student", "Student")
                         .WithMany("Members")
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("WatchmanId")
                         .IsRequired()
                         .HasConstraintName("Members_Students");
 

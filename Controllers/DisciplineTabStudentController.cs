@@ -12,10 +12,31 @@ namespace OlimpBack.Controllers
     public class DisciplineTabStudentController : ControllerBase
     {
         private readonly IDisciplineTabService _service;
+        private readonly IStudentChoiceCacheService _cacheService;
 
-        public DisciplineTabStudentController(IDisciplineTabService service)
+        public DisciplineTabStudentController(IDisciplineTabService service, IStudentChoiceCacheService cacheService)
         {
             _service = service;
+            _cacheService = cacheService;
+        }
+
+        [HttpPost("RecalculateCache/{idStudent}")]
+        [RequirePermission(RbacPermissions.DisciplineUpdate)]
+        public async Task<ActionResult> RecalculateCache(Guid idStudent)
+        {
+            try
+            {
+                await _cacheService.InitializeCacheAsync(idStudent, null);
+                return Ok(new { message = "Cache successfully recalculated" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = "An error occurred while recalculating cache",
+                    details = ex.Message
+                });
+            }
         }
 
         [HttpGet("GetAllDisciplinesWithAvailability")]
