@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
 using OlimpBack.Models;
 using OlimpBack.Data;
+using AutoMapper;
 
 
 namespace OlimpBack.Infrastructure.Database.Repositories;
@@ -9,8 +10,8 @@ namespace OlimpBack.Infrastructure.Database.Repositories;
 public interface IEducationalProgramRepository
 {
     Task<List<EducationalProgramFilterDto>> GetForFilterAsync(string? search);
-    Task<(int TotalCount, List<EducationalProgramDto> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto);
-    Task<EducationalProgramDto?> GetDtoByIdAsync(Guid id);
+    Task<(int TotalCount, List<EducationalProgram> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto);
+    Task<EducationalProgramFullDto?> GetDtoByIdAsync(Guid id);
     Task<EducationalProgram?> GetEntityByIdAsync(Guid id);
     Task<(int TotalCount, List<ProgramStudentDto> Items)> GetStudentsPagedAsync(Guid programId, ProgramStudentQueryDto queryDto);
     Task<List<ProgramDisciplinesBySemesterDto>> GetMainDisciplinesGroupedBySemesterAsync(Guid programId);
@@ -23,10 +24,12 @@ public interface IEducationalProgramRepository
 public class EducationalProgramRepository : IEducationalProgramRepository
 {
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public EducationalProgramRepository(AppDbContext context)
+    public EducationalProgramRepository(AppDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task<List<EducationalProgramFilterDto>> GetForFilterAsync(string? search)
@@ -52,9 +55,16 @@ public class EducationalProgramRepository : IEducationalProgramRepository
             .ToListAsync();
     }
 
-    public async Task<(int TotalCount, List<EducationalProgramDto> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto)
+    public async Task<(int TotalCount, List<EducationalProgram> Items)> GetPagedAsync(EducationalProgramListQueryDto queryDto)
     {
-        var query = _context.EducationalPrograms.AsNoTracking().AsQueryable();
+        var query = _context.EducationalPrograms
+            .Include(ep => ep.Degree)
+            .Include(ep => ep.Speciality)
+            .Include(ep => ep.StudentGroups)
+                .ThenInclude(g => g.Students)
+            .Include(ep => ep.MainDisciplines)
+            .AsNoTracking()
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(queryDto.Search))
         {
@@ -82,43 +92,30 @@ public class EducationalProgramRepository : IEducationalProgramRepository
         var items = await query
             .Skip((queryDto.Page - 1) * queryDto.PageSize)
             .Take(queryDto.PageSize)
-            .Select(ep => new EducationalProgramDto
-            {
-                IdEducationalProgram = ep.IdEducationalProgram,
-                NameEducationalProgram = ep.NameEducationalProgram ?? "",
-                DegreeId = ep.DegreeId,
-                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
-                SpecialityCode = ep.Speciality != null && ep.Speciality.Code.Length > 0 ? ep.Speciality.Code : "",
-                Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
-                StudentsCount = ep.StudentGroups != null
-                    ? ep.StudentGroups.SelectMany(g => g.Students).Count()
-                    : 0,
-                DisciplinesCount = ep.MainDisciplines.Count()
-            })
             .ToListAsync();
 
         return (totalCount, items);
     }
 
-    public async Task<EducationalProgramDto?> GetDtoByIdAsync(Guid id)
+    public async Task<EducationalProgramFullDto?> GetDtoByIdAsync(Guid id)
     {
-        return await _context.EducationalPrograms
+        var program = await _context.EducationalPrograms
+            .Include(ep => ep.Catalog)
+            .Include(ep => ep.Degree)
+            .Include(ep => ep.Speciality)
+                .ThenInclude(s => s.Department)
+                    .ThenInclude(d => d.Faculty)
+            .Include(ep => ep.Specialization)
+            .Include(ep => ep.StudyForm)
+            .Include(ep => ep.StudentGroups)
+                .ThenInclude(g => g.Students)
+            .Include(ep => ep.MainDisciplines)
             .AsNoTracking()
-            .Where(ep => ep.IdEducationalProgram == id)
-            .Select(ep => new EducationalProgramDto
-            {
-                IdEducationalProgram = ep.IdEducationalProgram,
-                NameEducationalProgram = ep.NameEducationalProgram ?? "",
-                DegreeId = ep.DegreeId,
-                Degree = ep.Degree != null ? ep.Degree.NameEducationalDegree ?? "" : "",
-                SpecialityCode = ep.Speciality != null && ep.Speciality.Code != null ? ep.Speciality.Code : "",
-                Speciality = ep.Speciality != null ? ep.Speciality.Name ?? "" : "",
-                StudentsCount = ep.StudentGroups != null
-                    ? ep.StudentGroups.SelectMany(g => g.Students).Count()
-                    : 0,
-                DisciplinesCount = ep.MainDisciplines.Count()
-            })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(ep => ep.IdEducationalProgram == id);
+
+        if (program == null) return null;
+
+        return _mapper.Map<EducationalProgramFullDto>(program);
     }
 
     public async Task<EducationalProgram?> GetEntityByIdAsync(Guid id) =>

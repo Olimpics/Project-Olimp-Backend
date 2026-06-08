@@ -8,7 +8,7 @@ public interface IEducationalProgramService
 
     Task<PaginatedResponseDto<EducationalProgramDto>> GetEducationalProgramsAsync(EducationalProgramListQueryDto queryDto);
 
-    Task<EducationalProgramDto?> GetEducationalProgramAsync(Guid id);
+    Task<EducationalProgramFullDto?> GetEducationalProgramAsync(Guid id);
 
     Task<PaginatedResponseDto<ProgramStudentDto>> GetStudentsPagedAsync(Guid programId, ProgramStudentQueryDto queryDto);
 

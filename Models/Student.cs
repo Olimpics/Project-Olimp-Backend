@@ -28,8 +28,6 @@ public partial class Student
 
     public bool IsInSg { get; set; }
 
-    public List<Guid>? FavId { get; set; }
-
     public string? EdboCode { get; set; }
 
     public bool IsFunded { get; set; }
@@ -51,6 +49,8 @@ public partial class Student
     public virtual ICollection<BindRating> BindRatings { get; set; } = new List<BindRating>();
 
     public virtual ICollection<BindSelectiveDiscipline> BindSelectiveDisciplines { get; set; } = new List<BindSelectiveDiscipline>();
+
+    public virtual ICollection<BindStudentFavoriteDisciline> BindStudentFavoriteDiscilines { get; set; } = new List<BindStudentFavoriteDisciline>();
 
     public virtual EducationStatus EducationStatus { get; set; } = null!;
 

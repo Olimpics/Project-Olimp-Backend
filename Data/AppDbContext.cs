@@ -44,6 +44,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<BindSimilarSelectiveInGroup> BindSimilarSelectiveInGroups { get; set; }
 
+    public virtual DbSet<BindStudentFavoriteDisciline> BindStudentFavoriteDiscilines { get; set; }
+
     public virtual DbSet<BindSubdivisionRoleSg> BindSubdivisionRoleSgs { get; set; }
 
     public virtual DbSet<BindTeacherMain> BindTeacherMains { get; set; }
@@ -158,7 +160,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=postgres;Port=5432;Database=project_olymp_db;Username=postgres;Password=B25824DCABCB88B5;");
+        => optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=5432;Database=project_olymp_db;Username=postgres;Password=B25824DCABCB88B5;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -529,6 +531,27 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Selective).WithMany(p => p.BindSimilarSelectiveInGroups)
                 .HasForeignKey(d => d.SelectiveId)
                 .HasConstraintName("bindsimilarselectiveingroup_selectivedisciplines_fk");
+        });
+
+        modelBuilder.Entity<BindStudentFavoriteDisciline>(entity =>
+        {
+            entity.HasKey(e => e.IdBindStudentFavoriteDiscipline).HasName("bind_student_favorite_disciline_pk");
+
+            entity.ToTable("bind_student_favorite_disciline");
+
+            entity.Property(e => e.IdBindStudentFavoriteDiscipline)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id_bind_student_favorite_discipline");
+            entity.Property(e => e.SelectiveDisciplineId).HasColumnName("selective_discipline_id");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+
+            entity.HasOne(d => d.SelectiveDiscipline).WithMany(p => p.BindStudentFavoriteDiscilines)
+                .HasForeignKey(d => d.SelectiveDisciplineId)
+                .HasConstraintName("bind_student_favorite_disciline_selectivedisciplines_fk");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.BindStudentFavoriteDiscilines)
+                .HasForeignKey(d => d.StudentId)
+                .HasConstraintName("bind_student_favorite_disciline_student_fk");
         });
 
         modelBuilder.Entity<BindSubdivisionRoleSg>(entity =>
@@ -1204,11 +1227,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Avail)
                 .HasDefaultValue(true)
                 .HasColumnName("avail");
-            entity.Property(e => e.BindSubdivisionRoleInSgId).HasColumnName("bind_subdivision_role_in_sg_id");
+            entity.Property(e => e.BindSubdivisionRoleInSg).HasColumnName("bind_subdivision_role_in_sg");
             entity.Property(e => e.FacultyId).HasColumnName("faculty_id");
 
-            entity.HasOne(d => d.BindSubdivisionRoleInSg).WithMany(p => p.MembersOfSgs)
-                .HasForeignKey(d => d.BindSubdivisionRoleInSgId)
+            entity.HasOne(d => d.BindSubdivisionRoleInSgNavigation).WithMany(p => p.MembersOfSgs)
+                .HasForeignKey(d => d.BindSubdivisionRoleInSg)
                 .HasConstraintName("membersofsg_bindsubdivisionrolesg_fk");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.MembersOfSgCreatedByNavigations)
@@ -2068,11 +2091,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.FacultyId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("userroles_faculties_fk");
-
-            entity.HasOne(d => d.Group).WithMany(p => p.UserRoles)
-                .HasForeignKey(d => d.GroupId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("userroles_studentgroup_fk");
 
             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.RoleId)

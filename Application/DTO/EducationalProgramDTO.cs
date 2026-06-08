@@ -8,11 +8,18 @@ namespace OlimpBack.Application.DTO
         public Guid IdEducationalProgram { get; set; }
         public string NameEducationalProgram { get; set; } = null!;
         public string Degree { get; set; } = null!;
-        public Guid DegreeId { get; set; }
-        public string SpecialityCode { get; set; } = null!;
         public string Speciality { get; set; } = null!;
-        public int StudentsCount { get; set; }
-        public int DisciplinesCount { get; set; }
+        public string StudyForm { get; set; } = null!;
+        public string Department { get; set; } = null!;
+        public string Faculty { get; set; } = null!;
+        public int? StudyTurm { get; set; }
+        public string IsAccelerated { get; set; } = null!;
+    }
+
+    public class CatalogDto
+    {
+        public int StartYear { get; set; }
+        public int EndYear { get; set; }
     }
 
     public class EducationalProgramListQueryDto
@@ -26,19 +33,23 @@ namespace OlimpBack.Application.DTO
 
         public int SortOrder { get; set; } = 0;
     }
-    public class EducationalProgramFullDto
+    public class EducationalProgramFullDto : EducationalProgramDto
     {
-        public Guid IdEducationalProgram { get; set; }
-        public string NameEducationalProgram { get; set; } = null!;
         public List<int> SelectiveDisciplineBySemestr { get; set; } = new();
-        public string Degree { get; set; } = null!;
+        public List<int> MinUniSelectiveDisciplineBySemestr { get; set; } = new();
+        public string Subject { get; set; } = null!;
+        public string Goals { get; set; } = null!;
+        public List<string>? Keys { get; set; }
+        public CatalogDto Catalog { get; set; } = null!;
+        public string DegreeLevelName { get; set; } = null!;
+        public string? SpecializationName { get; set; }
+        public string SpecialityName { get; set; } = null!;
+        public string StudyFormName { get; set; } = null!;
+
         public Guid DegreeId { get; set; }
-        public string Speciality { get; set; } = null!;
         public sbyte Accreditation { get; set; }
         public string AccreditationType { get; set; } = null!;
-        public uint StudentsAmount { get; set; }
-        public int StudentsCount { get; set; }
-        public int DisciplinesCount { get; set; }
+
     }
     public class CreateEducationalProgramDto
     {

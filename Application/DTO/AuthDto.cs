@@ -51,6 +51,7 @@ public class UserLoginResponseDto
 
     public Guid UserId { get; set; }
     public Guid RoleId { get; set; }
+    public bool IsAdmin { get; set; }
     public string? Email { get; set; }
     public long PermissionsMask { get; set; }
     public string Token { get; set; } = null!;

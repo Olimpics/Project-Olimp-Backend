@@ -64,7 +64,7 @@ public class SgRepository : ISgRepository
     public async Task<List<MembersOfSg>> GetUserSubDivisionsAsync(Guid userId)
     {
         return await _context.MembersOfSgs
-            .Include(m => m.BindSubdivisionRoleInSg)
+            .Include(m => m.BindSubdivisionRoleInSgNavigation)
                 .ThenInclude(b => b.SubDivision)
             .Include(m => m.Faculty)
             .Where(m => m.Student.UserId == userId && m.Avail)
@@ -149,10 +149,10 @@ public class SgRepository : ISgRepository
         var query = _context.MembersOfSgs
             .Include(m => m.Student)
                 .ThenInclude(s => s.Group)
-            .Include(m => m.BindSubdivisionRoleInSg)
+            .Include(m => m.BindSubdivisionRoleInSgNavigation)
                 .ThenInclude(b => b.RoleInSg)
             .Include(m => m.Faculty)
-            .Where(m => m.BindSubdivisionRoleInSg.SubDivisionId == subDivisionId && m.Avail);
+            .Where(m => m.BindSubdivisionRoleInSgNavigation.SubDivisionId == subDivisionId && m.Avail);
 
         if (facultyId.HasValue)
         {

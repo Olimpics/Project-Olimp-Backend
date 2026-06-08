@@ -21,8 +21,8 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.SubDivisionId, opt => opt.MapFrom(src => src.IdSubDivisions));
 
             CreateMap<MembersOfSg, SubDivisionUserDto>()
-                .ForMember(dest => dest.SubDivisionId, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSg.SubDivisionId))
-                .ForMember(dest => dest.NameDivision, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSg.SubDivision.NameDivision))
+                .ForMember(dest => dest.SubDivisionId, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSgNavigation.SubDivisionId))
+                .ForMember(dest => dest.NameDivision, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSgNavigation.SubDivision.NameDivision))
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.FacultyId))
                 .ForMember(dest => dest.Abbreviation, opt => opt.MapFrom(src => src.Faculty != null ? src.Faculty.Abbreviation : null));
 
@@ -33,7 +33,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.StudentId))
                 .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Student.Group.GroupCode))
                 .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Faculty != null ? src.Faculty.NameFaculty : src.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
-                .ForMember(dest => dest.RoleInSg, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSg.RoleInSg.NameRole));
+                .ForMember(dest => dest.RoleInSg, opt => opt.MapFrom(src => src.BindSubdivisionRoleInSgNavigation.RoleInSg.NameRole));
 
             CreateMap<BindEventStudent, BindEventStudentDto>().ReverseMap();
             CreateMap<BindEventStudentCreateUpdateDto, BindEventStudent>();
@@ -63,6 +63,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.FacultyId))
                 .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Group.EducationalProgram.Speciality.Name))
+                .ForMember(dest => dest.IsAdmin, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Group.Course))
                 .ForMember(dest => dest.DegreeLevel, opt => opt.MapFrom(src => src.Group.EducationalProgram.Degree.NameEducationalDegree));
 
@@ -72,7 +73,8 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.SecondName, opt => opt.MapFrom(src => src.SecondName))
                 .ForMember(dest => dest.ThirdName, opt => opt.MapFrom(src => src.ThirdName))
-                .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty));
+                .ForMember(dest => dest.NameFaculty, opt => opt.MapFrom(src => src.Faculty.NameFaculty))
+                .ForMember (dest => dest.IsAdmin, opt => opt.MapFrom(src => true));
 
 
             //Student
@@ -163,13 +165,29 @@ namespace OlimpBack.MappingProfiles
 
             //EducationalProgram
             CreateMap<EducationalProgram, EducationalProgramDto>()
-          .ForMember(dest => dest.StudentsCount,
-                     opt => opt.MapFrom(src => src.StudentGroups != null
-                         ? src.StudentGroups.SelectMany(g => g.Students).Count()
-                         : 0))
-          .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree.NameEducationalDegree))
-          .ForMember(dest => dest.DisciplinesCount,
-                     opt => opt.MapFrom(src => src.MainDisciplines.Count));
+                .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree.NameEducationalDegree))
+                .ForMember(dest => dest.Department, opt => opt.MapFrom(src => src.Speciality.Department.NameDepartment))
+                .ForMember(dest => dest.Faculty, opt => opt.MapFrom(src => src.Speciality.Department.Faculty.NameFaculty))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Speciality.Name))
+                .ForMember(dest => dest.StudyForm, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm))
+                .ForMember(dest => dest.IsAccelerated, opt => opt.MapFrom(src => src.IsAccelerated ? "Yes" : "No"));                ;
+
+            CreateMap<EducationalProgram, EducationalProgramFullDto>()
+                .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree.NameEducationalDegree))
+                .ForMember(dest => dest.DegreeLevelName, opt => opt.MapFrom(src => src.Degree.NameEducationalDegree))
+                .ForMember(dest => dest.Catalog, opt => opt.MapFrom(src => src.Catalog != null ? new CatalogDto { StartYear = src.Catalog.YearStart, EndYear = src.Catalog.YearEnd } : null))
+                .ForMember(dest => dest.SpecializationName, opt => opt.MapFrom(src => src.Specialization != null ? src.Specialization.Name : null))
+                .ForMember(dest => dest.SpecialityName, opt => opt.MapFrom(src => src.Speciality.Name))
+                .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Speciality.Name))
+                .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm))
+                .ForMember(dest => dest.SelectiveDisciplineBySemestr, opt => opt.MapFrom(src => src.StudentGroups.SelectMany(g => g.Students).SelectMany(s => s.BindSelectiveDisciplines).GroupBy(b => b.SelectiveDisciplineId).Select(g => new { SelectiveDisciplineId = g.Key, Semesters = g.Select(b => b.Semestr) }).ToDictionary(x => x.SelectiveDisciplineId, x => x.Semesters)))
+                .ForMember(dest => dest.MinUniSelectiveDisciplineBySemestr, opt => opt.MapFrom(src => src.StudentGroups.SelectMany(g => g.Students).SelectMany(s => s.BindSelectiveDisciplines).Where(b => b.IsMinUni).GroupBy(b => b.SelectiveDisciplineId).Select(g => new { SelectiveDisciplineId = g.Key, Semesters = g.Select(b => b.Semestr) }).ToDictionary(x => x.SelectiveDisciplineId, x => x.Semesters)))
+                .ForMember(dest => dest.IsAccelerated, opt => opt.MapFrom(src => src.IsAccelerated ? "Yes" : "No"))
+                .ForMember(dest => dest.Subject, opt => opt.MapFrom(src => src.Subject))
+                .ForMember(dest => dest.Goals, opt => opt.MapFrom(src => src.Goals))
+                .ForMember(dest => dest.Keys, opt => opt.MapFrom(src => src.Keys != null ? src.Keys : null));
+
+
 
             CreateMap<CreateEducationalProgramDto, EducationalProgram>();
             CreateMap<UpdateEducationalProgramDto, EducationalProgram>();

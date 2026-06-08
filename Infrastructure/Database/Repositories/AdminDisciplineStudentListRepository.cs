@@ -98,7 +98,7 @@ public class AdminDisciplineStudentListRepository : IAdminDisciplineStudentListR
                 Year = b.Student.Group != null ? b.Student.Group.Course : 0,
                 EducationLevel = b.Student.Group.EducationalProgram != null && b.Student.Group.EducationalProgram.Degree != null ? b.Student.Group.EducationalProgram.Degree.NameEducationalDegree ?? "" : "",
                 IsShort = b.Student.Group != null ? b.Student.Group.IsAccelerated : false,
-                Faculty = b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.NameFaculty ?? "" : ""
+                Faculty = b.Student.Group.EducationalProgram.Speciality.Department.Faculty != null ? b.Student.Group.EducationalProgram.Speciality.Department.Faculty.Abbreviation ?? "" : ""
             })
             .ToListAsync();
 

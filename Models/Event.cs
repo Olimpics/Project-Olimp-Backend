@@ -23,11 +23,11 @@ public partial class Event
 
     public bool Avail { get; set; }
 
-    public Guid FacultyId { get; set; }
-
     public Guid CatalogYearId { get; set; }
 
     public bool IsEven { get; set; }
+
+    public Guid? FacultyId { get; set; }
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
@@ -35,7 +35,7 @@ public partial class Event
 
     public virtual User Creator { get; set; } = null!;
 
-    public virtual Faculty Faculty { get; set; } = null!;
+    public virtual Faculty? Faculty { get; set; }
 
     public virtual RegulationOnAddPoint Regulation { get; set; } = null!;
 

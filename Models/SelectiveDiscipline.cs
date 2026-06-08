@@ -53,6 +53,8 @@ public partial class SelectiveDiscipline
 
     public virtual ICollection<BindSimilarSelectiveInGroup> BindSimilarSelectiveInGroups { get; set; } = new List<BindSimilarSelectiveInGroup>();
 
+    public virtual ICollection<BindStudentFavoriteDisciline> BindStudentFavoriteDiscilines { get; set; } = new List<BindStudentFavoriteDisciline>();
+
     public virtual ICollection<BindTeachersSelective> BindTeachersSelectives { get; set; } = new List<BindTeachersSelective>();
 
     public virtual CatalogYearsSelective Catalog { get; set; } = null!;

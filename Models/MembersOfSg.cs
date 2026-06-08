@@ -9,7 +9,7 @@ public partial class MembersOfSg
 
     public Guid CreatedBy { get; set; }
 
-    public Guid BindSubdivisionRoleInSgId { get; set; }
+    public Guid BindSubdivisionRoleInSg { get; set; }
 
     public bool Avail { get; set; }
 
@@ -17,7 +17,7 @@ public partial class MembersOfSg
 
     public Guid? FacultyId { get; set; }
 
-    public virtual BindSubdivisionRoleSg BindSubdivisionRoleInSg { get; set; } = null!;
+    public virtual BindSubdivisionRoleSg BindSubdivisionRoleInSgNavigation { get; set; } = null!;
 
     public virtual Student CreatedByNavigation { get; set; } = null!;
 
