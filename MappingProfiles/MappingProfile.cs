@@ -167,7 +167,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<EducationalProgram, EducationalProgramDto>()
                 .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree.NameEducationalDegree))
                 .ForMember(dest => dest.Department, opt => opt.MapFrom(src => src.Speciality.Department.NameDepartment))
-                .ForMember(dest => dest.Faculty, opt => opt.MapFrom(src => src.Speciality.Department.Faculty.NameFaculty))
+                .ForMember(dest => dest.Faculty, opt => opt.MapFrom(src => src.Speciality.Department.Faculty.Abbreviation))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Speciality.Name))
                 .ForMember(dest => dest.StudyForm, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm))
                 .ForMember(dest => dest.IsAccelerated, opt => opt.MapFrom(src => src.IsAccelerated ? "Yes" : "No"));                ;
@@ -181,7 +181,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Speciality.Name))
                 .ForMember(dest => dest.StudyFormName, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm))
                 .ForMember(dest => dest.SelectiveDisciplineBySemestr, opt => opt.MapFrom(src => src.StudentGroups.SelectMany(g => g.Students).SelectMany(s => s.BindSelectiveDisciplines).GroupBy(b => b.SelectiveDisciplineId).Select(g => new { SelectiveDisciplineId = g.Key, Semesters = g.Select(b => b.Semestr) }).ToDictionary(x => x.SelectiveDisciplineId, x => x.Semesters)))
-                .ForMember(dest => dest.MinUniSelectiveDisciplineBySemestr, opt => opt.MapFrom(src => src.StudentGroups.SelectMany(g => g.Students).SelectMany(s => s.BindSelectiveDisciplines).Where(b => b.IsMinUni).GroupBy(b => b.SelectiveDisciplineId).Select(g => new { SelectiveDisciplineId = g.Key, Semesters = g.Select(b => b.Semestr) }).ToDictionary(x => x.SelectiveDisciplineId, x => x.Semesters)))
+                .ForMember(dest => dest.MinUniSelectiveDisciplineBySemestr, opt => opt.MapFrom(src => src.MinUniSelectiveDisciplineBySemestr))
                 .ForMember(dest => dest.IsAccelerated, opt => opt.MapFrom(src => src.IsAccelerated ? "Yes" : "No"))
                 .ForMember(dest => dest.Subject, opt => opt.MapFrom(src => src.Subject))
                 .ForMember(dest => dest.Goals, opt => opt.MapFrom(src => src.Goals))
@@ -268,7 +268,15 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.TypeOfControl, opt => opt.MapFrom(src => src.discipline.TypeOfControl.Type))
                 .ForMember(dest => dest.CatalogId, opt => opt.MapFrom(src => src.discipline.CatalogId))
                 .ForMember(dest => dest.ApprovalStatusId, opt => opt.MapFrom(src => src.discipline.ApprovalStatusId))
-                .ForMember(dest => dest.TypeOfControlId, opt => opt.MapFrom(src => src.discipline.TypeOfControlId));
+                .ForMember(dest => dest.TypeOfControlId, opt => opt.MapFrom(src => src.discipline.TypeOfControlId))
+                .ForMember(dest => dest.Feedback, opt => opt.MapFrom(src => src.discipline.Feedback))
+                .ForMember(dest => dest.IsForseChange, opt => opt.MapFrom(src => src.discipline.IsForseChange))
+                .ForMember(dest => dest.NameDock, opt => opt.MapFrom(src => src.discipline.NameDock))
+                .ForMember(dest => dest.Keys, opt => opt.MapFrom(src => src.discipline.Keys))
+                .ForMember(dest => dest.ApprovalStatus, opt => opt.MapFrom(src => src.discipline.ApprovalStatus.AppovalStatus))
+                .ForMember(dest => dest.NeedFix, opt => opt.MapFrom(src => src.discipline.NeedFix))
+                .ForMember(dest => dest.YearStart, opt => opt.MapFrom(src => src.discipline.Catalog.YearStart))
+                .ForMember(dest => dest.YearEnd, opt => opt.MapFrom(src => src.discipline.Catalog.YearEnd));
 
             //Department
             CreateMap<Department, DepartmentDto>()

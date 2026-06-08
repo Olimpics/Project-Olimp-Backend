@@ -92,9 +92,19 @@ namespace OlimpBack.Application.DTO
         public string? WhyInterestingDetermination { get; set; }
         public string? ResultEducation { get; set; }
         public string? UsingIrl { get; set; }
-        public string? DisciplineTopics { get; set; }
+        public List<string>? DisciplineTopics { get; set; }
         public string TypesOfTraining { get; set; } = null!;
         public string TypeOfControl { get; set; } = null!;
+        
+        // New fields
+        public string? Feedback { get; set; }
+        public bool IsForseChange { get; set; }
+        public string? NameDock { get; set; }
+        public List<string>? Keys { get; set; }
+        public string? ApprovalStatus { get; set; }
+        public bool NeedFix { get; set; }
+        public int YearStart { get; set; }
+        public int YearEnd { get; set; }
     }
 
 
@@ -121,4 +131,17 @@ namespace OlimpBack.Application.DTO
         public int SortOrder { get; set; } = 0;
     }
 
+    public class SimilarDisciplineGroupDto
+    {
+        public string GroupName { get; set; } = null!;
+        public List<SimilarDisciplineDto> Disciplines { get; set; } = new();
+    }
+
+    public class SimilarDisciplineDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = null!;
+        public int YearStart { get; set; }
+        public int YearEnd { get; set; }
+    }
 }

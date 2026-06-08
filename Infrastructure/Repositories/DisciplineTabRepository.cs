@@ -21,6 +21,8 @@ public interface IDisciplineTabRepository
     Task<bool> DepartmentExistsAsync(Guid departmentId);
     Task SelectiveDisciplineAsync(SelectiveDiscipline discipline);
     Task AddBindAsync(BindSelectiveDiscipline bind);
+    Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId);
+    Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId);
     Task SaveChangesAsync();
 }
 
@@ -118,12 +120,20 @@ public class DisciplineTabRepository : IDisciplineTabRepository
                 WhyInterestingDetermination = d.SelectiveDetail != null ? d.SelectiveDetail.WhyInterestingDetermination : null,
                 ResultEducation = d.SelectiveDetail != null ? d.SelectiveDetail.ResultEducation : null,
                 UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
-                DisciplineTopics = d.SelectiveDetail != null && d.SelectiveDetail.DisciplineTopics != null ? string.Join(", ", d.SelectiveDetail.DisciplineTopics) : null,
+                DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
                 TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
                 TypeOfControl = d.TypeOfControl != null ? d.TypeOfControl.Type : "",
                 CatalogId = d.CatalogId,
                 ApprovalStatusId = d.ApprovalStatusId,
-                TypeOfControlId = d.TypeOfControlId
+                TypeOfControlId = d.TypeOfControlId,
+                Feedback = d.Feedback,
+                IsForseChange = d.IsForseChange,
+                NameDock = d.NameDock,
+                Keys = d.Keys,
+                ApprovalStatus = d.ApprovalStatus != null ? d.ApprovalStatus.AppovalStatus : null,
+                NeedFix = d.NeedFix,
+                YearStart = d.Catalog != null ? d.Catalog.YearStart : 0,
+                YearEnd = d.Catalog != null ? d.Catalog.YearEnd : 0
             })
             .FirstOrDefaultAsync();
     }
@@ -139,6 +149,47 @@ public class DisciplineTabRepository : IDisciplineTabRepository
 
     public async Task AddBindAsync(BindSelectiveDiscipline bind) =>
         await _context.BindSelectiveDisciplines.AddAsync(bind);
+
+    public async Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId)
+    {
+        var groupIds = await _context.BindSimilarSelectiveInGroups
+            .Where(b => b.SelectiveId == disciplineId)
+            .Select(b => b.GroupId)
+            .ToListAsync();
+
+        if (!groupIds.Any()) return new List<SimilarDisciplineGroupDto>();
+
+        return await _context.GroupSimilarSelectives
+            .Where(g => groupIds.Contains(g.IdGroup))
+            .Include(g => g.Centrall)
+            .Include(g => g.BindSimilarSelectiveInGroups)
+                .ThenInclude(b => b.Selective)
+                    .ThenInclude(s => s.Catalog)
+            .Select(g => new SimilarDisciplineGroupDto
+            {
+                GroupName = g.Centrall.NameSelectiveDisciplines,
+                Disciplines = g.BindSimilarSelectiveInGroups.Select(b => new SimilarDisciplineDto
+                {
+                    Id = b.Selective.IdSelectiveDisciplines,
+                    Name = b.Selective.NameSelectiveDisciplines,
+                    YearStart = b.Selective.Catalog != null ? b.Selective.Catalog.YearStart : 0,
+                    YearEnd = b.Selective.Catalog != null ? b.Selective.Catalog.YearEnd : 0
+                }).ToList()
+            })
+            .ToListAsync();
+    }
+
+    public async Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId)
+    {
+        var bind = await _context.BindSimilarSelectiveInGroups
+            .FirstOrDefaultAsync(b => b.SelectiveId == disciplineId && b.GroupId == groupId);
+
+        if (bind == null) return false;
+
+        _context.BindSimilarSelectiveInGroups.Remove(bind);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 
     public async Task SaveChangesAsync() =>
         await _context.SaveChangesAsync();

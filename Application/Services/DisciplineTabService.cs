@@ -216,6 +216,12 @@ public class DisciplineTabService : IDisciplineTabService
     public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id) =>
         await _repository.GetDisciplineWithDetailsDtoAsync(id);
 
+    public async Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId) =>
+        await _repository.GetSimilarDisciplinesAsync(disciplineId);
+
+    public async Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId) =>
+        await _repository.RemoveDisciplineFromSimilarityGroupAsync(disciplineId, groupId);
+
     public async Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto)
     {
         var discipline = _mapper.Map<SelectiveDiscipline>(dto, opts => opts.Items["DbContext"] = _context);

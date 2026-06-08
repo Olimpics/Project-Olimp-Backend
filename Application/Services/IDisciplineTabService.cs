@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using OlimpBack.Application.DTO;
 
@@ -12,9 +13,10 @@ public interface IDisciplineTabService
     Task<(Guid? bindId, string? error)> SelectiveDisciplineBindAsync(SelectiveDisciplineBindDto dto);
 
     Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id);
-
     Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto);
+    Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId);
+    Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId);
     Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto);
     Task<(bool success, string? error)> UpdateDisciplineApprovalStatusAsync(Guid id, UpdateApprovalStatusDto dto);
     Task<(bool success, string? error)> UpdateDisciplineStatusAsync(Guid id, Guid statusId);
-    }
+}

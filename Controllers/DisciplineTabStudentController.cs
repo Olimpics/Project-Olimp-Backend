@@ -89,6 +89,23 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
+        [HttpGet("GetSimilarDisciplines/{disciplineId}")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
+        public async Task<ActionResult<List<SimilarDisciplineGroupDto>>> GetSimilarDisciplines(Guid disciplineId)
+        {
+            var result = await _service.GetSimilarDisciplinesAsync(disciplineId);
+            return Ok(result);
+        }
+
+        [HttpDelete("RemoveFromSimilarityGroup/{disciplineId}/{groupId}")]
+        [RequirePermission(RbacPermissions.DisciplineDelete)]
+        public async Task<IActionResult> RemoveFromSimilarityGroup(Guid disciplineId, Guid groupId)
+        {
+            var success = await _service.RemoveDisciplineFromSimilarityGroupAsync(disciplineId, groupId);
+            if (!success) return NotFound("Similarity binding not found.");
+            return NoContent();
+        }
+
         [HttpGet("GetDisciplinesBySemester")]
         [RequirePermission(RbacPermissions.DisciplineRead)]
         public async Task<ActionResult<DisciplineTabResponseDto>> GetDisciplinesBySemester(
