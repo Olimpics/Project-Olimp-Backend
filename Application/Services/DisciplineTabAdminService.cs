@@ -469,6 +469,12 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             discipline.ApprovalStatusId = initialStatus.IdApproval;
         }
 
+        var initialType = await _context.TypeOfDisciplines.FirstOrDefaultAsync(a => a.Leveltype == 1);
+        if (initialType != null)
+        {
+            discipline.TypeId = initialType.IdTypeOfDiscipline;
+        }
+
         await _disciplineTabRepository.SelectiveDisciplineAsync(discipline);
         await _disciplineTabRepository.SaveChangesAsync();
 

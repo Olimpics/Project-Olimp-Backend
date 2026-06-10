@@ -7,7 +7,7 @@ public partial class SelectiveDiscipline
 {
     public string NameSelectiveDisciplines { get; set; } = null!;
 
-    public string CodeSelectiveDisciplines { get; set; } = null!;
+    public string? CodeSelectiveDisciplines { get; set; }
 
     public bool IsFaculty { get; set; }
 

@@ -9,5 +9,7 @@ public partial class TypeOfDiscipline
 
     public Guid IdTypeOfDiscipline { get; set; }
 
+    public int? Leveltype { get; set; }
+
     public virtual ICollection<SelectiveDiscipline> SelectiveDisciplines { get; set; } = new List<SelectiveDiscipline>();
 }

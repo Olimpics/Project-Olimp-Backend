@@ -25,9 +25,9 @@ public partial class Event
 
     public Guid CatalogYearId { get; set; }
 
-    public bool IsEven { get; set; }
-
     public Guid? FacultyId { get; set; }
+
+    public bool IsEven { get; set; }
 
     public virtual ICollection<BindEventStudent> BindEventStudents { get; set; } = new List<BindEventStudent>();
 
