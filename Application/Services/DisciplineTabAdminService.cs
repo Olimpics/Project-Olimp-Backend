@@ -463,7 +463,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         discipline.SelectiveDetail = details;
 
         // Initial status
-        var initialStatus = await _context.Approvals.OrderBy(a => a.ApprobalLevel).FirstOrDefaultAsync();
+        var initialStatus = await _context.Approvals.FirstOrDefaultAsync(a => a.ApprobalLevel == 1);
         if (initialStatus != null)
         {
             discipline.ApprovalStatusId = initialStatus.IdApproval;
