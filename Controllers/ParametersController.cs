@@ -19,6 +19,8 @@ namespace OlimpBack.Controllers
         private readonly ITypeOfDisciplineService _typeOfDisciplineService;
         private readonly ICatalogYearMainService _catalogYearMainService;
         private readonly ICatalogYearSelectiveService _catalogYearSelectiveService;
+        private readonly ITypeOfControlService _typeOfControlService;
+        private readonly IApprovalService _approvalService;
 
         public ParametersController(INormativeService service,
                                         IEducationalDegreeService educationalDegreeService,
@@ -27,7 +29,9 @@ namespace OlimpBack.Controllers
                                         IStudyFormService studyFormService,
                                         ITypeOfDisciplineService typeOfDisciplineService,
                                         ICatalogYearMainService catalogYearMainService,
-                                        ICatalogYearSelectiveService catalogYearSelectiveService)
+                                        ICatalogYearSelectiveService catalogYearSelectiveService,
+                                        ITypeOfControlService typeOfControlService,
+                                        IApprovalService approvalService)
         {
             _normativeService = service;
             _educationStatusService = educationStatusService;
@@ -37,6 +41,8 @@ namespace OlimpBack.Controllers
             _typeOfDisciplineService = typeOfDisciplineService;
             _catalogYearMainService = catalogYearMainService;
             _catalogYearSelectiveService = catalogYearSelectiveService;
+            _typeOfControlService = typeOfControlService;
+            _approvalService = approvalService;
         }
 
 
@@ -412,6 +418,102 @@ namespace OlimpBack.Controllers
         public async Task<IActionResult> DeleteCatalogYearSelective(Guid id)
         {
             var (success, statusCode, errorMessage) = await _catalogYearSelectiveService.DeleteAsync(id);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        // -- TypeOfControl --
+
+        [HttpGet("TypesOfControl")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
+        public async Task<ActionResult<IEnumerable<TypeOfControlDto>>> GetTypesOfControl()
+        {
+            var result = await _typeOfControlService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("TypeOfControl/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
+        public async Task<ActionResult<TypeOfControlDto>> GetTypeOfControl(Guid id)
+        {
+            var result = await _typeOfControlService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateTypeOfControl")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
+        public async Task<ActionResult<TypeOfControlDto>> CreateTypeOfControl(CreateTypeOfControlDto dto)
+        {
+            var resultDto = await _typeOfControlService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetTypeOfControl), new { id = resultDto.IdTypeOfControl }, resultDto);
+        }
+
+        [HttpPut("UpdateTypeOfControl/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
+        public async Task<IActionResult> UpdateTypeOfControl(Guid id, UpdateTypeOfControlDto dto)
+        {
+            var (success, statusCode, errorMessage) = await _typeOfControlService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        [HttpDelete("DeleteTypeOfControl/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
+        public async Task<IActionResult> DeleteTypeOfControl(Guid id)
+        {
+            var (success, statusCode, errorMessage) = await _typeOfControlService.DeleteAsync(id);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        // -- Approval --
+
+        [HttpGet("Approvals")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
+        public async Task<ActionResult<IEnumerable<ApprovalDto>>> GetApprovals()
+        {
+            var result = await _approvalService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("Approval/{id}")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
+        public async Task<ActionResult<ApprovalDto>> GetApproval(Guid id)
+        {
+            var result = await _approvalService.GetByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateApproval")]
+        [RequirePermission(RbacPermissions.ParametersCreate)]
+        public async Task<ActionResult<ApprovalDto>> CreateApproval(CreateApprovalDto dto)
+        {
+            var resultDto = await _approvalService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetApproval), new { id = resultDto.IdApproval }, resultDto);
+        }
+
+        [HttpPut("UpdateApproval/{id}")]
+        [RequirePermission(RbacPermissions.ParametersUpdate)]
+        public async Task<IActionResult> UpdateApproval(Guid id, UpdateApprovalDto dto)
+        {
+            var (success, statusCode, errorMessage) = await _approvalService.UpdateAsync(id, dto);
+            if (!success)
+                return StatusCode(statusCode, new { message = errorMessage });
+            return NoContent();
+        }
+
+        [HttpDelete("DeleteApproval/{id}")]
+        [RequirePermission(RbacPermissions.ParametersDelete)]
+        public async Task<IActionResult> DeleteApproval(Guid id)
+        {
+            var (success, statusCode, errorMessage) = await _approvalService.DeleteAsync(id);
             if (!success)
                 return StatusCode(statusCode, new { message = errorMessage });
             return NoContent();

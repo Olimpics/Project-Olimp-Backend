@@ -50,6 +50,18 @@ namespace OlimpBack.Application.DTO
         public string Name { get; set; } = null!;
     }
 
+    public class TypeOfControlFilterDto
+    {
+        public Guid IdTypeOfControl { get; set; }
+        public string Type { get; set; } = null!;
+    }
+
+    public class ApprovalFilterDto
+    {
+        public Guid IdApproval { get; set; }
+        public string AppovalStatus { get; set; } = null!;
+    }
+
     public class SelectiveDisciplineFilterQueryDto
     {
         public int Page { get; set; } = 1;

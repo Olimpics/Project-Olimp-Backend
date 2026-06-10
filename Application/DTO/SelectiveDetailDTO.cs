@@ -35,8 +35,7 @@ namespace OlimpBack.Application.DTO
     // DTO  (POST/PUT)
     public class CreateSelectiveDetailDto
     {
-        public Guid? DepartmentId { get; set; }
-
+        
         // :  DTO  "" 
         public DetailContentDto Content { get; set; } = new();
     }

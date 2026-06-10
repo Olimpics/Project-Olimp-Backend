@@ -191,5 +191,55 @@ namespace OlimpBack.Controllers
 
             return Ok(templates);
         }
+
+        [HttpGet("types-of-control")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
+        public async Task<ActionResult<IEnumerable<TypeOfControlFilterDto>>> GetTypesOfControl([FromQuery] string? search = null)
+        {
+            var query = _context.TypeOfControls
+                .Select(t => new TypeOfControlFilterDto
+                {
+                    IdTypeOfControl = t.IdTypeOfControl,
+                    Type = t.Type
+                });
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.Trim().ToLower();
+                query = query.Where(t => 
+                    EF.Functions.Like(t.Type.ToLower(), $"%{searchLower}%"));
+            }
+
+            var types = await query
+                .OrderBy(t => t.Type)
+                .ToListAsync();
+
+            return Ok(types);
+        }
+
+        [HttpGet("approvals")]
+        [RequirePermission(RbacPermissions.ParametersRead)]
+        public async Task<ActionResult<IEnumerable<ApprovalFilterDto>>> GetApprovals([FromQuery] string? search = null)
+        {
+            var query = _context.Approvals
+                .Select(a => new ApprovalFilterDto
+                {
+                    IdApproval = a.IdApproval,
+                    AppovalStatus = a.AppovalStatus
+                });
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.Trim().ToLower();
+                query = query.Where(a => 
+                    EF.Functions.Like(a.AppovalStatus.ToLower(), $"%{searchLower}%"));
+            }
+
+            var approvals = await query
+                .OrderBy(a => a.AppovalStatus)
+                .ToListAsync();
+
+            return Ok(approvals);
+        }
     }
 }

@@ -170,7 +170,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.Faculty, opt => opt.MapFrom(src => src.Speciality.Department.Faculty.Abbreviation))
                 .ForMember(dest => dest.Speciality, opt => opt.MapFrom(src => src.Speciality.Name))
                 .ForMember(dest => dest.StudyForm, opt => opt.MapFrom(src => src.StudyForm.NameStudyForm))
-                .ForMember(dest => dest.IsAccelerated, opt => opt.MapFrom(src => src.IsAccelerated ? "Yes" : "No"));                ;
+                .ForMember(dest => dest.IsAccelerated, opt => opt.MapFrom(src => src.IsAccelerated ? "Yes" : "No"));                
 
             CreateMap<EducationalProgram, EducationalProgramFullDto>()
                 .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree.NameEducationalDegree))
@@ -324,6 +324,19 @@ namespace OlimpBack.MappingProfiles
             CreateMap<NotificationTemplate, NotificationTemplateDto>();
             CreateMap<CreateNotificationTemplateDto, NotificationTemplate>();
             CreateMap<UpdateNotificationTemplateDto, NotificationTemplate>();
+
+            //TypeOfControl
+            CreateMap<TypeOfControl, TypeOfControlDto>();
+            CreateMap<CreateTypeOfControlDto, TypeOfControl>();
+            CreateMap<UpdateTypeOfControlDto, TypeOfControl>();
+            CreateMap<TypeOfControl, TypeOfControlFilterDto>();
+
+            //Approval
+            CreateMap<Approval, ApprovalDto>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.Name));
+            CreateMap<CreateApprovalDto, Approval>();
+            CreateMap<UpdateApprovalDto, Approval>();
+            CreateMap<Approval, ApprovalFilterDto>();
 
             //Permission
             CreateMap<Permission, PermissionDto>()

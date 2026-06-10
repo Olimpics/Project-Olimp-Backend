@@ -357,6 +357,14 @@ builder.Services.AddScoped<INormativeService, NormativeService>();
 builder.Services.AddScoped<ITypeOfDisciplineRepository, TypeOfDisciplineRepository>();
 builder.Services.AddScoped<ITypeOfDisciplineService, TypeOfDisciplineService>();
 
+// TypeOfControl
+builder.Services.AddScoped<ITypeOfControlRepository, TypeOfControlRepository>();
+builder.Services.AddScoped<ITypeOfControlService, TypeOfControlService>();
+
+// Approval
+builder.Services.AddScoped<IApprovalRepository, ApprovalRepository>();
+builder.Services.AddScoped<IApprovalService, ApprovalService>();
+
 // Grade
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
 builder.Services.AddScoped<IGradeService, GradeService>();

@@ -486,10 +486,10 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         var discipline = await _disciplineTabRepository.GetDisciplineWithDetailEntityAsync(id);
         if (discipline == null) return (false, "Discipline not found");
 
-        if (dto.Details.DepartmentId.HasValue)
+        if (dto.DepartmentId.HasValue)
         {
-            if (!await _disciplineTabRepository.DepartmentExistsAsync(dto.Details.DepartmentId.Value))
-                return (false, $"Department with ID {dto.Details.DepartmentId.Value} does not exist");
+            if (!await _disciplineTabRepository.DepartmentExistsAsync(dto.DepartmentId.Value))
+                return (false, $"Department with ID {dto.DepartmentId.Value} does not exist");
         }
 
         if (discipline.SelectiveDetail == null)

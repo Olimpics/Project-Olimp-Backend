@@ -32,6 +32,7 @@ namespace OlimpBack.Application.DTO
         public bool? IsEven { get; set; }
         public Guid? DegreeLevelId { get; set; }
         public Guid? CatalogId { get; set; }
+        public Guid? DepartmentId { get; set; }
         public Guid? ApprovalStatusId { get; set; }
         public Guid? TypeOfControlId { get; set; }
     }
