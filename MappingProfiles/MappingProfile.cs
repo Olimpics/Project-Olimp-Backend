@@ -208,7 +208,10 @@ namespace OlimpBack.MappingProfiles
 
             //CatalogYearSelective
             CreateMap<CatalogYearsSelective, CatalogYearSelectiveDto>()
-                .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed));
+                .ForMember(dest => dest.IdCatalogYear, opt => opt.MapFrom(src => src.IdCatalogYearSelective))
+                .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed))
+                .ForMember(dest => dest.yearStart, opt => opt.MapFrom(src => src.YearStart))
+                .ForMember(dest => dest.yearEnd, opt => opt.MapFrom(src => src.YearEnd));
             CreateMap<CreateCatalogYearSelectiveDto, CatalogYearsSelective>();
             CreateMap<UpdateCatalogYearSelectiveDto, CatalogYearsSelective>();
 
@@ -256,7 +259,7 @@ namespace OlimpBack.MappingProfiles
                 .ForMember(dest => dest.NameSelectiveDisciplinesEng, opt => opt.MapFrom(src => src.details.NameSelectiveDisciplinesEng))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.discipline.Department.NameDepartment))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.details.Teachers))
-                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.details.Recommended))
+                .ForMember(dest => dest.Recommended, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.details.Recommended) ? System.Text.Json.JsonSerializer.Deserialize<FullDisciplineWithDetailsDto.RecommendedDto>(src.details.Recommended, (System.Text.Json.JsonSerializerOptions?)null) : null))
                 .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.details.Prerequisites))
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.details.Language))
                 .ForMember(dest => dest.Provision , opt => opt.MapFrom(src => src.details.Provision))
@@ -303,7 +306,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<SelectiveDetail, DetailContentDto>()
                 .ForMember(dest => dest.DisciplineTopics, opt => opt.MapFrom(src => src.DisciplineTopics))
                 .ForMember(dest => dest.Teacher, opt => opt.MapFrom(src => src.Teachers))
-                .ForMember(dest => dest.Recomend, opt => opt.MapFrom(src => src.Recommended));
+                .ForMember(dest => dest.Recommended, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.Recommended) ? System.Text.Json.JsonSerializer.Deserialize<FullDisciplineWithDetailsDto.RecommendedDto>(src.Recommended, (System.Text.Json.JsonSerializerOptions?)null) : null));
 
             CreateMap<SelectiveDetail, SelectiveDetailDto>()
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src));

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace OlimpBack.Application.Services;
 
@@ -16,15 +17,23 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
     private readonly IAdminDisciplineStudentListRepository _studentListRepository;
     private readonly IStudentChoiceCacheService _cacheService;
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
+    private readonly IDisciplineTabRepository _disciplineTabRepository;
 
     public DisciplineTabAdminService(
         IDisciplineTabAdminRepository repository,
         IAdminDisciplineStudentListRepository studentListRepository,
-        IStudentChoiceCacheService cacheService)
+        IStudentChoiceCacheService cacheService,
+        AppDbContext context,
+        IMapper mapper,
+        IDisciplineTabRepository disciplineTabRepository)
     {
         _repository = repository;
         _studentListRepository = studentListRepository;
         _cacheService = cacheService;
+        _context = context;
+        _mapper = mapper;
+        _disciplineTabRepository = disciplineTabRepository;
     }
 
     public async Task<PaginatedResponseDto<FullDisciplineDto>> GetAllDisciplinesAsync(GetAllDisciplinesAdminQueryDto queryDto)
@@ -439,5 +448,171 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
             })
             .OrderBy(x => x.StudentName)
             .ToList();
+    }
+
+    public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id) =>
+        await _disciplineTabRepository.GetDisciplineWithDetailsDtoAsync(id);
+
+    public async Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto)
+    {
+        var discipline = _mapper.Map<SelectiveDiscipline>(dto, opts => opts.Items["DbContext"] = _context);
+        var details = _mapper.Map<SelectiveDetail>(dto.Details);
+
+        discipline.IdSelectiveDisciplines = Guid.NewGuid();
+        details.IdSelectiveDetails = discipline.IdSelectiveDisciplines;
+        discipline.SelectiveDetail = details;
+
+        // Initial status
+        var initialStatus = await _context.Approvals.OrderBy(a => a.ApprobalLevel).FirstOrDefaultAsync();
+        if (initialStatus != null)
+        {
+            discipline.ApprovalStatusId = initialStatus.IdApproval;
+        }
+
+        await _disciplineTabRepository.SelectiveDisciplineAsync(discipline);
+        await _disciplineTabRepository.SaveChangesAsync();
+
+        // Sync teachers and bindings after we have the ID
+        await SyncTeachersAndBindingsAsync(discipline, dto.AdminIds, dto.Details.Content.Teacher);
+        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationBranches, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram);
+
+        await _disciplineTabRepository.SaveChangesAsync();
+
+        return await _disciplineTabRepository.GetDisciplineWithDetailsDtoAsync(discipline.IdSelectiveDisciplines);
+    }
+
+    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
+    {
+        var discipline = await _disciplineTabRepository.GetDisciplineWithDetailEntityAsync(id);
+        if (discipline == null) return (false, "Discipline not found");
+
+        if (dto.Details.DepartmentId.HasValue)
+        {
+            if (!await _disciplineTabRepository.DepartmentExistsAsync(dto.Details.DepartmentId.Value))
+                return (false, $"Department with ID {dto.Details.DepartmentId.Value} does not exist");
+        }
+
+        if (discipline.SelectiveDetail == null)
+        {
+            discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
+        }
+
+        _mapper.Map(dto, discipline, opts => opts.Items["DbContext"] = _context);
+
+        // Manual mapping for topics to handle indices
+        if (dto.Details.Content.ChangedTopicIndices != null && dto.Details.Content.ChangedTopicIndices.Any() && dto.Details.Content.DisciplineTopics != null)
+        {
+            var currentTopics = discipline.SelectiveDetail.DisciplineTopics ?? new List<string>();
+            foreach (var index in dto.Details.Content.ChangedTopicIndices)
+            {
+                if (index >= 0 && index < dto.Details.Content.DisciplineTopics.Count)
+                {
+                    var newTopic = dto.Details.Content.DisciplineTopics[index];
+                    if (index < currentTopics.Count)
+                        currentTopics[index] = newTopic;
+                    else
+                        currentTopics.Add(newTopic);
+                }
+            }
+            discipline.SelectiveDetail.DisciplineTopics = currentTopics;
+        }
+        else if (dto.Details.Content.DisciplineTopics != null)
+        {
+            discipline.SelectiveDetail.DisciplineTopics = dto.Details.Content.DisciplineTopics;
+        }
+
+        // Map other details fields except topics which we handled
+        var topicsTemp = discipline.SelectiveDetail.DisciplineTopics;
+        _mapper.Map(dto.Details.Content, discipline.SelectiveDetail);
+        discipline.SelectiveDetail.DisciplineTopics = topicsTemp;
+
+        await SyncTeachersAndBindingsAsync(discipline, dto.AdminIds, dto.Details.Content.Teacher);
+        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationBranches, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram);
+
+        await _disciplineTabRepository.SaveChangesAsync();
+
+        return (true, null);
+    }
+
+    private async Task SyncTeachersAndBindingsAsync(SelectiveDiscipline discipline, List<Guid>? adminIds, string? teachersText)
+    {
+        // Remove old bindings
+        var oldBindings = _context.BindTeachersSelectives.Where(b => b.SelectiveDisciplinesId == discipline.IdSelectiveDisciplines);
+        _context.BindTeachersSelectives.RemoveRange(oldBindings);
+
+        if (adminIds != null && adminIds.Any())
+        {
+            // Add new bindings
+            var newBindings = adminIds.Select((id, index) => new BindTeachersSelective
+            {
+                IdBindTeacherSelective = Guid.NewGuid(),
+                AdminId = id,
+                SelectiveDisciplinesId = discipline.IdSelectiveDisciplines,
+                IsHead = index == 0 // First element is Head
+            });
+            await _context.BindTeachersSelectives.AddRangeAsync(newBindings);
+        }
+
+        if (discipline.SelectiveDetail == null)
+        {
+            discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
+        }
+        discipline.SelectiveDetail.Teachers = teachersText;
+    }
+
+    private async Task SyncRecommendedJsonAndEpAsync(SelectiveDiscipline discipline, List<Guid>? branchIds, List<Guid>? specialtyIds, List<Guid>? epIds)
+    {
+        var recommendedEpIds = new HashSet<Guid>();
+        var recommendedJson = new Dictionary<string, object>();
+
+        if (branchIds != null && branchIds.Any())
+        {
+            var epsFromBranches = await _context.EducationalPrograms
+                .Where(ep => ep.Speciality.BranchId != Guid.Empty && branchIds.Contains(ep.Speciality.BranchId))
+                .Select(ep => ep.IdEducationalProgram)
+                .ToListAsync();
+            foreach (var id in epsFromBranches) recommendedEpIds.Add(id);
+            recommendedJson["Branches"] = branchIds;
+        }
+
+        if (specialtyIds != null && specialtyIds.Any())
+        {
+            var epsFromSpecs = await _context.EducationalPrograms
+                .Where(ep => specialtyIds.Contains(ep.SpecialityId))
+                .Select(ep => ep.IdEducationalProgram)
+                .ToListAsync();
+            foreach (var id in epsFromSpecs) recommendedEpIds.Add(id);
+            recommendedJson["Specialties"] = specialtyIds;
+        }
+
+        if (epIds != null && epIds.Any())
+        {
+            foreach (var id in epIds) recommendedEpIds.Add(id);
+
+            // Find similar groups for the specified EPs
+            var groupsForSpecifiedEps = await _context.BindSimilaEducationalProgramInGroups
+                .Where(b => epIds.Contains(b.EducationalProgramId))
+                .Select(b => b.GroupId)
+                .Distinct()
+                .ToListAsync();
+
+            if (groupsForSpecifiedEps.Any())
+            {
+                var similarEpIds = await _context.BindSimilaEducationalProgramInGroups
+                    .Where(b => groupsForSpecifiedEps.Contains(b.GroupId))
+                    .Select(b => b.EducationalProgramId)
+                    .ToListAsync();
+                foreach (var id in similarEpIds) recommendedEpIds.Add(id);
+            }
+
+            recommendedJson["EducationalPrograms"] = epIds;
+        }
+
+        discipline.RecommendedEp = recommendedEpIds.ToList();
+        if (discipline.SelectiveDetail == null)
+        {
+            discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
+        }
+        discipline.SelectiveDetail.Recommended = System.Text.Json.JsonSerializer.Serialize(recommendedJson);
     }
 }

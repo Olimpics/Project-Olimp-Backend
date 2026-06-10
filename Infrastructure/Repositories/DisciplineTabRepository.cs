@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OlimpBack.Application.DTO;
@@ -97,45 +98,55 @@ public class DisciplineTabRepository : IDisciplineTabRepository
 
     public async Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsDtoAsync(Guid id)
     {
-        return await _context.SelectiveDisciplines
-            .Where(d => d.IdSelectiveDisciplines == id)
-            .Select(d => new FullDisciplineWithDetailsDto
-            {
-                IdSelectiveDisciplines = d.IdSelectiveDisciplines,
-                NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
-                CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? "",
-                FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
-                MinCountPeople = d.MinCountPeople,
-                MaxCountPeople = d.MaxCountPeople,
-                Courses = d.Courses != null ? d.Courses.ToList() : new List<int>(),
-                IsEven = d.IsEven,
-                DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
-                NameSelectiveDisciplinesEng = d.SelectiveDetail != null ? d.SelectiveDetail.NameSelectiveDisciplinesEng : null,
-                DepartmentName = d.Department != null ? d.Department.NameDepartment : "",
-                Teacher = d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
-                Recomend = d.SelectiveDetail != null ? d.SelectiveDetail.Recommended : null,
-                Prerequisites = d.SelectiveDetail != null ? d.SelectiveDetail.Prerequisites : null,
-                Language = d.SelectiveDetail != null ? d.SelectiveDetail.Language : null,
-                Provision = d.SelectiveDetail != null ? d.SelectiveDetail.Provision : null,
-                WhyInterestingDetermination = d.SelectiveDetail != null ? d.SelectiveDetail.WhyInterestingDetermination : null,
-                ResultEducation = d.SelectiveDetail != null ? d.SelectiveDetail.ResultEducation : null,
-                UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
-                DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
-                TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
-                TypeOfControl = d.TypeOfControl != null ? d.TypeOfControl.Type : "",
-                CatalogId = d.CatalogId,
-                ApprovalStatusId = d.ApprovalStatusId,
-                TypeOfControlId = d.TypeOfControlId,
-                Feedback = d.Feedback,
-                IsForseChange = d.IsForseChange,
-                NameDock = d.NameDock,
-                Keys = d.Keys,
-                ApprovalStatus = d.ApprovalStatus != null ? d.ApprovalStatus.AppovalStatus : null,
-                NeedFix = d.NeedFix,
-                YearStart = d.Catalog != null ? d.Catalog.YearStart : 0,
-                YearEnd = d.Catalog != null ? d.Catalog.YearEnd : 0
-            })
-            .FirstOrDefaultAsync();
+        var d = await _context.SelectiveDisciplines
+            .Include(d => d.Department.Faculty)
+            .Include(d => d.DegreeLevel)
+            .Include(d => d.SelectiveDetail)
+            .Include(d => d.TypeOfControl)
+            .Include(d => d.ApprovalStatus)
+            .Include(d => d.Catalog)
+            .FirstOrDefaultAsync(d => d.IdSelectiveDisciplines == id);
+
+        if (d == null) return null;
+
+        return new FullDisciplineWithDetailsDto
+        {
+            IdSelectiveDisciplines = d.IdSelectiveDisciplines,
+            NameSelectiveDisciplines = d.NameSelectiveDisciplines ?? "",
+            CodeSelectiveDisciplines = d.CodeSelectiveDisciplines ?? "",
+            FacultyAbbreviation = d.Department.Faculty != null ? d.Department.Faculty.Abbreviation : null,
+            MinCountPeople = d.MinCountPeople,
+            MaxCountPeople = d.MaxCountPeople,
+            Courses = d.Courses != null ? d.Courses.ToList() : new List<int>(),
+            IsEven = d.IsEven,
+            DegreeLevelName = d.DegreeLevel != null ? d.DegreeLevel.NameEducationalDegree : "",
+            NameSelectiveDisciplinesEng = d.SelectiveDetail != null ? d.SelectiveDetail.NameSelectiveDisciplinesEng : null,
+            DepartmentName = d.Department != null ? d.Department.NameDepartment : "",
+            Teacher = d.SelectiveDetail != null ? d.SelectiveDetail.Teachers : null,
+            Recommended = !string.IsNullOrEmpty(d.SelectiveDetail?.Recommended) 
+                ? System.Text.Json.JsonSerializer.Deserialize<FullDisciplineWithDetailsDto.RecommendedDto>(d.SelectiveDetail.Recommended, (System.Text.Json.JsonSerializerOptions?)null) 
+                : null,
+            Prerequisites = d.SelectiveDetail != null ? d.SelectiveDetail.Prerequisites : null,
+            Language = d.SelectiveDetail != null ? d.SelectiveDetail.Language : null,
+            Provision = d.SelectiveDetail != null ? d.SelectiveDetail.Provision : null,
+            WhyInterestingDetermination = d.SelectiveDetail != null ? d.SelectiveDetail.WhyInterestingDetermination : null,
+            ResultEducation = d.SelectiveDetail != null ? d.SelectiveDetail.ResultEducation : null,
+            UsingIrl = d.SelectiveDetail != null ? d.SelectiveDetail.UsingIrl : null,
+            DisciplineTopics = d.SelectiveDetail != null ? d.SelectiveDetail.DisciplineTopics : null,
+            TypesOfTraining = d.SelectiveDetail != null ? d.SelectiveDetail.TypesOfTraining : "",
+            TypeOfControl = d.TypeOfControl != null ? d.TypeOfControl.Type : "",
+            CatalogId = d.CatalogId,
+            ApprovalStatusId = d.ApprovalStatusId,
+            TypeOfControlId = d.TypeOfControlId,
+            Feedback = d.Feedback,
+            IsForseChange = d.IsForseChange,
+            NameDock = d.NameDock,
+            Keys = d.Keys,
+            ApprovalStatus = d.ApprovalStatus != null ? d.ApprovalStatus.AppovalStatus : null,
+            NeedFix = d.NeedFix,
+            YearStart = d.Catalog != null ? d.Catalog.YearStart : 0,
+            YearEnd = d.Catalog != null ? d.Catalog.YearEnd : 0
+        };
     }
 
     public async Task<SelectiveDiscipline?> GetDisciplineWithDetailEntityAsync(Guid id) =>

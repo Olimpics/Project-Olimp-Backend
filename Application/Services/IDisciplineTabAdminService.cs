@@ -32,4 +32,8 @@ public interface IDisciplineTabAdminService
 
     /// <summary>Students (id and name) who still lack required add-discipline selections after the last completed choice period for the faculty.</summary>
     Task<List<StudentIdNameDto>> GetStudentsIncompleteAfterChoicePeriodAsync(Guid facultyId);
+
+    Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id);
+    Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto);
+    Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto);
 }

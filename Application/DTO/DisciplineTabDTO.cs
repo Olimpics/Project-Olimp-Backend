@@ -85,7 +85,7 @@ namespace OlimpBack.Application.DTO
         public string? NameSelectiveDisciplinesEng { get; set; }
         public string DepartmentName { get; set; } = null!;
         public string? Teacher { get; set; }
-        public string? Recomend { get; set; }
+        public RecommendedDto? Recommended { get; set; }
         public string? Prerequisites { get; set; }
         public string? Language { get; set; }
         public string? Provision  { get; set; }
@@ -105,6 +105,15 @@ namespace OlimpBack.Application.DTO
         public bool NeedFix { get; set; }
         public int YearStart { get; set; }
         public int YearEnd { get; set; }
+
+        public class RecommendedDto
+        {
+            public List<string> Branches { get; set; } = new();
+            public List<string> Specialties { get; set; } = new();
+
+            [System.Text.Json.Serialization.JsonPropertyName("EducationalPrograms")]
+            public List<string> EducationalProgram { get; set; } = new();
+        }
     }
 
 

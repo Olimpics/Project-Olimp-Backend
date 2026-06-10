@@ -136,5 +136,42 @@ namespace OlimpBack.Controllers
 
             return Ok(new { message = "Choice rejected and student notified successfully." });
         }
+
+        [HttpGet("GetDisciplineWithDetails/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> GetDisciplineWithDetails(Guid id)
+        {
+            var result = await _service.GetDisciplineWithDetailsAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpPost("CreateDisciplineWithDetails")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
+        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateSelectiveDisciplineWithDetailsDto dto)
+        {
+            var result = await _service.CreateDisciplineWithDetailsAsync(dto);
+            if (result == null)
+                return NotFound("Discipline details not found");
+            return CreatedAtAction(nameof(GetDisciplineWithDetails), new { id = result.IdSelectiveDisciplines }, result);
+        }
+
+        [HttpPut("UpdateDisciplineWithDetails/{id}")]
+        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
+        public async Task<IActionResult> UpdateDisciplineWithDetails(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
+        {
+            if (id != dto.IdSelectiveDisciplines)
+                return BadRequest();
+
+            var (success, error) = await _service.UpdateDisciplineWithDetailsAsync(id, dto);
+            if (!success)
+            {
+                if (error == "Discipline not found")
+                    return NotFound("Discipline not found");
+                return BadRequest(error);
+            }
+            return NoContent();
+        }
     }
 }

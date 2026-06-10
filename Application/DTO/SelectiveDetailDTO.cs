@@ -9,7 +9,7 @@ namespace OlimpBack.Application.DTO
     {
         public string? NameSelectiveDisciplinesEng { get; set; }
         public string? Teacher { get; set; }
-        public string? Recomend { get; set; }
+        public FullDisciplineWithDetailsDto.RecommendedDto? Recommended { get; set; }
         public string? Prerequisites { get; set; }
         public string? Language { get; set; }
         public string? Provision { get; set; }

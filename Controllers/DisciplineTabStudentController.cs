@@ -119,33 +119,6 @@ namespace OlimpBack.Controllers
             return Ok(result);
         }
 
-        [HttpPost("CreateDisciplineWithDetails")]
-        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<ActionResult<FullDisciplineWithDetailsDto>> CreateDisciplineWithDetails(CreateSelectiveDisciplineWithDetailsDto dto)
-        {
-            var result = await _service.CreateDisciplineWithDetailsAsync(dto);
-            if (result == null)
-                return NotFound("Discipline details not found");
-            return CreatedAtAction(nameof(GetDisciplineWithDetails), new { id = result.IdSelectiveDisciplines }, result);
-        }
-
-        [HttpPut("UpdateDisciplineWithDetails/{id}")]
-        [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<IActionResult> UpdateDisciplineWithDetails(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
-        {
-            if (id != dto.IdSelectiveDisciplines)
-                return BadRequest();
-
-            var (success, error) = await _service.UpdateDisciplineWithDetailsAsync(id, dto);
-            if (!success)
-            {
-                if (error == "Discipline not found")
-                    return NotFound("Discipline not found");
-                return BadRequest(error);
-            }
-            return NoContent();
-        }
-
         [HttpPut("UpdateApprovalStatus/{id}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
         public async Task<IActionResult> UpdateApprovalStatus(Guid id, [FromQuery] Guid statusId)

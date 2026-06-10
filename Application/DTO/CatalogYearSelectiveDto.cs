@@ -6,6 +6,9 @@ public class CatalogYearSelectiveDto
 {
     public Guid IdCatalogYear { get; set; }
     public string NameCatalog { get; set; } = null!;
+
+    public int yearStart { get; set; }
+    public int yearEnd { get; set; }
     public bool IsFormed { get; set; }
 }
 
