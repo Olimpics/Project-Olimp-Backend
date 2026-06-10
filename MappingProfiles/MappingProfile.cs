@@ -210,6 +210,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<CatalogYearsSelective, CatalogYearSelectiveDto>()
                 .ForMember(dest => dest.IdCatalogYear, opt => opt.MapFrom(src => src.IdCatalogYearSelective))
                 .ForMember(dest => dest.IsFormed, opt => opt.MapFrom(src => src.IsFormed))
+                .ForMember(dest => dest.NameCatalog, opt => opt.MapFrom(src => $"{src.YearStart}-{src.YearEnd}"))
                 .ForMember(dest => dest.yearStart, opt => opt.MapFrom(src => src.YearStart))
                 .ForMember(dest => dest.yearEnd, opt => opt.MapFrom(src => src.YearEnd));
             CreateMap<CreateCatalogYearSelectiveDto, CatalogYearsSelective>();
