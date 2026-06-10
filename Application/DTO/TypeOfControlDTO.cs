@@ -5,7 +5,7 @@ namespace OlimpBack.Application.DTO
     public class TypeOfControlDto
     {
         public Guid IdTypeOfControl { get; set; }
-        public string Type { get; set; } = null!;
+        public string typeOfControll { get; set; } = null!;
         public string? NameInDock { get; set; }
     }
 

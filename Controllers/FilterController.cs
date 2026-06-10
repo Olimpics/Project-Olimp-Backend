@@ -192,7 +192,7 @@ namespace OlimpBack.Controllers
             return Ok(templates);
         }
 
-        [HttpGet("types-of-control")]
+        [HttpGet("TypeOfControl")]
         [RequirePermission(RbacPermissions.ParametersRead)]
         public async Task<ActionResult<IEnumerable<TypeOfControlFilterDto>>> GetTypesOfControl([FromQuery] string? search = null)
         {
