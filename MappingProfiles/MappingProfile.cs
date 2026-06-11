@@ -116,9 +116,7 @@ namespace OlimpBack.MappingProfiles
             CreateMap<CreateSelectiveDisciplineWithDetailsDto, SelectiveDiscipline>()
                 .IncludeBase<CreateSelectiveDisciplineDto, SelectiveDiscipline>();
 
-            CreateMap<UpdateSelectiveDisciplineWithDetailsDto, SelectiveDiscipline>()
-                .IncludeBase<CreateSelectiveDisciplineDto, SelectiveDiscipline>();
-
+           
 
             // BindSelectiveDiscipline
             CreateMap<BindSelectiveDiscipline, BindSelectiveDisciplineDto>()

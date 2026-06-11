@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using System.Text.Json;
 
 namespace OlimpBack.Application.Services;
 
@@ -461,6 +462,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         discipline.IdSelectiveDisciplines = Guid.NewGuid();
         details.IdSelectiveDetails = discipline.IdSelectiveDisciplines;
         discipline.SelectiveDetail = details;
+        discipline.SelectiveDetail.Recommended = JsonSerializer.Serialize(dto.Details.Content.Recommended, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
         // Initial status
         var initialStatus = await _context.Approvals.FirstOrDefaultAsync(a => a.ApprobalLevel == 1);
@@ -480,14 +482,14 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
 
         // Sync teachers and bindings after we have the ID
         await SyncTeachersAndBindingsAsync(discipline, dto.AdminIds, dto.Details.Content.Teacher);
-        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationBranches, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram);
+        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationBranches, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram, dto.Details.Content.Recommended);
 
         await _disciplineTabRepository.SaveChangesAsync();
 
         return await _disciplineTabRepository.GetDisciplineWithDetailsDtoAsync(discipline.IdSelectiveDisciplines);
     }
-
-    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
+        
+    public async Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, CreateSelectiveDisciplineWithDetailsDto dto)
     {
         var discipline = await _disciplineTabRepository.GetDisciplineWithDetailEntityAsync(id);
         if (discipline == null) return (false, "Discipline not found");
@@ -533,7 +535,7 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         discipline.SelectiveDetail.DisciplineTopics = topicsTemp;
 
         await SyncTeachersAndBindingsAsync(discipline, dto.AdminIds, dto.Details.Content.Teacher);
-        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationBranches, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram);
+        await SyncRecommendedJsonAndEpAsync(discipline, dto.RecomendationBranches, dto.RecomendationSpeciality, dto.RecomendationEducationalProgram, dto.Details.Content.Recommended);
 
         await _disciplineTabRepository.SaveChangesAsync();
 
@@ -566,10 +568,9 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         discipline.SelectiveDetail.Teachers = teachersText;
     }
 
-    private async Task SyncRecommendedJsonAndEpAsync(SelectiveDiscipline discipline, List<Guid>? branchIds, List<Guid>? specialtyIds, List<Guid>? epIds)
+    private async Task SyncRecommendedJsonAndEpAsync(SelectiveDiscipline discipline, List<Guid>? branchIds, List<Guid>? specialtyIds, List<Guid>? epIds, FullDisciplineWithDetailsDto.RecommendedDto? recommendedNames)
     {
         var recommendedEpIds = new HashSet<Guid>();
-        var recommendedJson = new Dictionary<string, object>();
 
         if (branchIds != null && branchIds.Any())
         {
@@ -578,7 +579,6 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 .Select(ep => ep.IdEducationalProgram)
                 .ToListAsync();
             foreach (var id in epsFromBranches) recommendedEpIds.Add(id);
-            recommendedJson["Branches"] = branchIds;
         }
 
         if (specialtyIds != null && specialtyIds.Any())
@@ -588,7 +588,6 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                 .Select(ep => ep.IdEducationalProgram)
                 .ToListAsync();
             foreach (var id in epsFromSpecs) recommendedEpIds.Add(id);
-            recommendedJson["Specialties"] = specialtyIds;
         }
 
         if (epIds != null && epIds.Any())
@@ -610,8 +609,6 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
                     .ToListAsync();
                 foreach (var id in similarEpIds) recommendedEpIds.Add(id);
             }
-
-            recommendedJson["EducationalPrograms"] = epIds;
         }
 
         discipline.RecommendedEp = recommendedEpIds.ToList();
@@ -619,6 +616,11 @@ public class DisciplineTabAdminService : IDisciplineTabAdminService
         {
             discipline.SelectiveDetail = new SelectiveDetail { IdSelectiveDetails = discipline.IdSelectiveDisciplines };
         }
-        discipline.SelectiveDetail.Recommended = System.Text.Json.JsonSerializer.Serialize(recommendedJson);
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        discipline.SelectiveDetail.Recommended = JsonSerializer.Serialize(recommendedNames, options);
     }
 }

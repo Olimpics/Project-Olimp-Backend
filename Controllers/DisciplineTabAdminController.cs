@@ -159,11 +159,9 @@ namespace OlimpBack.Controllers
 
         [HttpPut("UpdateDisciplineWithDetails/{id}")]
         [RequirePermission(RbacPermissions.DisciplineTeachersPermission)]
-        public async Task<IActionResult> UpdateDisciplineWithDetails(Guid id, UpdateSelectiveDisciplineWithDetailsDto dto)
+        public async Task<IActionResult> UpdateDisciplineWithDetails(Guid id, CreateSelectiveDisciplineWithDetailsDto dto)
         {
-            if (id != dto.IdSelectiveDisciplines)
-                return BadRequest();
-
+            
             var (success, error) = await _service.UpdateDisciplineWithDetailsAsync(id, dto);
             if (!success)
             {

@@ -25,7 +25,6 @@ namespace OlimpBack.Application.DTO
     // DTO  (GET)
     public class SelectiveDetailDto : SelectiveDisciplineDto
     {
-        public Guid DepartmentId { get; set; }
         public string DepartmentName { get; set; } = null!;
 
         // :  DTO "" 
