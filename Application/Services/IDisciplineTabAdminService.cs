@@ -36,4 +36,6 @@ public interface IDisciplineTabAdminService
     Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id);
     Task<FullDisciplineWithDetailsDto?> CreateDisciplineWithDetailsAsync(CreateSelectiveDisciplineWithDetailsDto dto);
     Task<(bool success, string? error)> UpdateDisciplineWithDetailsAsync(Guid id, CreateSelectiveDisciplineWithDetailsDto dto);
+    Task<(bool success, string? error)> UpdateDisciplineApprovalStatusAsync(Guid id, UpdateApprovalStatusDto dto);
+    Task<(bool success, string? error)> UpdateDisciplineStatusAsync(Guid id, Guid statusId);
 }

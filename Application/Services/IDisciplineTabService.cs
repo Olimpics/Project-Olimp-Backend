@@ -15,6 +15,4 @@ public interface IDisciplineTabService
     Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id);
     Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId);
     Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId);
-    Task<(bool success, string? error)> UpdateDisciplineApprovalStatusAsync(Guid id, UpdateApprovalStatusDto dto);
-    Task<(bool success, string? error)> UpdateDisciplineStatusAsync(Guid id, Guid statusId);
 }
