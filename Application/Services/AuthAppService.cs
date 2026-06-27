@@ -72,7 +72,7 @@ public class AuthAppService : IAuthAppService
         if (passwordStatus.HasValue)
             return (null, null, null, passwordStatus, passwordError);
 
-        var forceIsAdmin = model.IsAdmin ?? await _repository.HasAdminProfileAsync(user.IdUser);
+        var forceIsAdmin = model.IsAdmin ?? user.IsAdmin;
         return await BuildLoginResultAsync(user, forceIsAdmin);
     }
 
@@ -87,7 +87,7 @@ public class AuthAppService : IAuthAppService
         var permissionsDb = await GetUserPermissionsAsync(roles);
         var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUser);
 
-        var isAdmin = forceIsAdmin ?? IsAdminRole(primaryRole);
+        var isAdmin = forceIsAdmin ?? user.IsAdmin;
 
         UserLoginResponseDto dbResponse;
         if (isAdmin)
@@ -154,7 +154,7 @@ public class AuthAppService : IAuthAppService
         var permissionsMask = await _repository.GetUserPermissionsMaskAsync(user.IdUser);
 
         object? response;
-        if (IsAdminRole(primaryRole))
+        if (user.IsAdmin)
         {
             var admin = await _repository.GetAdminProfileAsync(user.IdUser);
             if (admin == null)

@@ -38,7 +38,7 @@ public class PeriodResultProcessingService : IPeriodResultProcessingService
 
         var duePeriods = await _context.DisciplineChoicePeriods
             .Where(p => p.ResultsProcessedAt == null
-                        && (p.CheckPeriodStopped || p.EndOfCheckPeriod < today))
+                        && (p.EndOfCheckPeriod < today))
             .Select(p => p.IdDisciplineChoicePeriod)
             .ToListAsync();
 
@@ -100,7 +100,7 @@ public class PeriodResultProcessingService : IPeriodResultProcessingService
             }
         }
 
-        period.ResultsProcessedAt = DateOnly.FromDateTime(DateTime.UtcNow);
+        period.ResultsProcessedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         // Selection is over for this period: drop now-stale caches.

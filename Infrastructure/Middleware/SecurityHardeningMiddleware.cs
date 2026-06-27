@@ -24,7 +24,7 @@ public class SecurityHardeningMiddleware
         var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
         // 1. Global IP Rate Limiting
-        if (!await rateLimitService.IsAllowedAsync($"ip:{ipAddress}", 100, TimeSpan.FromMinutes(1)))
+        if (!await rateLimitService.IsAllowedAsync($"ip:{ipAddress}", 600, TimeSpan.FromMinutes(1)))
         {
             _logger.LogWarning("IP {IP} exceeded global rate limit", ipAddress);
             context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
@@ -36,7 +36,7 @@ public class SecurityHardeningMiddleware
         var userIdStr = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!string.IsNullOrEmpty(userIdStr))
         {
-            if (!await rateLimitService.IsAllowedAsync($"user:{userIdStr}", 50, TimeSpan.FromMinutes(1)))
+            if (!await rateLimitService.IsAllowedAsync($"user:{userIdStr}", 300, TimeSpan.FromMinutes(1)))
             {
                 _logger.LogWarning("User {UserId} exceeded rate limit", userIdStr);
                 context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;

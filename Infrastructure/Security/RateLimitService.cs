@@ -17,18 +17,34 @@ public class RateLimitService : IRateLimitService
     {
         var cacheKey = $"ratelimit:{key}";
         
-        var count = _cache.GetOrCreate(cacheKey, entry =>
+        if (!_cache.TryGetValue(cacheKey, out RateLimitCounter? counter) || counter == null || counter.Expiry <= DateTime.UtcNow)
         {
-            entry.AbsoluteExpirationRelativeToNow = window;
-            return 0;
-        });
+            counter = new RateLimitCounter
+            {
+                Count = 0,
+                Expiry = DateTime.UtcNow.Add(window)
+            };
+        }
 
-        if (count >= limit)
+        if (counter.Count >= limit)
         {
             return Task.FromResult(false);
         }
 
-        _cache.Set(cacheKey, count + 1, window);
+        counter.Count++;
+        
+        var remaining = counter.Expiry - DateTime.UtcNow;
+        if (remaining > TimeSpan.Zero)
+        {
+            _cache.Set(cacheKey, counter, remaining);
+        }
+        
         return Task.FromResult(true);
+    }
+
+    private class RateLimitCounter
+    {
+        public int Count { get; set; }
+        public DateTime Expiry { get; set; }
     }
 }

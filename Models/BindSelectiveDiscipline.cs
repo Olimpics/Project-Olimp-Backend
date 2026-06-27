@@ -32,6 +32,10 @@ public partial class BindSelectiveDiscipline
 
     public Guid IdBindSelectiveDisciplines { get; set; }
 
+    public bool IsRejected { get; set; }
+
+    public Guid? PeriodId { get; set; }
+
     public virtual SelectiveDiscipline SelectiveDiscipline { get; set; } = null!;
 
     public virtual Student Student { get; set; } = null!;

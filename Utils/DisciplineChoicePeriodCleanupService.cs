@@ -82,7 +82,7 @@ public class DisciplineChoicePeriodCleanupService : BackgroundService
 
             foreach (var period in periodsToCheckFinished)
             {
-                bool isEven = period.PeriodType.Length > 0 && period.PeriodType[0];
+                bool isEven = period.PeriodType;
 
                 var disciplines = await context.SelectiveDisciplines
                     .Where(d => d.DepartmentId == period.DepartmentId 

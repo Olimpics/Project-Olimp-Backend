@@ -35,10 +35,10 @@ using OlimpBack.Hubs;
 using OlimpBack.Infrastructure.Realtime;
 using OlimpBack.Infrastructure.Repositories;
 
-Environment.SetEnvironmentVariable(
-    "ASPNETCORE_ENVIRONMENT",
-    "Development"
-);
+//Environment.SetEnvironmentVariable(
+//    "ASPNETCORE_ENVIRONMENT",
+//    "Development"
+//);
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5154");

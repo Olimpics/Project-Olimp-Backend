@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 
 namespace OlimpBack.Models;
 
 public partial class DisciplineChoicePeriod
 {
-    public BitArray PeriodType { get; set; } = null!;
+    public bool PeriodType { get; set; }
 
     public int PeriodCourse { get; set; }
 
@@ -35,6 +34,8 @@ public partial class DisciplineChoicePeriod
     public Guid? ParentId { get; set; }
 
     public bool IsConfirm { get; set; }
+
+    public DateTime? ResultsProcessedAt { get; set; }
 
     public virtual CatalogYear CatalogYear { get; set; } = null!;
 

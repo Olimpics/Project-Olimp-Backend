@@ -11,3 +11,5 @@ Dockerfile*
 
 **/bin/
 **/obj/
+
+**/*.Development.json
