@@ -114,12 +114,12 @@ public class AuthController : ControllerBase
         };
 
         Response.Cookies.Append("AuthToken", jwt, cookieOpts);
-        Response.Cookies.Append("UserInfo",
-            JsonSerializer.Serialize(dbResponse),
-            cookieOpts);
-        Response.Cookies.Append("UserPermissions",
-            JsonSerializer.Serialize(permissionsDb),
-            cookieOpts);
+        //Response.Cookies.Append("UserInfo",
+        //    JsonSerializer.Serialize(dbResponse),
+        //    cookieOpts);
+        //Response.Cookies.Append("UserPermissions",
+        //    JsonSerializer.Serialize(permissionsDb),
+        //    cookieOpts);
         Response.Cookies.Append("UserPermissionsMask",
             dbResponse.PermissionsMask.ToString(),
             cookieOpts);

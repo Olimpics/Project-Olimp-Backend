@@ -41,7 +41,6 @@ using OlimpBack.Infrastructure.Repositories;
 //);
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://0.0.0.0:5154");
 
 
 // Add services
@@ -425,8 +424,41 @@ builder.Services.AddHostedService<DisciplineChoicePeriodCleanupService>();
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices
+        .GetRequiredService<ILogger<Program>>();
+
+    logger.LogInformation(
+        "Request started: {Method} {Path}",
+        context.Request.Method,
+        context.Request.Path);
+
+    try
+    {
+        await next();
+
+        logger.LogInformation(
+            "Request finished: {Method} {Path}, StatusCode: {StatusCode}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Response.StatusCode);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex,
+            "Request failed: {Method} {Path}",
+            context.Request.Method,
+            context.Request.Path);
+
+        throw;
+    }
+});
+
 var env = builder.Environment.EnvironmentName;
 Console.WriteLine(env);
+Console.WriteLine("Версия 3.1.0");
+
 
 
 //Process.Start(new ProcessStartInfo
@@ -444,25 +476,38 @@ app.Urls.Clear();
 
 app.Logger.LogWarning($"Environment: {app.Environment.EnvironmentName}");
 
+// ========================================================
+// ИСПРАВЛЕННЫЙ КОНВЕЙЕР ОБРАБОТКИ ЗАПРОСОВ
+// ========================================================
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Olimp API v1");
 });
 
-app.UseHttpsRedirection();
+// ❌ ЗАКОММЕНТИРУЙ ИЛИ УДАЛИ ЭТУ СТРОКУ:
+// app.UseHttpsRedirection(); // Внутри контейнера нет HTTPS, это ломало запросы редиректом
 
-Console.WriteLine("CS = " + builder.Configuration.GetConnectionString("DefaultConnection"));
+Console.WriteLine("CS Test 4 = " + builder.Configuration.GetConnectionString("DefaultConnection"));
 
+// 1️⃣ Сначала ВСЕГДА идет маршрутизация
+app.UseRouting();
+
+// 2️⃣ Затем СТРОГО ТУТ идет CORS (после маршрутизации, но до авторизации)
 app.UseCors("AllowFrontend");
 
-app.UseRouting();
+// 3️⃣ Твоя кастомная защита (безопаснее выполнять после CORS)
 app.UseMiddleware<SecurityHardeningMiddleware>();
 
+// 4️⃣ Проверка подлинности (JWT токен)
 app.UseAuthentication();
 app.UseMiddleware<PermissionMiddleware>();
+
+// 5️⃣ Проверка прав доступа
 app.UseAuthorization();
 
+// 6️⃣ Конечные точки (Контроллеры и SignalR)
 app.MapControllers();
 app.MapHub<EncryptedChatHub>("/hubs/chat");
 
