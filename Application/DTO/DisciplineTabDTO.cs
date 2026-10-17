@@ -153,4 +153,85 @@ namespace OlimpBack.Application.DTO
         public int YearStart { get; set; }
         public int YearEnd { get; set; }
     }
+
+    // ── Student's own selective disciplines ──────────────────────────────────
+
+    /// <summary>
+    /// Query parameters to fetch a student's own bound selective disciplines.
+    /// </summary>
+    public class StudentOwnSelectiveDisciplinesQueryDto
+    {
+        public Guid StudentId { get; set; }
+        /// <summary>Optional filter: limit to specific catalog year IDs (CatalogYearsSelective).</summary>
+        public List<Guid>? CatalogYearIds { get; set; }
+    }
+
+    /// <summary>
+    /// A single entry in a student's bound selective discipline list.
+    /// </summary>
+    public class StudentOwnSelectiveDisciplineItemDto
+    {
+        public Guid BindId { get; set; }
+        public Guid SelectiveDisciplineId { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Code { get; set; }
+        public int Semestr { get; set; }
+        public int? Loans { get; set; }
+        public int Grade { get; set; }
+        public bool InProcess { get; set; }
+        public bool IsRejected { get; set; }
+        public Guid CatalogYearId { get; set; }
+        public int CatalogYearStart { get; set; }
+        public int CatalogYearEnd { get; set; }
+        public string? DepartmentName { get; set; }
+        public string? FacultyAbbreviation { get; set; }
+    }
+
+    /// <summary>
+    /// Wraps the student's selective discipline list grouped by catalog year.
+    /// </summary>
+    public class StudentOwnSelectiveDisciplinesDto
+    {
+        public Guid StudentId { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string SecondName { get; set; } = string.Empty;
+        public string ThirdName { get; set; } = string.Empty;
+        public string StudentName => $"{SecondName} {FirstName} {ThirdName}".Trim();
+        public List<StudentOwnSelectiveDisciplineItemDto> SelectiveDisciplines { get; set; } = new();
+    }
+
+    // ── Educational program (main disciplines) with student grades ────────────
+
+    /// <summary>
+    /// A main discipline entry enriched with the student's grade.
+    /// </summary>
+    public class MainDisciplineWithGradeDto
+    {
+        public Guid IdMainDisciplines { get; set; }
+        public string Code { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public int Semestr { get; set; }
+        public double? Loans { get; set; }
+        public int? Hours { get; set; }
+        public string? TypeOfControlName { get; set; }
+        /// <summary>Null when the student has no grade yet.</summary>
+        public int? Grade { get; set; }
+        public bool? IsRedo { get; set; }
+    }
+
+    /// <summary>
+    /// Educational program main-discipline list grouped by semester, with student grades.
+    /// </summary>
+    public class StudentEducationalProgramWithGradesDto
+    {
+        public Guid StudentId { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string SecondName { get; set; } = string.Empty;
+        public string ThirdName { get; set; } = string.Empty;
+        public string StudentName => $"{SecondName} {FirstName} {ThirdName}".Trim();
+        public Guid EducationalProgramId { get; set; }
+        public string EducationalProgramName { get; set; } = null!;
+        /// <summary>Semester number → disciplines in that semester.</summary>
+        public Dictionary<int, List<MainDisciplineWithGradeDto>> DisciplinesBySemester { get; set; } = new();
+    }
 }

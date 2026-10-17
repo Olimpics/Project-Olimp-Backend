@@ -118,5 +118,32 @@ namespace OlimpBack.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Returns a student's own bound selective disciplines, optionally filtered by CatalogYearsSelective IDs.
+        /// </summary>
+        [HttpGet("GetMySelectiveDisciplines")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
+        public async Task<ActionResult<StudentOwnSelectiveDisciplinesDto>> GetMySelectiveDisciplines(
+            [FromQuery] StudentOwnSelectiveDisciplinesQueryDto query)
+        {
+            var result = await _service.GetStudentSelectiveDisciplinesAsync(query);
+            if (result == null)
+                return NotFound(new { message = $"Student {query.StudentId} not found." });
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Returns the educational program's main disciplines for a student, enriched with their personal grades.
+        /// </summary>
+        [HttpGet("GetMyEducationalProgram/{studentId}")]
+        [RequirePermission(RbacPermissions.DisciplineRead)]
+        public async Task<ActionResult<StudentEducationalProgramWithGradesDto>> GetMyEducationalProgram(Guid studentId)
+        {
+            var result = await _service.GetStudentEducationalProgramWithGradesAsync(studentId);
+            if (result == null)
+                return NotFound(new { message = $"Student {studentId} not found." });
+            return Ok(result);
+        }
     }
 }

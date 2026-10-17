@@ -221,4 +221,12 @@ public class DisciplineTabService : IDisciplineTabService
 
     public async Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId) =>
         await _repository.RemoveDisciplineFromSimilarityGroupAsync(disciplineId, groupId);
+
+    public async Task<StudentOwnSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(
+        StudentOwnSelectiveDisciplinesQueryDto query) =>
+        await _repository.GetStudentSelectiveDisciplinesAsync(query);
+
+    public async Task<StudentEducationalProgramWithGradesDto?> GetStudentEducationalProgramWithGradesAsync(
+        Guid studentId) =>
+        await _repository.GetStudentEducationalProgramWithGradesAsync(studentId);
 }

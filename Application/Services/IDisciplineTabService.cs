@@ -15,4 +15,6 @@ public interface IDisciplineTabService
     Task<FullDisciplineWithDetailsDto?> GetDisciplineWithDetailsAsync(Guid id);
     Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId);
     Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId);
+    Task<StudentOwnSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(StudentOwnSelectiveDisciplinesQueryDto query);
+    Task<StudentEducationalProgramWithGradesDto?> GetStudentEducationalProgramWithGradesAsync(Guid studentId);
 }

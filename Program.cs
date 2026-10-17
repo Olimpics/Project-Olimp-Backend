@@ -324,6 +324,9 @@ builder.Services.AddScoped<IEducationStatusService, EducationStatusService>();
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<IFacultyService, FacultyService>();
 
+//Favorite
+builder.Services.AddScoped<IFavoriteDisciplineService, FavoriteDisciplineService>();
+
 // Filter
 builder.Services.AddScoped<IFilterRepository, FilterRepository>();
 builder.Services.AddScoped<IFilterService, FilterService>();
@@ -457,7 +460,7 @@ app.Use(async (context, next) =>
 
 var env = builder.Environment.EnvironmentName;
 Console.WriteLine(env);
-Console.WriteLine("Версия 3.1.0");
+Console.WriteLine("Version 3.1.1");
 
 
 
@@ -489,7 +492,7 @@ app.UseSwaggerUI(c =>
 // ❌ ЗАКОММЕНТИРУЙ ИЛИ УДАЛИ ЭТУ СТРОКУ:
 // app.UseHttpsRedirection(); // Внутри контейнера нет HTTPS, это ломало запросы редиректом
 
-Console.WriteLine("CS Test 4 = " + builder.Configuration.GetConnectionString("DefaultConnection"));
+//Console.WriteLine("CS Test 4 = " + builder.Configuration.GetConnectionString("DefaultConnection"));
 
 // 1️⃣ Сначала ВСЕГДА идет маршрутизация
 app.UseRouting();

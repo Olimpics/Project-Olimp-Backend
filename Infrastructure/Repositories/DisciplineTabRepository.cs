@@ -24,6 +24,8 @@ public interface IDisciplineTabRepository
     Task AddBindAsync(BindSelectiveDiscipline bind);
     Task<List<SimilarDisciplineGroupDto>> GetSimilarDisciplinesAsync(Guid disciplineId);
     Task<bool> RemoveDisciplineFromSimilarityGroupAsync(Guid disciplineId, Guid groupId);
+    Task<StudentOwnSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(StudentOwnSelectiveDisciplinesQueryDto query);
+    Task<StudentEducationalProgramWithGradesDto?> GetStudentEducationalProgramWithGradesAsync(Guid studentId);
     Task SaveChangesAsync();
 }
 
@@ -200,6 +202,122 @@ public class DisciplineTabRepository : IDisciplineTabRepository
         _context.BindSimilarSelectiveInGroups.Remove(bind);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<StudentOwnSelectiveDisciplinesDto?> GetStudentSelectiveDisciplinesAsync(
+        StudentOwnSelectiveDisciplinesQueryDto query)
+    {
+        var student = await _context.Students
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.IdStudent == query.StudentId);
+
+        if (student == null) return null;
+
+        var bindsQuery = _context.BindSelectiveDisciplines
+            .AsNoTracking()
+            .Where(b => b.StudentId == query.StudentId)
+            .Include(b => b.SelectiveDiscipline)
+                .ThenInclude(d => d.Catalog)
+            .Include(b => b.SelectiveDiscipline)
+                .ThenInclude(d => d.Department)
+                    .ThenInclude(dept => dept.Faculty)
+            .Include(b => b.Year)
+            .AsQueryable();
+
+        // Filter by CatalogYearsSelective IDs (the selective catalog, not the global CatalogYear)
+        if (query.CatalogYearIds != null && query.CatalogYearIds.Any())
+            bindsQuery = bindsQuery.Where(b => query.CatalogYearIds.Contains(b.SelectiveDiscipline.CatalogId));
+
+        var binds = await bindsQuery.ToListAsync();
+
+        var items = binds.Select(b => new StudentOwnSelectiveDisciplineItemDto
+        {
+            BindId                = b.IdBindSelectiveDisciplines,
+            SelectiveDisciplineId = b.SelectiveDisciplineId,
+            Name                  = b.SelectiveDiscipline.NameSelectiveDisciplines,
+            Code                  = b.SelectiveDiscipline.CodeSelectiveDisciplines,
+            Semestr               = b.Semestr,
+            Loans                 = b.Loans,
+            Grade                 = b.Grade,
+            InProcess             = b.InProcess,
+            IsRejected            = b.IsRejected,
+            CatalogYearId         = b.SelectiveDiscipline.CatalogId,
+            CatalogYearStart      = b.SelectiveDiscipline.Catalog.YearStart,
+            CatalogYearEnd        = b.SelectiveDiscipline.Catalog.YearEnd,
+            DepartmentName        = b.SelectiveDiscipline.Department?.NameDepartment,
+            FacultyAbbreviation   = b.SelectiveDiscipline.Department?.Faculty?.Abbreviation
+        }).ToList();
+
+        return new StudentOwnSelectiveDisciplinesDto
+        {
+            StudentId            = student.IdStudent,
+            FirstName            = student.FirstName,
+            SecondName           = student.SecondName ?? string.Empty,
+            ThirdName            = student.ThirdName ?? string.Empty,
+            SelectiveDisciplines = items
+        };
+    }
+
+    public async Task<StudentEducationalProgramWithGradesDto?> GetStudentEducationalProgramWithGradesAsync(Guid studentId)
+    {
+        var student = await _context.Students
+            .AsNoTracking()
+            .Include(s => s.Group)
+                .ThenInclude(g => g.EducationalProgram)
+                    .ThenInclude(ep => ep.MainDisciplines)
+                        .ThenInclude(md => md.TypeOfControlNavigation)
+            .FirstOrDefaultAsync(s => s.IdStudent == studentId);
+
+        if (student == null) return null;
+
+        var ep = student.Group.EducationalProgram;
+
+        // Load all grade binds for this student in a single round-trip
+        var gradesByDisciplineId = await _context.BindMainDisciplines
+            .AsNoTracking()
+            .Where(b => b.StudentId == studentId)
+            .ToListAsync();
+
+        // Index: disciplineId -> latest bind (take highest grade in case of redo)
+        var gradeMap = gradesByDisciplineId
+            .GroupBy(b => b.MainDisciplinesId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderByDescending(b => b.Grade).First());
+
+        var disciplinesBySemester = ep.MainDisciplines
+            .OrderBy(md => md.Semestr)
+            .ThenBy(md => md.CodeMainDisciplines)
+            .GroupBy(md => md.Semestr)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(md =>
+                {
+                    gradeMap.TryGetValue(md.IdMainDisciplines, out var bind);
+                    return new MainDisciplineWithGradeDto
+                    {
+                        IdMainDisciplines = md.IdMainDisciplines,
+                        Code              = md.CodeMainDisciplines,
+                        Name              = md.NameMainDisciplines,
+                        Semestr           = md.Semestr,
+                        Loans             = md.Loans,
+                        Hours             = md.Hours,
+                        TypeOfControlName = md.TypeOfControlNavigation?.Type,
+                        Grade             = bind?.Grade,
+                        IsRedo            = bind?.IsRedo
+                    };
+                }).ToList());
+
+        return new StudentEducationalProgramWithGradesDto
+        {
+            StudentId              = student.IdStudent,
+            FirstName              = student.FirstName,
+            SecondName             = student.SecondName ?? string.Empty,
+            ThirdName              = student.ThirdName ?? string.Empty,
+            EducationalProgramId   = ep.IdEducationalProgram,
+            EducationalProgramName = ep.NameEducationalProgram,
+            DisciplinesBySemester  = disciplinesBySemester
+        };
     }
 
     public async Task SaveChangesAsync() =>
